@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: rsi-monitor
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: RSI_LOGIN
+        sync: false
+      - key: RSI_PASSWORD
+        sync: false
