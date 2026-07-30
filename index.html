@@ -114,6 +114,9 @@
   .p-price { display:flex; align-items:flex-start; gap:12px; padding:10px 14px 8px; }
   .p-price .big { font-size:26px; font-weight:600; line-height:1.1; }
   .p-price .side { font-size:12.5px; text-align:right; margin-left:auto; line-height:1.7; }
+  #charts { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:10px; padding:4px 14px 10px; }
+  .chart-box .cap { font-size:12px; color:var(--muted); margin:0 0 4px 2px; }
+  .chart-host { height:240px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bghead2); }
   table.ind { width:100%; border-collapse:collapse; font-size:12.5px; }
   table.ind th { background:var(--bghead2); color:var(--muted); font-weight:600; padding:6px 9px; text-align:center; }
   table.ind th.l { text-align:left; padding-left:14px; }
@@ -198,6 +201,7 @@
         <span class="big mono" id="pPrice">—</span>
         <span class="side"><span class="mono" id="pChg">—</span><br>вер. пробоя <span class="mono" id="pProb" style="font-weight:600;">—</span></span>
       </div>
+      <div id="charts"></div>
       <table class="ind">
         <thead><tr><th class="l">Индикатор</th><th>1h</th><th>2h</th><th>4h</th></tr></thead>
         <tbody>
@@ -393,9 +397,64 @@ document.getElementById("heads").addEventListener("click", e => {
   render();
 });
 
+const TV_CHARTS = [
+  {label:"RSI (14) · 1h", interval:"60",  study:"RSI@tv-basicstudies"},
+  {label:"RSI (14) · 2h", interval:"120", study:"RSI@tv-basicstudies"},
+  {label:"RSI (14) · 4h", interval:"240", study:"RSI@tv-basicstudies"},
+  {label:"Stochastic (14,3,3) · 4h", interval:"240", study:"Stochastic@tv-basicstudies"},
+];
+let tvScript = null;
+let userClosedPanel = false;
+
+function loadTv() {
+  if (tvScript) return tvScript;
+  tvScript = new Promise(res => {
+    const s = document.createElement("script");
+    s.src = "https://s3.tradingview.com/tv.js";
+    s.onload = res;
+    s.onerror = res;
+    document.head.appendChild(s);
+  });
+  return tvScript;
+}
+
+async function buildCharts(sym) {
+  const wrap = document.getElementById("charts");
+  wrap.innerHTML = TV_CHARTS.map((c, i) =>
+    '<div class="chart-box"><div class="cap">' + c.label + '</div><div class="chart-host" id="tvc' + i + '"></div></div>'
+  ).join("");
+  await loadTv();
+  if (typeof TradingView === "undefined") {
+    wrap.innerHTML = '<div class="p-txt">Графики TradingView не загрузились (нет интернета?)</div>';
+    return;
+  }
+  const theme = document.body.classList.contains("light") ? "light" : "dark";
+  TV_CHARTS.forEach((c, i) => {
+    if (!document.getElementById("tvc" + i)) return;
+    new TradingView.widget({
+      container_id: "tvc" + i,
+      autosize: true,
+      symbol: "BINANCE:" + sym,
+      interval: c.interval,
+      timezone: "Etc/UTC",
+      theme: theme,
+      style: "1",
+      locale: "ru",
+      hide_top_toolbar: true,
+      hide_legend: true,
+      hide_side_toolbar: true,
+      allow_symbol_change: false,
+      save_image: false,
+      withdateranges: false,
+      studies: [c.study],
+    });
+  });
+}
+
 function openPanel(sym) {
   const c = COINS.find(x => x.sym === sym);
   if (!c) return;
+  const changed = selectedSym !== sym;
   selectedSym = sym;
   const s = statusOf(c.rsi4h);
   document.getElementById("pSym").innerHTML = c.base + '<span style="color:var(--sym2);font-weight:400;">/USDT</span>';
@@ -414,13 +473,27 @@ function openPanel(sym) {
   document.getElementById("pTv").href = "https://www.tradingview.com/chart/?symbol=BINANCE:" + c.sym;
   document.getElementById("panel").classList.remove("hidden");
   document.getElementById("rz").classList.remove("hidden");
+  if (changed) buildCharts(c.sym);
   render();
 }
 function closePanel() {
   document.getElementById("panel").classList.add("hidden");
   document.getElementById("rz").classList.add("hidden");
   selectedSym = null;
+  userClosedPanel = true;
   render();
+}
+
+function autoOpenPanel() {
+  if (userClosedPanel) return;
+  if (selectedSym && COINS.find(x => x.sym === selectedSym)) return;
+  selectedSym = null;
+  let best = null, bestProb = -1;
+  COINS.forEach(c => {
+    const p = statusOf(c.rsi4h).prob;
+    if (p > bestProb) { bestProb = p; best = c; }
+  });
+  if (best) openPanel(best.sym);
 }
 document.getElementById("pClose").addEventListener("click", closePanel);
 document.addEventListener("keydown", e => { if (e.key === "Escape") closePanel(); });
@@ -470,6 +543,10 @@ document.getElementById("btnFav").addEventListener("click", () => {
     const t = document.body.classList.contains("light") ? "dark" : "light";
     store.set("rsi_theme", t);
     apply(t);
+    if (selectedSym && !document.getElementById("panel").classList.contains("hidden")) {
+      const c = COINS.find(x => x.sym === selectedSym);
+      if (c) buildCharts(c.sym);
+    }
   });
 })();
 
@@ -493,6 +570,7 @@ async function refresh(force) {
     mb.className = "badge-mode live";
     document.getElementById("btnOut").style.display = "";
     render();
+    autoOpenPanel();
   } catch (err) {
     if (!live) {
       document.getElementById("modeBadge").textContent = "демо-данные (сервер недоступен)";
@@ -508,6 +586,7 @@ document.getElementById("btnRefresh").addEventListener("click", () => refresh(tr
 setInterval(() => { if (document.getElementById("autoChk").checked) refresh(false); }, 5 * 60 * 1000);
 
 render();
+autoOpenPanel();
 refresh(false);
 </script>
 </body>

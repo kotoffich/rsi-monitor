@@ -11,6 +11,7 @@
 
 Запуск:  python server.py  ->  http://127.0.0.1:8080
 """
+import hashlib
 import json
 import os
 import secrets
@@ -61,8 +62,17 @@ AUTH = _load_auth()
 if AUTH is None:
     print("ВНИМАНИЕ: логин/пароль не заданы (auth.json или RSI_LOGIN/RSI_PASSWORD) — сайт открыт без входа")
 
-SESSIONS = set()
+# Токен сессии не хранится в памяти, а вычисляется из логина и пароля:
+# перезапуск сервера не разлогинивает, смена пароля — разлогинивает всех.
+SESSION_TOKEN = None if AUTH is None else hashlib.sha256(
+    (AUTH["login"] + ":" + AUTH["password"] + ":rsi-monitor-salt-v1").encode()
+).hexdigest()
 COOKIE = "rsi_session"
+
+
+def _is_authed(request: Request) -> bool:
+    token = request.cookies.get(COOKIE)
+    return bool(token and SESSION_TOKEN and secrets.compare_digest(token, SESSION_TOKEN))
 
 LOGIN_HTML = """<!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8">
@@ -186,8 +196,7 @@ async def auth_guard(request: Request, call_next):
     path = request.url.path
     if AUTH is None or path == "/login" or path == "/favicon.ico":
         return await call_next(request)
-    token = request.cookies.get(COOKIE)
-    if token and token in SESSIONS:
+    if _is_authed(request):
         return await call_next(request)
     if path.startswith("/api"):
         return JSONResponse({"error": "нужен вход"}, status_code=401)
@@ -196,8 +205,7 @@ async def auth_guard(request: Request, call_next):
 
 @app.get("/login")
 def login_page(request: Request):
-    token = request.cookies.get(COOKIE)
-    if AUTH is None or (token and token in SESSIONS):
+    if AUTH is None or _is_authed(request):
         return RedirectResponse("/")
     return HTMLResponse(LOGIN_HTML)
 
@@ -211,18 +219,15 @@ async def login_post(request: Request):
     if AUTH and \
        secrets.compare_digest(str(data.get("login", "")), AUTH["login"]) and \
        secrets.compare_digest(str(data.get("password", "")), AUTH["password"]):
-        token = secrets.token_urlsafe(32)
-        SESSIONS.add(token)
         resp = JSONResponse({"ok": True})
-        resp.set_cookie(COOKIE, token, max_age=30 * 24 * 3600,
+        resp.set_cookie(COOKIE, SESSION_TOKEN, max_age=30 * 24 * 3600,
                         httponly=True, samesite="lax")
         return resp
     return JSONResponse({"ok": False}, status_code=401)
 
 
 @app.get("/logout")
-def logout(request: Request):
-    SESSIONS.discard(request.cookies.get(COOKIE))
+def logout():
     resp = RedirectResponse("/login")
     resp.delete_cookie(COOKIE)
     return resp
