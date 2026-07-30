@@ -41,6 +41,7 @@
   .btn:hover { background:var(--bghov); }
   .btn.on { border-color:var(--amberbar); color:var(--amber); }
   .auto { display:flex; align-items:center; gap:6px; padding:0 18px 10px; font-size:13px; color:var(--text2); }
+  .auto select { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:3px 8px; font-size:12.5px; }
   .demo-banner { display:none; background:var(--chip-near); color:var(--amber); border-top:1px solid var(--amberbar);
                  border-bottom:1px solid var(--amberbar); padding:10px 18px; font-size:14px; font-weight:600; text-align:center; }
 
@@ -149,7 +150,16 @@
     <button class="btn" id="btnTheme" title="Светлая/тёмная тема">☀</button>
     <button class="btn" id="btnOut" style="display:none;" title="Выйти">⎋</button>
   </div>
-  <div class="auto"><input type="checkbox" id="autoChk" checked> авто-обновление каждые 5 минут</div>
+  <div class="auto">
+    <input type="checkbox" id="autoChk" checked> авто-обновление
+    <select id="intSel">
+      <option value="5">каждые 5 сек</option>
+      <option value="10">каждые 10 сек</option>
+      <option value="30">каждые 30 сек</option>
+      <option value="60">каждую минуту</option>
+      <option value="300">каждые 5 минут</option>
+    </select>
+  </div>
   <div class="demo-banner" id="demoBanner">⚠ Это публичная демонстрация дизайна: цифры в таблице выдуманные. Живой сайт с реальными данными работает отдельно и защищён паролем.</div>
 
   <div class="cardswrap">
@@ -588,7 +598,18 @@ async function refresh(force) {
 }
 
 document.getElementById("btnRefresh").addEventListener("click", () => refresh(true));
-setInterval(() => { if (document.getElementById("autoChk").checked) refresh(false); }, 5 * 60 * 1000);
+
+let autoTimer = null;
+function setupAutoRefresh() {
+  if (autoTimer) clearInterval(autoTimer);
+  const sec = parseInt(document.getElementById("intSel").value, 10) || 60;
+  store.set("rsi_interval", sec);
+  autoTimer = setInterval(() => { if (document.getElementById("autoChk").checked) refresh(false); }, sec * 1000);
+}
+document.getElementById("intSel").value = String(store.get("rsi_interval", 60));
+if (!document.getElementById("intSel").value) document.getElementById("intSel").value = "60";
+document.getElementById("intSel").addEventListener("change", setupAutoRefresh);
+setupAutoRefresh();
 
 render();
 autoOpenPanel();

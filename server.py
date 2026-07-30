@@ -26,7 +26,7 @@ from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
 BASE_DIR = Path(__file__).parent
 COIN_SCAN_URL = "https://scanner.tradingview.com/coin/scan"    # рейтинг монет
 PAIR_SCAN_URL = "https://scanner.tradingview.com/crypto/scan"  # данные пар Binance
-CACHE_TTL = 60          # сек; чаще TradingView не дёргаем
+CACHE_TTL = 10          # сек; чаще TradingView не дёргаем
 TOP_N = 100
 RANK_POOL = 200         # сколько монет рейтинга берём с запасом (не все есть на Binance)
 
