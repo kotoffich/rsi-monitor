@@ -62,10 +62,40 @@ AUTH = _load_auth()
 if AUTH is None:
     print("ВНИМАНИЕ: логин/пароль не заданы (auth.json или RSI_LOGIN/RSI_PASSWORD) — сайт открыт без входа")
 
-# Токен сессии не хранится в памяти, а вычисляется из логина и пароля:
-# перезапуск сервера не разлогинивает, смена пароля — разлогинивает всех.
+def _code_version() -> str:
+    """Версия кода: git-коммит (или отпечаток файлов, если git недоступен).
+
+    Токен сессии включает эту версию, поэтому каждое обновление кода
+    разлогинивает всех — по ссылке снова запрашивается пароль.
+    """
+    v = os.environ.get("RENDER_GIT_COMMIT")  # на Render версия приходит из окружения
+    if v:
+        return v
+    try:
+        import subprocess
+        r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=BASE_DIR,
+                           capture_output=True, text=True, timeout=5)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except Exception:
+        pass
+    try:
+        m = hashlib.sha256()
+        for name in ("server.py", "index.html"):
+            p = BASE_DIR / name
+            if p.exists():
+                m.update(p.read_bytes())
+        return m.hexdigest()
+    except Exception:
+        return "v1"
+
+
+APP_VERSION = _code_version()
+
+# Токен сессии не хранится в памяти, а вычисляется из логина, пароля и версии кода:
+# перезапуск сервера не разлогинивает; обновление кода или смена пароля — разлогинивает всех.
 SESSION_TOKEN = None if AUTH is None else hashlib.sha256(
-    (AUTH["login"] + ":" + AUTH["password"] + ":rsi-monitor-salt-v1").encode()
+    (AUTH["login"] + ":" + AUTH["password"] + ":" + APP_VERSION + ":rsi-monitor-salt-v1").encode()
 ).hexdigest()
 COOKIE = "rsi_session"
 
