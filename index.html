@@ -5,92 +5,127 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RSI Монитор</title>
 <style>
+  :root {
+    --bg:#1b1b1f; --bg2:#232327; --bg3:#232329; --bghead:#222226; --bghead2:#26262b; --bghov:#222228;
+    --border:#2c2c33; --border2:#3a3a42; --line:#29292f;
+    --text:#e6e6e9; --text2:#a8a8b0; --muted:#8a8a94; --faint:#6f6f78; --sym2:#7a7a84;
+    --red:#f09090; --redbar:#e05c5c; --green:#8ecf90; --amber:#e8bd6d; --amberbar:#d9a03f; --graybar:#5a5a64;
+    --purple:#8b84e8; --sel:rgba(96,88,214,.16); --selbar:#7c74e0; --accent:#4f9cf7;
+    --z-dn:rgba(224,92,92,.13); --z-up:rgba(95,174,99,.13); --z-near:rgba(217,160,63,.13);
+    --chip-dn:rgba(224,92,92,.14); --chip-up:rgba(95,174,99,.15); --chip-near:rgba(217,160,63,.15);
+    --panelbg:#1f1f24; --panelborder:#34343c;
+  }
+  body.light {
+    --bg:#f2f3f6; --bg2:#ffffff; --bg3:#ffffff; --bghead:#e8eaef; --bghead2:#eceef2; --bghov:#eef0f5;
+    --border:#d7dae1; --border2:#c5c9d3; --line:#e4e6eb;
+    --text:#1d1e23; --text2:#4a4d56; --muted:#6b6e79; --faint:#8e919b; --sym2:#8e919b;
+    --red:#c03434; --redbar:#d9534f; --green:#2e7d32; --amber:#9a6b13; --amberbar:#e0a23c; --graybar:#b9bcc4;
+    --purple:#5a52c7; --sel:rgba(96,88,214,.12); --selbar:#7c74e0; --accent:#2478d4;
+    --z-dn:rgba(217,83,79,.12); --z-up:rgba(46,125,50,.12); --z-near:rgba(224,162,60,.16);
+    --chip-dn:rgba(217,83,79,.13); --chip-up:rgba(46,125,50,.13); --chip-near:rgba(224,162,60,.18);
+    --panelbg:#fafbfd; --panelborder:#d7dae1;
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#1b1b1f; color:#e6e6e9; font:15px/1.45 "Segoe UI", system-ui, sans-serif; }
+  body { background:var(--bg); color:var(--text); font:15px/1.45 "Segoe UI", system-ui, sans-serif; }
   .mono { font-family: Consolas, "Cascadia Mono", monospace; }
-  .app { min-height:100vh; display:flex; flex-direction:column; background:#1b1b1f; }
+  .app { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); }
 
   .hdr { display:flex; align-items:center; gap:10px; padding:14px 18px 8px; flex-wrap:wrap; }
-  .hdr .logo { color:#4f9cf7; font-size:20px; }
+  .hdr .logo { color:var(--accent); font-size:20px; }
   .hdr h1 { font-size:19px; font-weight:600; }
-  .hdr .sub { color:#8a8a94; font-size:13px; }
+  .hdr .sub { color:var(--muted); font-size:13px; }
   .hdr .sp { flex:1; }
-  .badge-mode { font-size:12px; padding:3px 10px; border-radius:10px; background:rgba(217,160,63,.15); color:#e8bd6d; }
-  .badge-mode.live { background:rgba(95,174,99,.15); color:#8ecf90; }
-  .btn { background:#232329; border:1px solid #3a3a42; color:#dcdce2; border-radius:8px; padding:7px 15px; font-size:13.5px; cursor:pointer; }
-  .btn:hover { background:#2b2b33; }
-  .auto { display:flex; align-items:center; gap:6px; padding:0 18px 10px; font-size:13px; color:#a8a8b0; }
+  .badge-mode { font-size:12px; padding:3px 10px; border-radius:10px; background:var(--chip-near); color:var(--amber); }
+  .badge-mode.live { background:var(--chip-up); color:var(--green); }
+  .btn { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:7px 15px; font-size:13.5px; cursor:pointer; }
+  .btn:hover { background:var(--bghov); }
+  .btn.on { border-color:var(--amberbar); color:var(--amber); }
+  .auto { display:flex; align-items:center; gap:6px; padding:0 18px 10px; font-size:13px; color:var(--text2); }
 
   .cardswrap { display:flex; flex:1; align-items:stretch; }
   .leftcol { flex:1; min-width:0; }
   .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:4px 18px 12px; }
-  .card { background:#232327; border-radius:9px; padding:12px 16px; }
+  .card { background:var(--bg2); border-radius:9px; padding:12px 16px; }
   .card .lbl { font-size:13px; margin-bottom:3px; }
   .card .val { font-size:26px; font-weight:600; }
-  .card .val small { font-size:13px; color:#8a8a94; font-weight:400; }
 
   .filters { display:flex; align-items:center; gap:8px; padding:0 18px 12px; flex-wrap:wrap; }
-  .filters input { background:#232329; border:1px solid #3a3a42; color:#dcdce2; border-radius:8px; padding:7px 13px; font-size:13.5px; width:190px; }
-  .filters input::placeholder { color:#6f6f78; }
+  .filters input { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:7px 13px; font-size:13.5px; width:190px; }
+  .filters input::placeholder { color:var(--faint); }
   .chip { font-size:12.5px; padding:4px 13px; border-radius:12px; cursor:pointer; border:1px solid transparent; }
-  .chip.dn { background:rgba(224,92,92,.14); color:#f09090; }
-  .chip.up { background:rgba(95,174,99,.15); color:#8ecf90; }
-  .chip.near { background:rgba(217,160,63,.15); color:#e8bd6d; }
-  .chip.all { border-color:#5a5a64; color:#e6e6e9; font-weight:600; }
-  .chip.on { border-color:#e6e6e9; }
-  .sort { margin-left:auto; font-size:12.5px; color:#8a8a94; }
+  .chip.dn { background:var(--chip-dn); color:var(--red); }
+  .chip.up { background:var(--chip-up); color:var(--green); }
+  .chip.near { background:var(--chip-near); color:var(--amber); }
+  .chip.all { border-color:var(--border2); color:var(--text); font-weight:600; }
+  .chip.on { border-color:var(--text); }
+  .sort { margin-left:auto; font-size:12.5px; color:var(--muted); }
 
   table.coins { width:100%; border-collapse:collapse; font-size:13.5px; }
-  table.coins th { background:#222226; color:#9a9aa2; font-weight:600; padding:9px 8px; text-align:right; white-space:nowrap; }
-  table.coins th:first-child { width:28px; text-align:center; }
+  table.coins th { background:var(--bghead); color:var(--muted); font-weight:600; padding:9px 8px; text-align:right; white-space:nowrap; }
   table.coins th.l { text-align:left; }
-  table.coins td { padding:9px 8px; border-top:1px solid #29292f; text-align:right; white-space:nowrap; }
+  table.coins th.sortable { cursor:pointer; }
+  table.coins th.sortable:hover { color:var(--text); }
+  table.coins th .arr { color:var(--accent); }
+  table.coins td { padding:9px 8px; border-top:1px solid var(--line); text-align:right; white-space:nowrap; }
   table.coins td.l { text-align:left; }
   table.coins tr.row { cursor:pointer; }
-  table.coins tr.row:hover { background:#222228; }
-  tr.sel { background:rgba(96,88,214,.16) !important; box-shadow:inset 3px 0 0 #7c74e0; }
+  table.coins tr.row:hover { background:var(--bghov); }
+  tr.sel { background:var(--sel) !important; box-shadow:inset 3px 0 0 var(--selbar); }
+  tr.pinned td { border-top:1px solid var(--border2); }
+  td.ico { text-align:center; width:58px; }
+  td.ico span { cursor:pointer; opacity:.3; font-size:14px; padding:0 3px; }
+  td.ico span:hover { opacity:.8; }
+  td.ico span.on { opacity:1; }
+  td.ico .fav.on { color:#e0a23c; }
   .sym { font-weight:600; }
-  .sym span { color:#7a7a84; font-weight:400; }
+  .sym span { color:var(--sym2); font-weight:400; }
   .st { font-size:12px; display:block; margin-top:2px; }
-  .st.dn { color:#f09090; } .st.up { color:#8ecf90; } .st.near { color:#e8bd6d; }
+  .st.dn { color:var(--red); } .st.up { color:var(--green); } .st.near { color:var(--amber); }
   td.spark { text-align:center; }
   td.spark svg { width:68px; height:20px; display:inline-block; vertical-align:middle; }
-  .pos { color:#8ecf90; } .neg { color:#f09090; } .mut { color:#8a8a94; }
+  td.spark polyline { stroke:var(--purple); }
+  .pos { color:var(--green); } .neg { color:var(--red); } .mut { color:var(--muted); }
   td.rsi { font-family:Consolas, monospace; }
-  .z-dn { background:rgba(224,92,92,.13); color:#f09090; }
-  .z-up { background:rgba(95,174,99,.13); color:#8ecf90; }
-  .z-near { background:rgba(217,160,63,.13); color:#e8bd6d; }
-  .tv-sell { color:#f09090; } .tv-buy { color:#8ecf90; } .tv-neu { color:#8a8a94; }
+  .z-dn { background:var(--z-dn); color:var(--red); }
+  .z-up { background:var(--z-up); color:var(--green); }
+  .z-near { background:var(--z-near); color:var(--amber); }
+  .tv-sell { color:var(--red); } .tv-buy { color:var(--green); } .tv-neu { color:var(--muted); }
   .prob { display:flex; align-items:center; gap:7px; min-width:120px; }
-  .prob .bar { flex:1; height:5px; background:#2e2e35; border-radius:3px; overflow:hidden; }
+  .prob .bar { flex:1; height:5px; background:var(--line); border-radius:3px; overflow:hidden; }
   .prob .bar i { display:block; height:5px; border-radius:3px; }
-  .lnk { color:#4f9cf7; text-decoration:none; font-size:14px; }
-  .more { text-align:center !important; color:#6f6f78; font-size:12.5px; }
+  .bar i.hi { background:var(--redbar); } .bar i.mid { background:var(--amberbar); } .bar i.lo { background:var(--graybar); }
+  .c-hi { color:var(--red); } .c-mid { color:var(--amber); } .c-lo { color:var(--muted); }
+  .lnk { color:var(--accent); text-decoration:none; font-size:14px; }
+  .more { text-align:center !important; color:var(--faint); font-size:12.5px; }
 
-  .panel { width:348px; flex:none; background:#1f1f24; border-left:1px solid #34343c; display:flex; flex-direction:column; }
+  .rz { width:6px; flex:none; cursor:col-resize; background:transparent; }
+  .rz:hover, .rz.drag { background:var(--selbar); }
+  .rz.hidden { display:none; }
+
+  .panel { width:348px; min-width:300px; flex:none; background:var(--panelbg); border-left:1px solid var(--panelborder); display:flex; flex-direction:column; }
   .panel.hidden { display:none; }
-  .p-hd { display:flex; align-items:center; gap:8px; padding:11px 14px; border-bottom:1px solid #2c2c33; }
-  .p-hd .x { margin-left:auto; color:#8a8a94; cursor:pointer; font-size:15px; }
+  .p-hd { display:flex; align-items:center; gap:8px; padding:11px 14px; border-bottom:1px solid var(--border); }
+  .p-hd .x { margin-left:auto; color:var(--muted); cursor:pointer; font-size:15px; }
   .p-badge { font-size:12px; padding:2px 9px; border-radius:9px; }
-  .pb-dn { background:rgba(224,92,92,.14); color:#f09090; }
-  .pb-up { background:rgba(95,174,99,.15); color:#8ecf90; }
-  .pb-near { background:rgba(217,160,63,.15); color:#e8bd6d; }
-  .pb-neu { background:#26262b; color:#8a8a94; }
+  .pb-dn { background:var(--chip-dn); color:var(--red); }
+  .pb-up { background:var(--chip-up); color:var(--green); }
+  .pb-near { background:var(--chip-near); color:var(--amber); }
+  .pb-neu { background:var(--bghead2); color:var(--muted); }
   .p-price { display:flex; align-items:flex-start; gap:12px; padding:10px 14px 8px; }
   .p-price .big { font-size:26px; font-weight:600; line-height:1.1; }
   .p-price .side { font-size:12.5px; text-align:right; margin-left:auto; line-height:1.7; }
   table.ind { width:100%; border-collapse:collapse; font-size:12.5px; }
-  table.ind th { background:#26262b; color:#9a9aa2; font-weight:600; padding:6px 9px; text-align:center; }
+  table.ind th { background:var(--bghead2); color:var(--muted); font-weight:600; padding:6px 9px; text-align:center; }
   table.ind th.l { text-align:left; padding-left:14px; }
-  table.ind td { padding:6px 9px; border-top:1px solid #29292f; text-align:center; font-family:Consolas, monospace; }
+  table.ind td { padding:6px 9px; border-top:1px solid var(--line); text-align:center; font-family:Consolas, monospace; }
   table.ind td.l { text-align:left; padding-left:14px; font-family:inherit; }
-  .m { color:#f09090; font-weight:600; } .p { color:#8ecf90; font-weight:600; }
-  tr.sum td { background:#26262b; font-weight:600; }
-  .p-txt { padding:10px 14px; font-size:12.5px; color:#a8a8b0; line-height:1.55; }
+  .m { color:var(--red); font-weight:600; } .p { color:var(--green); font-weight:600; }
+  tr.sum td { background:var(--bghead2); font-weight:600; }
+  .p-txt { padding:10px 14px; font-size:12.5px; color:var(--text2); line-height:1.55; }
   .p-foot { display:flex; gap:8px; padding:2px 14px 14px; margin-top:auto; }
   .p-foot .btn { flex:1; font-size:12.5px; text-align:center; text-decoration:none; }
 
-  .foot { display:flex; gap:18px; padding:9px 18px; border-top:1px solid #2c2c33; font-size:12.5px; color:#6f6f78; flex-wrap:wrap; }
+  .foot { display:flex; gap:18px; padding:9px 18px; border-top:1px solid var(--border); font-size:12.5px; color:var(--faint); flex-wrap:wrap; }
 </style>
 </head>
 <body>
@@ -98,24 +133,26 @@
   <div class="hdr">
     <span class="logo">◭</span>
     <h1>RSI Монитор</h1>
-    <span class="sub" id="srcLabel">TradingView · 4h</span>
+    <span class="sub">TradingView · 4h</span>
     <span class="badge-mode" id="modeBadge">демо-данные</span>
     <span class="sp"></span>
     <button class="btn" id="btnRefresh">⟳ Обновить</button>
+    <button class="btn" id="btnFav" title="Показать избранное">★ Избранное</button>
     <button class="btn" onclick="alert('Настройка индикаторов появится на следующем шаге')">⛭ Индикаторы</button>
     <button class="btn" onclick="alert('Управление списком монет появится на следующем шаге')">◎ Монеты</button>
-    <button class="btn" onclick="alert('Настройки появятся на следующем шаге')">⚙ Настройки</button>
-    <button class="btn" onclick="alert('Уведомления появятся на следующем шаге')">🔔</button>
+    <button class="btn" onclick="alert('Настройки появятся на следующем шаге')">⚙</button>
+    <button class="btn" id="btnTheme" title="Светлая/тёмная тема">☀</button>
+    <button class="btn" id="btnOut" style="display:none;" title="Выйти">⎋</button>
   </div>
   <div class="auto"><input type="checkbox" id="autoChk" checked> авто-обновление каждые 5 минут</div>
 
   <div class="cardswrap">
     <div class="leftcol">
       <div class="cards">
-        <div class="card"><div class="lbl" style="color:#f09090;">Пробои вниз</div><div class="val" id="cDn">0</div></div>
-        <div class="card"><div class="lbl" style="color:#8ecf90;">Пробои вверх</div><div class="val" id="cUp">0</div></div>
-        <div class="card"><div class="lbl" style="color:#e8bd6d;">Подходят</div><div class="val" id="cNear">0</div></div>
-        <div class="card"><div class="lbl" style="color:#8a8a94;">Обновлено</div><div class="val" id="cTime">—</div></div>
+        <div class="card"><div class="lbl" style="color:var(--red);">Пробои вниз</div><div class="val" id="cDn">0</div></div>
+        <div class="card"><div class="lbl" style="color:var(--green);">Пробои вверх</div><div class="val" id="cUp">0</div></div>
+        <div class="card"><div class="lbl" style="color:var(--amber);">Подходят</div><div class="val" id="cNear">0</div></div>
+        <div class="card"><div class="lbl" style="color:var(--muted);">Обновлено</div><div class="val" id="cTime">—</div></div>
       </div>
       <div class="filters">
         <input placeholder="Поиск монеты…" id="q">
@@ -123,17 +160,33 @@
         <span class="chip up" data-f="up">Пробои ↑</span>
         <span class="chip near" data-f="near">Подходят</span>
         <span class="chip all on" data-f="all">Все</span>
-        <span class="sort">сортировка: вероятность ↓</span>
+        <span class="sort" id="sortLabel">сортировка: вероятность ↓</span>
       </div>
       <table class="coins">
-        <thead><tr>
-          <th>#</th><th class="l">Монета</th><th>Цена $</th><th>Δ 24ч</th><th>Δ 7д</th><th>Объём</th>
-          <th>RSI 1h</th><th>RSI 2h</th><th>RSI 4h</th><th>Stoch 4h</th><th>MACD 4h</th><th>Волат.</th>
-          <th>Рейтинг TV</th><th style="text-align:center;">Тренд RSI</th><th class="l" style="padding-left:12px;">Вер. пробоя</th><th></th>
+        <thead><tr id="heads">
+          <th style="width:58px;"></th>
+          <th style="width:28px; text-align:center;">#</th>
+          <th class="l sortable" data-k="base">Монета</th>
+          <th class="sortable" data-k="price">Цена $</th>
+          <th class="sortable" data-k="change24h">Δ 24ч</th>
+          <th class="sortable" data-k="chg7d">Δ 7д</th>
+          <th>Объём</th>
+          <th class="sortable" data-k="rsi1h">RSI 1h</th>
+          <th class="sortable" data-k="rsi2h">RSI 2h</th>
+          <th class="sortable" data-k="rsi4h">RSI 4h</th>
+          <th class="sortable" data-k="stoch">Stoch 4h</th>
+          <th>MACD 4h</th>
+          <th>Волат.</th>
+          <th>Рейтинг TV</th>
+          <th style="text-align:center;">Тренд RSI</th>
+          <th class="l sortable" data-k="prob" style="padding-left:12px;">Вер. пробоя</th>
+          <th></th>
         </tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
+
+    <div class="rz hidden" id="rz" title="Потяни, чтобы изменить ширину панели"></div>
 
     <aside class="panel hidden" id="panel">
       <div class="p-hd">
@@ -157,7 +210,7 @@
           <tr class="sum"><td class="l">Сумма плюсов</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
         </tbody>
       </table>
-      <div class="p-txt" id="pTxt">Пока подключён только RSI 4h. Остальные индикаторы и графики добавим следующим шагом.</div>
+      <div class="p-txt" id="pTxt">Пока подключён только RSI 4h. Остальные индикаторы и графики добавим следующим шагом — панель уже можно растягивать за левый край.</div>
       <div class="p-foot">
         <a class="btn" id="pTv" href="#" target="_blank" rel="noopener">Открыть на TradingView ↗</a>
       </div>
@@ -187,8 +240,20 @@ const DEMO = [
 let COINS = DEMO.slice();
 let live = false;
 let filterMode = "all";
+let favOnly = false;
 let query = "";
 let selectedSym = null;
+let SORT = {key:"prob", dir:-1};
+
+const store = {
+  get(k, dflt) { try { const v = localStorage.getItem(k); return v == null ? dflt : JSON.parse(v); } catch (e) { return dflt; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+};
+const FAVS = new Set(store.get("rsi_favs", []));
+const PINS = new Set(store.get("rsi_pins", []));
+
+const SORT_NAMES = {base:"монета", price:"цена", change24h:"Δ 24ч", chg7d:"Δ 7д",
+  rsi1h:"RSI 1h", rsi2h:"RSI 2h", rsi4h:"RSI 4h", stoch:"Stoch 4h", prob:"вероятность"};
 
 function statusOf(rsi) {
   if (rsi == null) return {kind:"", label:"", prob:0, dir:""};
@@ -208,10 +273,7 @@ function fmtPrice(p) {
   if (p >= 1) return p.toFixed(2);
   return p.toPrecision(4);
 }
-function fmtPct(v) {
-  if (v == null) return "—";
-  return (v > 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%";
-}
+function fmtPct(v) { return v == null ? "—" : (v > 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%"; }
 function pctClass(v) { return v == null ? "mut" : v >= 0 ? "pos" : "neg"; }
 function zone(v, lo, hi) {
   if (v == null) return "";
@@ -232,14 +294,30 @@ function ratingClass(r) {
 function sparkSvg(pts) {
   if (!pts) return '<span class="mut">—</span>';
   const s = pts.map((y, i) => (i * 60 / (pts.length - 1)).toFixed(0) + "," + y).join(" ");
-  return '<svg viewBox="0 0 60 20"><polyline points="' + s + '" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg>';
+  return '<svg viewBox="0 0 60 20"><polyline points="' + s + '" fill="none" stroke-width="1.5"/></svg>';
+}
+function probLevel(p) { return p >= 75 ? "hi" : p >= 40 ? "mid" : "lo"; }
+
+function sortVal(x, key) {
+  if (key === "prob") return x.s.prob;
+  const v = x.c[key];
+  return v == null ? null : v;
+}
+
+function updateHeads() {
+  document.querySelectorAll("#heads th.sortable").forEach(th => {
+    const k = th.getAttribute("data-k");
+    th.querySelectorAll(".arr").forEach(a => a.remove());
+    if (k === SORT.key) th.insertAdjacentHTML("beforeend", ' <span class="arr">' + (SORT.dir < 0 ? "↓" : "↑") + '</span>');
+  });
+  document.getElementById("sortLabel").textContent =
+    "сортировка: " + (SORT_NAMES[SORT.key] || SORT.key) + (SORT.dir < 0 ? " ↓" : " ↑");
 }
 
 function render() {
   const tb = document.getElementById("rows");
   const q = query.trim().toUpperCase();
-  let list = COINS.map(c => ({c, s: statusOf(c.rsi4h)}));
-  list.sort((a, b) => b.s.prob - a.s.prob);
+  const list = COINS.map(c => ({c, s: statusOf(c.rsi4h)}));
 
   let dn = 0, up = 0, near = 0;
   list.forEach(x => { if (x.s.kind === "dn") dn++; else if (x.s.kind === "up") up++; else if (x.s.kind === "near") near++; });
@@ -247,17 +325,32 @@ function render() {
   document.getElementById("cUp").textContent = up;
   document.getElementById("cNear").textContent = near;
 
+  list.sort((a, b) => {
+    const va = sortVal(a, SORT.key), vb = sortVal(b, SORT.key);
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    if (typeof va === "string") return SORT.dir * va.localeCompare(vb);
+    return SORT.dir * (va - vb);
+  });
+
   const shown = list.filter(x => {
+    if (favOnly && !FAVS.has(x.c.base)) return false;
     if (q && x.c.base.toUpperCase().indexOf(q) < 0) return false;
     if (filterMode !== "all" && x.s.kind !== filterMode) return false;
     return true;
   });
+  const pinned = shown.filter(x => PINS.has(x.c.base));
+  const rest = shown.filter(x => !PINS.has(x.c.base));
+  const ordered = pinned.concat(rest);
 
   let html = "";
-  shown.forEach((x, i) => {
+  ordered.forEach((x, i) => {
     const c = x.c, s = x.s;
-    const barc = s.prob >= 75 ? "#e05c5c" : s.prob >= 40 ? "#d9a03f" : "#5a5a64";
-    html += '<tr class="row' + (c.sym === selectedSym ? ' sel' : '') + '" data-sym="' + c.sym + '">' +
+    const isPin = PINS.has(c.base), isFav = FAVS.has(c.base);
+    html += '<tr class="row' + (c.sym === selectedSym ? ' sel' : '') + (isPin ? ' pinned' : '') + '" data-sym="' + c.sym + '">' +
+      '<td class="ico"><span class="pin' + (isPin ? ' on' : '') + '" data-pin="' + c.base + '" title="Закрепить сверху">📌</span>' +
+      '<span class="fav' + (isFav ? ' on' : '') + '" data-fav="' + c.base + '" title="В избранное">★</span></td>' +
       '<td class="mut" style="text-align:center;">' + (i + 1) + '</td>' +
       '<td class="l"><span class="sym">' + c.base + '<span>/USDT</span></span>' +
         (s.label ? '<span class="st ' + s.kind + '">' + s.label + '</span>' : '') + '</td>' +
@@ -271,25 +364,41 @@ function render() {
       '<td class="mono mut">' + (c.volat || '—') + '</td>' +
       '<td class="' + ratingClass(c.rating) + '">' + (c.rating || '—') + '</td>' +
       '<td class="spark">' + sparkSvg(c.spark) + '</td>' +
-      '<td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:' + s.prob + '%;background:' + barc + ';"></i></span><span class="mono" style="font-size:12px;">' + s.prob + '%' + s.dir + '</span></span></td>' +
-      '<td><a class="lnk" href="https://www.tradingview.com/chart/?symbol=BINANCE:' + c.sym + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">⧉</a></td>' +
+      '<td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i class="' + probLevel(s.prob) + '" style="width:' + s.prob + '%;"></i></span><span class="mono" style="font-size:12px;">' + s.prob + '%' + s.dir + '</span></span></td>' +
+      '<td><a class="lnk" href="https://www.tradingview.com/chart/?symbol=BINANCE:' + c.sym + '" target="_blank" rel="noopener">⧉</a></td>' +
       '</tr>';
   });
-  if (!shown.length) html = '<tr><td colspan="16" class="more">ничего не найдено</td></tr>';
+  if (!ordered.length) html = '<tr><td colspan="17" class="more">ничего не найдено</td></tr>';
   tb.innerHTML = html;
   document.getElementById("fCount").textContent = "монет: " + COINS.length;
-
-  tb.querySelectorAll("tr.row").forEach(tr => {
-    tr.addEventListener("click", () => openPanel(tr.getAttribute("data-sym")));
-  });
+  updateHeads();
 }
+
+document.getElementById("rows").addEventListener("click", e => {
+  const pin = e.target.closest("[data-pin]");
+  if (pin) { const b = pin.getAttribute("data-pin"); PINS.has(b) ? PINS.delete(b) : PINS.add(b); store.set("rsi_pins", [...PINS]); render(); return; }
+  const fav = e.target.closest("[data-fav]");
+  if (fav) { const b = fav.getAttribute("data-fav"); FAVS.has(b) ? FAVS.delete(b) : FAVS.add(b); store.set("rsi_favs", [...FAVS]); render(); return; }
+  if (e.target.closest("a.lnk")) return;
+  const tr = e.target.closest("tr.row");
+  if (tr) openPanel(tr.getAttribute("data-sym"));
+});
+
+document.getElementById("heads").addEventListener("click", e => {
+  const th = e.target.closest("th.sortable");
+  if (!th) return;
+  const k = th.getAttribute("data-k");
+  if (SORT.key === k) SORT.dir = -SORT.dir;
+  else SORT = {key:k, dir:-1};
+  render();
+});
 
 function openPanel(sym) {
   const c = COINS.find(x => x.sym === sym);
   if (!c) return;
   selectedSym = sym;
   const s = statusOf(c.rsi4h);
-  document.getElementById("pSym").innerHTML = c.base + '<span style="color:#7a7a84;font-weight:400;">/USDT</span>';
+  document.getElementById("pSym").innerHTML = c.base + '<span style="color:var(--sym2);font-weight:400;">/USDT</span>';
   const b = document.getElementById("pBadge");
   b.textContent = s.label || "нейтрально";
   b.className = "p-badge " + (s.kind === "dn" ? "pb-dn" : s.kind === "up" ? "pb-up" : s.kind === "near" ? "pb-near" : "pb-neu");
@@ -299,22 +408,41 @@ function openPanel(sym) {
   chg.className = "mono " + pctClass(c.change24h);
   const pr = document.getElementById("pProb");
   pr.textContent = s.prob + "% " + s.dir;
-  pr.style.color = s.prob >= 75 ? "#f09090" : s.prob >= 40 ? "#e8bd6d" : "#8a8a94";
+  pr.className = "mono c-" + probLevel(s.prob);
   const r4 = document.getElementById("pRsi4");
   r4.innerHTML = c.rsi4h != null ? c.rsi4h.toFixed(1) + ' <span class="' + (c.rsi4h <= LO ? 'm' : c.rsi4h >= HI ? 'p' : 'mut') + '">' + (c.rsi4h <= LO ? '−' : c.rsi4h >= HI ? '+' : '·') + '</span>' : "—";
   document.getElementById("pTv").href = "https://www.tradingview.com/chart/?symbol=BINANCE:" + c.sym;
   document.getElementById("panel").classList.remove("hidden");
+  document.getElementById("rz").classList.remove("hidden");
   render();
 }
-
-document.getElementById("pClose").addEventListener("click", () => {
+function closePanel() {
   document.getElementById("panel").classList.add("hidden");
+  document.getElementById("rz").classList.add("hidden");
   selectedSym = null;
   render();
-});
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { document.getElementById("panel").classList.add("hidden"); selectedSym = null; render(); }
-});
+}
+document.getElementById("pClose").addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePanel(); });
+
+(function initResizer() {
+  const rz = document.getElementById("rz");
+  const panel = document.getElementById("panel");
+  const saved = store.get("rsi_panelw", null);
+  if (saved) panel.style.width = saved + "px";
+  let drag = false;
+  rz.addEventListener("mousedown", e => { drag = true; rz.classList.add("drag"); document.body.style.userSelect = "none"; e.preventDefault(); });
+  document.addEventListener("mousemove", e => {
+    if (!drag) return;
+    const w = Math.min(Math.round(window.innerWidth * 0.75), Math.max(300, window.innerWidth - e.clientX));
+    panel.style.width = w + "px";
+  });
+  document.addEventListener("mouseup", () => {
+    if (!drag) return;
+    drag = false; rz.classList.remove("drag"); document.body.style.userSelect = "";
+    store.set("rsi_panelw", parseInt(panel.style.width) || 348);
+  });
+})();
 
 document.getElementById("q").addEventListener("input", e => { query = e.target.value; render(); });
 document.querySelectorAll(".chip").forEach(ch => {
@@ -325,12 +453,34 @@ document.querySelectorAll(".chip").forEach(ch => {
     render();
   });
 });
+document.getElementById("btnFav").addEventListener("click", () => {
+  favOnly = !favOnly;
+  document.getElementById("btnFav").classList.toggle("on", favOnly);
+  render();
+});
+
+(function initTheme() {
+  const btn = document.getElementById("btnTheme");
+  const apply = t => {
+    document.body.classList.toggle("light", t === "light");
+    btn.textContent = t === "light" ? "🌙" : "☀";
+  };
+  apply(store.get("rsi_theme", "dark"));
+  btn.addEventListener("click", () => {
+    const t = document.body.classList.contains("light") ? "dark" : "light";
+    store.set("rsi_theme", t);
+    apply(t);
+  });
+})();
+
+document.getElementById("btnOut").addEventListener("click", () => { window.location.href = "/logout"; });
 
 async function refresh(force) {
   const btn = document.getElementById("btnRefresh");
   btn.disabled = true; btn.textContent = "⟳ Загрузка…";
   try {
     const r = await fetch("/api/scan" + (force ? "?force=1" : ""), {cache: "no-store"});
+    if (r.status === 401) { window.location.href = "/login"; return; }
     if (!r.ok) throw new Error("HTTP " + r.status);
     const data = await r.json();
     if (!data.coins || !data.coins.length) throw new Error(data.error || "пустой ответ");
@@ -341,6 +491,7 @@ async function refresh(force) {
     const mb = document.getElementById("modeBadge");
     mb.textContent = "live · " + data.updated;
     mb.className = "badge-mode live";
+    document.getElementById("btnOut").style.display = "";
     render();
   } catch (err) {
     if (!live) {
