@@ -10,45 +10,47 @@
   .mono { font-family: Consolas, "Cascadia Mono", monospace; }
   .app { min-height:100vh; display:flex; flex-direction:column; background:#1b1b1f; }
 
-  .hdr { display:flex; align-items:center; gap:10px; padding:12px 16px 6px; flex-wrap:wrap; }
-  .hdr .logo { color:#4f9cf7; font-size:18px; }
-  .hdr h1 { font-size:17px; font-weight:600; }
-  .hdr .sub { color:#8a8a94; font-size:12px; }
+  .hdr { display:flex; align-items:center; gap:10px; padding:14px 18px 8px; flex-wrap:wrap; }
+  .hdr .logo { color:#4f9cf7; font-size:20px; }
+  .hdr h1 { font-size:19px; font-weight:600; }
+  .hdr .sub { color:#8a8a94; font-size:13px; }
   .hdr .sp { flex:1; }
-  .btn { background:#232329; border:1px solid #3a3a42; color:#dcdce2; border-radius:8px; padding:6px 13px; font-size:12.5px; cursor:pointer; }
+  .btn { background:#232329; border:1px solid #3a3a42; color:#dcdce2; border-radius:8px; padding:7px 15px; font-size:13.5px; cursor:pointer; }
   .btn:hover { background:#2b2b33; }
-  .auto { display:flex; align-items:center; gap:6px; padding:0 16px 10px; font-size:12px; color:#a8a8b0; }
+  .auto { display:flex; align-items:center; gap:6px; padding:0 18px 10px; font-size:13px; color:#a8a8b0; }
 
   .cardswrap { display:flex; flex:1; align-items:stretch; }
   .leftcol { flex:1; min-width:0; }
-  .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:4px 14px 10px; }
-  .card { background:#232327; border-radius:9px; padding:9px 14px; }
-  .card .lbl { font-size:12px; margin-bottom:2px; }
-  .card .val { font-size:21px; font-weight:600; }
-  .card .val small { font-size:12px; color:#8a8a94; font-weight:400; }
+  .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:4px 18px 12px; }
+  .card { background:#232327; border-radius:9px; padding:12px 16px; }
+  .card .lbl { font-size:13px; margin-bottom:3px; }
+  .card .val { font-size:26px; font-weight:600; }
+  .card .val small { font-size:13px; color:#8a8a94; font-weight:400; }
 
-  .filters { display:flex; align-items:center; gap:7px; padding:0 14px 10px; flex-wrap:wrap; }
-  .filters input { background:#232329; border:1px solid #3a3a42; color:#dcdce2; border-radius:8px; padding:6px 11px; font-size:12px; width:150px; }
+  .filters { display:flex; align-items:center; gap:8px; padding:0 18px 12px; flex-wrap:wrap; }
+  .filters input { background:#232329; border:1px solid #3a3a42; color:#dcdce2; border-radius:8px; padding:7px 13px; font-size:13.5px; width:190px; }
   .filters input::placeholder { color:#6f6f78; }
-  .chip { font-size:11.5px; padding:3px 11px; border-radius:11px; cursor:pointer; }
+  .chip { font-size:12.5px; padding:4px 13px; border-radius:12px; cursor:pointer; }
   .chip.dn { background:rgba(224,92,92,.14); color:#f09090; }
   .chip.up { background:rgba(95,174,99,.15); color:#8ecf90; }
   .chip.near { background:rgba(217,160,63,.15); color:#e8bd6d; }
   .chip.all { border:1px solid #5a5a64; color:#e6e6e9; font-weight:600; }
-  .sort { margin-left:auto; font-size:11.5px; color:#8a8a94; }
+  .sort { margin-left:auto; font-size:12.5px; color:#8a8a94; }
 
-  table.coins { width:100%; border-collapse:collapse; font-size:12px; }
-  table.coins th { background:#222226; color:#9a9aa2; font-weight:600; padding:7px 6px; text-align:right; white-space:nowrap; }
-  table.coins th:first-child { width:26px; text-align:center; }
+  table.coins { width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.coins th { background:#222226; color:#9a9aa2; font-weight:600; padding:9px 8px; text-align:right; white-space:nowrap; }
+  table.coins th:first-child { width:28px; text-align:center; }
   table.coins th.l { text-align:left; }
-  table.coins td { padding:7px 6px; border-top:1px solid #29292f; text-align:right; white-space:nowrap; }
+  table.coins td { padding:9px 8px; border-top:1px solid #29292f; text-align:right; white-space:nowrap; }
   table.coins td.l { text-align:left; }
   table.coins tr.row { cursor:pointer; }
   table.coins tr.row:hover { background:#222228; }
   tr.sel { background:rgba(96,88,214,.16) !important; box-shadow:inset 3px 0 0 #7c74e0; }
   .sym { font-weight:600; }
   .sym span { color:#7a7a84; font-weight:400; }
-  .st { font-size:11px; display:block; margin-top:1px; }
+  .st { font-size:12px; display:block; margin-top:2px; }
+  td.spark { text-align:center; }
+  td.spark svg { width:68px; height:20px; display:inline-block; vertical-align:middle; }
   .st.dn { color:#f09090; } .st.up { color:#8ecf90; } .st.near { color:#e8bd6d; }
   .pos { color:#8ecf90; } .neg { color:#f09090; } .mut { color:#8a8a94; }
   td.rsi { font-family:Consolas, monospace; }
@@ -56,41 +58,41 @@
   .z-up { background:rgba(95,174,99,.13); color:#8ecf90; }
   .z-near { background:rgba(217,160,63,.13); color:#e8bd6d; }
   .tv-sell { color:#f09090; } .tv-buy { color:#8ecf90; } .tv-neu { color:#8a8a94; }
-  .prob { display:flex; align-items:center; gap:6px; min-width:96px; }
-  .prob .bar { flex:1; height:4px; background:#2e2e35; border-radius:2px; overflow:hidden; }
-  .prob .bar i { display:block; height:4px; border-radius:2px; }
-  .lnk { color:#4f9cf7; text-decoration:none; font-size:13px; }
-  .more { text-align:center !important; color:#6f6f78; font-size:11.5px; }
+  .prob { display:flex; align-items:center; gap:7px; min-width:120px; }
+  .prob .bar { flex:1; height:5px; background:#2e2e35; border-radius:3px; overflow:hidden; }
+  .prob .bar i { display:block; height:5px; border-radius:3px; }
+  .lnk { color:#4f9cf7; text-decoration:none; font-size:14px; }
+  .more { text-align:center !important; color:#6f6f78; font-size:12.5px; }
 
-  .panel { width:308px; flex:none; background:#1f1f24; border-left:1px solid #34343c; display:flex; flex-direction:column; }
+  .panel { width:348px; flex:none; background:#1f1f24; border-left:1px solid #34343c; display:flex; flex-direction:column; }
   .p-hd { display:flex; align-items:center; gap:8px; padding:11px 13px; border-bottom:1px solid #2c2c33; }
   .p-hd .x { margin-left:auto; color:#8a8a94; cursor:pointer; font-size:15px; }
   .badge-dn { font-size:11px; background:rgba(224,92,92,.14); color:#f09090; padding:2px 9px; border-radius:9px; }
   .p-price { display:flex; align-items:flex-start; gap:12px; padding:10px 13px 8px; }
   .p-price .big { font-size:24px; font-weight:600; line-height:1.1; }
   .p-price .side { font-size:11.5px; text-align:right; margin-left:auto; line-height:1.7; }
-  table.ind { width:100%; border-collapse:collapse; font-size:11.5px; }
-  table.ind th { background:#26262b; color:#9a9aa2; font-weight:600; padding:5px 8px; text-align:center; }
-  table.ind th.l { text-align:left; padding-left:13px; }
-  table.ind td { padding:5px 8px; border-top:1px solid #29292f; text-align:center; font-family:Consolas, monospace; }
-  table.ind td.l { text-align:left; padding-left:13px; font-family:inherit; }
+  table.ind { width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.ind th { background:#26262b; color:#9a9aa2; font-weight:600; padding:6px 9px; text-align:center; }
+  table.ind th.l { text-align:left; padding-left:14px; }
+  table.ind td { padding:6px 9px; border-top:1px solid #29292f; text-align:center; font-family:Consolas, monospace; }
+  table.ind td.l { text-align:left; padding-left:14px; font-family:inherit; }
   .m { color:#f09090; font-weight:600; } .p { color:#8ecf90; font-weight:600; }
   tr.sum td { background:#26262b; font-weight:600; }
-  .p-txt { padding:9px 13px; font-size:11.5px; color:#a8a8b0; line-height:1.5; }
-  .p-chips { display:flex; align-items:center; gap:5px; padding:2px 13px 8px; flex-wrap:wrap; }
-  .pc { font-size:10.5px; padding:2px 8px; border-radius:8px; background:rgba(79,156,247,.14); color:#7fb5f5; }
+  .p-txt { padding:10px 14px; font-size:12.5px; color:#a8a8b0; line-height:1.55; }
+  .p-chips { display:flex; align-items:center; gap:6px; padding:2px 14px 9px; flex-wrap:wrap; }
+  .pc { font-size:11.5px; padding:3px 9px; border-radius:9px; background:rgba(79,156,247,.14); color:#7fb5f5; }
   .pc.off { background:none; border:1px solid #3a3a42; color:#8a8a94; }
   .tf { display:flex; background:#26262b; border-radius:7px; padding:2px; margin-left:auto; }
-  .tf span { font-size:10.5px; padding:2px 8px; color:#8a8a94; }
+  .tf span { font-size:11.5px; padding:2px 9px; color:#8a8a94; }
   .tf .on { background:#33333b; border-radius:5px; color:#e6e6e9; font-weight:600; }
-  .charts { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:0 13px 10px; }
-  .ch { background:#242429; border-radius:7px; padding:6px 8px; }
-  .ch .t { display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:3px; color:#c8c8d0; }
+  .charts { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 14px 10px; }
+  .ch { background:#242429; border-radius:7px; padding:7px 9px; }
+  .ch .t { display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px; color:#c8c8d0; }
   .ch svg { width:100%; display:block; }
-  .p-foot { display:flex; gap:7px; padding:2px 13px 13px; margin-top:auto; }
-  .p-foot .btn { flex:1; font-size:11.5px; }
+  .p-foot { display:flex; gap:8px; padding:2px 14px 14px; margin-top:auto; }
+  .p-foot .btn { flex:1; font-size:12.5px; }
 
-  .foot { display:flex; gap:16px; padding:8px 16px; border-top:1px solid #2c2c33; font-size:11.5px; color:#6f6f78; flex-wrap:wrap; }
+  .foot { display:flex; gap:18px; padding:9px 18px; border-top:1px solid #2c2c33; font-size:12.5px; color:#6f6f78; flex-wrap:wrap; }
 </style>
 </head>
 <body>
@@ -126,84 +128,92 @@
       </div>
       <table class="coins">
         <thead><tr>
-          <th>#</th><th class="l">Монета</th><th>Цена $</th><th>Δ 24ч</th><th>Объём</th>
-          <th>RSI 1h</th><th>RSI 2h</th><th>RSI 4h</th><th>Stoch 4h</th><th>MACD 4h</th>
-          <th>Рейтинг TV</th><th class="l" style="padding-left:12px;">Вер. пробоя</th><th></th>
+          <th>#</th><th class="l">Монета</th><th>Цена $</th><th>Δ 24ч</th><th>Δ 7д</th><th>Объём</th>
+          <th>RSI 1h</th><th>RSI 2h</th><th>RSI 4h</th><th>Stoch 4h</th><th>MACD 4h</th><th>Волат.</th>
+          <th>Рейтинг TV</th><th style="text-align:center;">Тренд RSI</th><th class="l" style="padding-left:12px;">Вер. пробоя</th><th></th>
         </tr></thead>
         <tbody id="rows">
           <tr class="row sel">
             <td class="mut" style="text-align:center;">1</td>
             <td class="l"><span class="sym">SOL<span>/USDT</span></span><span class="st dn">пробой вниз · 4h</span></td>
-            <td class="mono">142.10</td><td class="mono neg">−4.2%</td><td class="mono mut">2.1B</td>
+            <td class="mono">142.10</td><td class="mono neg">−4.2%</td><td class="mono neg">−12.6%</td><td class="mono mut">2.1B</td>
             <td class="rsi z-dn">24.8</td><td class="rsi z-dn">27.3</td><td class="rsi z-dn">29.1</td><td class="rsi z-dn">8.4</td>
-            <td class="mono mut">−0.42</td><td class="tv-sell">Продавать</td>
-            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:91%;background:#e05c5c;"></i></span><span class="mono" style="font-size:11px;">91%↓</span></span></td>
+            <td class="mono mut">−0.42</td><td class="mono mut">6.8%</td><td class="tv-sell">Продавать</td>
+            <td class="spark"><svg viewBox="0 0 60 20"><polyline points="0,6 9,4 18,8 27,7 36,10 45,12 52,15 60,17" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg></td>
+            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:91%;background:#e05c5c;"></i></span><span class="mono" style="font-size:12px;">91%↓</span></span></td>
             <td><a class="lnk" href="#">⧉</a></td>
           </tr>
           <tr class="row">
             <td class="mut" style="text-align:center;">2</td>
             <td class="l"><span class="sym">DOGE<span>/USDT</span></span><span class="st dn">пробой вниз · 1h</span></td>
-            <td class="mono">0.0781</td><td class="mono neg">−2.8%</td><td class="mono mut">845M</td>
+            <td class="mono">0.0781</td><td class="mono neg">−2.8%</td><td class="mono neg">−8.4%</td><td class="mono mut">845M</td>
             <td class="rsi z-dn">27.1</td><td class="rsi z-near">31.5</td><td class="rsi z-near">33.0</td><td class="rsi z-dn">14.2</td>
-            <td class="mono mut">−0.02</td><td class="tv-sell">Продавать</td>
-            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:84%;background:#e05c5c;"></i></span><span class="mono" style="font-size:11px;">84%↓</span></span></td>
+            <td class="mono mut">−0.02</td><td class="mono mut">5.2%</td><td class="tv-sell">Продавать</td>
+            <td class="spark"><svg viewBox="0 0 60 20"><polyline points="0,5 9,7 18,6 27,9 36,11 45,13 52,14 60,16" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg></td>
+            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:84%;background:#e05c5c;"></i></span><span class="mono" style="font-size:12px;">84%↓</span></span></td>
             <td><a class="lnk" href="#">⧉</a></td>
           </tr>
           <tr class="row">
             <td class="mut" style="text-align:center;">3</td>
             <td class="l"><span class="sym">AVAX<span>/USDT</span></span><span class="st up">пробой вверх · 1h+2h</span></td>
-            <td class="mono">38.42</td><td class="mono pos">+6.1%</td><td class="mono mut">512M</td>
+            <td class="mono">38.42</td><td class="mono pos">+6.1%</td><td class="mono pos">+14.2%</td><td class="mono mut">512M</td>
             <td class="rsi z-up">73.6</td><td class="rsi z-up">71.2</td><td class="rsi z-near">68.4</td><td class="rsi z-up">88.1</td>
-            <td class="mono mut">0.31</td><td class="tv-buy">Покупать</td>
-            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:82%;background:#e05c5c;"></i></span><span class="mono" style="font-size:11px;">82%↑</span></span></td>
+            <td class="mono mut">0.31</td><td class="mono mut">7.1%</td><td class="tv-buy">Покупать</td>
+            <td class="spark"><svg viewBox="0 0 60 20"><polyline points="0,16 9,14 18,15 27,11 36,9 45,7 52,5 60,3" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg></td>
+            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:82%;background:#e05c5c;"></i></span><span class="mono" style="font-size:12px;">82%↑</span></span></td>
             <td><a class="lnk" href="#">⧉</a></td>
           </tr>
           <tr class="row">
             <td class="mut" style="text-align:center;">4</td>
             <td class="l"><span class="sym">BTC<span>/USDT</span></span><span class="st near">подходит к 30 · 1h</span></td>
-            <td class="mono">67 412</td><td class="mono neg">−1.1%</td><td class="mono mut">28.4B</td>
+            <td class="mono">67 412</td><td class="mono neg">−1.1%</td><td class="mono neg">−3.1%</td><td class="mono mut">28.4B</td>
             <td class="rsi z-near">33.4</td><td class="rsi">36.1</td><td class="rsi">38.7</td><td class="rsi z-near">22.5</td>
-            <td class="mono mut">−114</td><td class="tv-neu">Нейтр.</td>
-            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:64%;background:#d9a03f;"></i></span><span class="mono" style="font-size:11px;">64%↓</span></span></td>
+            <td class="mono mut">−114</td><td class="mono mut">2.4%</td><td class="tv-neu">Нейтр.</td>
+            <td class="spark"><svg viewBox="0 0 60 20"><polyline points="0,8 9,9 18,8 27,10 36,11 45,12 52,12 60,13" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg></td>
+            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:64%;background:#d9a03f;"></i></span><span class="mono" style="font-size:12px;">64%↓</span></span></td>
             <td><a class="lnk" href="#">⧉</a></td>
           </tr>
           <tr class="row">
             <td class="mut" style="text-align:center;">5</td>
             <td class="l"><span class="sym">LINK<span>/USDT</span></span><span class="st near">подходит к 70 · 1h</span></td>
-            <td class="mono">18.95</td><td class="mono pos">+3.4%</td><td class="mono mut">390M</td>
+            <td class="mono">18.95</td><td class="mono pos">+3.4%</td><td class="mono pos">+6.9%</td><td class="mono mut">390M</td>
             <td class="rsi z-near">66.2</td><td class="rsi">64.8</td><td class="rsi">61.3</td><td class="rsi z-near">79.0</td>
-            <td class="mono mut">0.12</td><td class="tv-buy">Покупать</td>
-            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:58%;background:#d9a03f;"></i></span><span class="mono" style="font-size:11px;">58%↑</span></span></td>
+            <td class="mono mut">0.12</td><td class="mono mut">4.0%</td><td class="tv-buy">Покупать</td>
+            <td class="spark"><svg viewBox="0 0 60 20"><polyline points="0,14 9,13 18,14 27,12 36,10 45,8 52,7 60,6" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg></td>
+            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:58%;background:#d9a03f;"></i></span><span class="mono" style="font-size:12px;">58%↑</span></span></td>
             <td><a class="lnk" href="#">⧉</a></td>
           </tr>
           <tr class="row">
             <td class="mut" style="text-align:center;">6</td>
             <td class="l"><span class="sym">NEAR<span>/USDT</span></span><span class="st near">подходит к 30 · 2h</span></td>
-            <td class="mono">5.87</td><td class="mono neg">−0.9%</td><td class="mono mut">210M</td>
+            <td class="mono">5.87</td><td class="mono neg">−0.9%</td><td class="mono neg">−5.5%</td><td class="mono mut">210M</td>
             <td class="rsi z-near">34.9</td><td class="rsi z-near">33.8</td><td class="rsi">35.2</td><td class="rsi">25.3</td>
-            <td class="mono mut">−0.04</td><td class="tv-neu">Нейтр.</td>
-            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:55%;background:#d9a03f;"></i></span><span class="mono" style="font-size:11px;">55%↓</span></span></td>
+            <td class="mono mut">−0.04</td><td class="mono mut">5.9%</td><td class="tv-neu">Нейтр.</td>
+            <td class="spark"><svg viewBox="0 0 60 20"><polyline points="0,7 9,8 18,7 27,9 36,10 45,11 52,12 60,12" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg></td>
+            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:55%;background:#d9a03f;"></i></span><span class="mono" style="font-size:12px;">55%↓</span></span></td>
             <td><a class="lnk" href="#">⧉</a></td>
           </tr>
           <tr class="row">
             <td class="mut" style="text-align:center;">7</td>
             <td class="l"><span class="sym">ETH<span>/USDT</span></span></td>
-            <td class="mono">3 512</td><td class="mono pos">+0.4%</td><td class="mono mut">12.1B</td>
+            <td class="mono">3 512</td><td class="mono pos">+0.4%</td><td class="mono pos">+1.8%</td><td class="mono mut">12.1B</td>
             <td class="rsi">47.9</td><td class="rsi">49.2</td><td class="rsi">51.0</td><td class="rsi">48.7</td>
-            <td class="mono mut">2.4</td><td class="tv-neu">Нейтр.</td>
-            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:12%;background:#5a5a64;"></i></span><span class="mono" style="font-size:11px;">12%</span></span></td>
+            <td class="mono mut">2.4</td><td class="mono mut">2.9%</td><td class="tv-neu">Нейтр.</td>
+            <td class="spark"><svg viewBox="0 0 60 20"><polyline points="0,10 9,9 18,11 27,10 36,9 45,11 52,10 60,10" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg></td>
+            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:12%;background:#5a5a64;"></i></span><span class="mono" style="font-size:12px;">12%</span></span></td>
             <td><a class="lnk" href="#">⧉</a></td>
           </tr>
           <tr class="row">
             <td class="mut" style="text-align:center;">8</td>
             <td class="l"><span class="sym">XRP<span>/USDT</span></span></td>
-            <td class="mono">0.5214</td><td class="mono neg">−0.2%</td><td class="mono mut">1.4B</td>
+            <td class="mono">0.5214</td><td class="mono neg">−0.2%</td><td class="mono neg">−0.7%</td><td class="mono mut">1.4B</td>
             <td class="rsi">52.3</td><td class="rsi">50.8</td><td class="rsi">48.9</td><td class="rsi">55.1</td>
-            <td class="mono mut">0.001</td><td class="tv-neu">Нейтр.</td>
-            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:9%;background:#5a5a64;"></i></span><span class="mono" style="font-size:11px;">9%</span></span></td>
+            <td class="mono mut">0.001</td><td class="mono mut">3.3%</td><td class="tv-neu">Нейтр.</td>
+            <td class="spark"><svg viewBox="0 0 60 20"><polyline points="0,9 9,10 18,9 27,11 36,10 45,9 52,10 60,10" fill="none" stroke="#8b84e8" stroke-width="1.5"/></svg></td>
+            <td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i style="width:9%;background:#5a5a64;"></i></span><span class="mono" style="font-size:12px;">9%</span></span></td>
             <td><a class="lnk" href="#">⧉</a></td>
           </tr>
-          <tr><td colspan="13" class="more">… ещё 92 монеты (обычный скролл страницы)</td></tr>
+          <tr><td colspan="16" class="more">… ещё 92 монеты (обычный скролл страницы)</td></tr>
         </tbody>
       </table>
     </div>
