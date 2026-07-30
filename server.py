@@ -81,7 +81,7 @@ def _code_version() -> str:
         pass
     try:
         m = hashlib.sha256()
-        for name in ("server.py", "index.html"):
+        for name in ("server.py", "app.html"):
             p = BASE_DIR / name
             if p.exists():
                 m.update(p.read_bytes())
@@ -265,7 +265,7 @@ def logout():
 
 @app.get("/")
 def index():
-    return FileResponse(BASE_DIR / "index.html")
+    return FileResponse(BASE_DIR / "app.html")
 
 
 @app.get("/api/scan")

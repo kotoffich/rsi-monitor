@@ -9,5 +9,5 @@ if %errorlevel%==0 (
 )
 git push
 echo.
-echo Done! Site updates in ~1 minute: https://kotoffich.github.io/rsi-monitor/
+echo Done! Render will redeploy the site in ~2-3 minutes.
 pause
