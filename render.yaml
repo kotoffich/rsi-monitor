@@ -10,3 +10,5 @@ services:
         sync: false
       - key: RSI_PASSWORD
         sync: false
+      - key: RSI_WEBHOOK_TOKEN
+        sync: false

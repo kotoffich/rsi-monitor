@@ -9,14 +9,21 @@
   - auth.json исключён из git (.gitignore) и в публичный репозиторий не попадает;
   - если ни переменных, ни файла нет — сервер работает БЕЗ входа и предупреждает в консоли.
 
+Приём сигналов от TradingView через Make (вебхук):
+  POST /api/signal?token=ВЕБХУК_ТОКЕН   тело JSON:
+  {"symbol":"ADAUSDT","interval":"240","indicator":"div","signal":"bull","price":0.17,"note":"..."}
+  Токен — из RSI_WEBHOOK_TOKEN (env) или auth.json["webhook_token"].
+
 Запуск:  python server.py  ->  http://127.0.0.1:8080
 """
 import hashlib
 import json
 import os
+import re
 import secrets
 import time
 import urllib.request
+from collections import deque
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -42,25 +49,34 @@ _cache = {"ts": 0.0, "data": None}
 
 # ---------------------------------------------------------------- авторизация
 
+_auth_file = {}
+_af = BASE_DIR / "auth.json"
+if _af.exists():
+    try:
+        _auth_file = json.loads(_af.read_text(encoding="utf-8"))
+    except Exception as e:
+        print("auth.json не прочитан:", e)
+
+
 def _load_auth():
-    login = os.environ.get("RSI_LOGIN")
-    password = os.environ.get("RSI_PASSWORD")
+    login = os.environ.get("RSI_LOGIN") or _auth_file.get("login")
+    password = os.environ.get("RSI_PASSWORD") or _auth_file.get("password")
     if login and password:
-        return {"login": login, "password": password}
-    f = BASE_DIR / "auth.json"
-    if f.exists():
-        try:
-            d = json.loads(f.read_text(encoding="utf-8"))
-            if d.get("login") and d.get("password"):
-                return {"login": str(d["login"]), "password": str(d["password"])}
-        except Exception as e:
-            print("auth.json не прочитан:", e)
+        return {"login": str(login), "password": str(password)}
     return None
 
 
 AUTH = _load_auth()
 if AUTH is None:
     print("ВНИМАНИЕ: логин/пароль не заданы (auth.json или RSI_LOGIN/RSI_PASSWORD) — сайт открыт без входа")
+
+# Токен для приёма вебхуков (Make/TradingView шлют сигналы на /api/signal?token=...).
+# Берётся из env RSI_WEBHOOK_TOKEN или auth.json["webhook_token"]; иначе — производный от пароля.
+WEBHOOK_TOKEN = (
+    os.environ.get("RSI_WEBHOOK_TOKEN")
+    or _auth_file.get("webhook_token")
+    or (hashlib.sha256((AUTH["password"] + ":hook").encode()).hexdigest()[:16] if AUTH else None)
+)
 
 def _code_version() -> str:
     """Версия кода: git-коммит (или отпечаток файлов, если git недоступен).
@@ -81,7 +97,7 @@ def _code_version() -> str:
         pass
     try:
         m = hashlib.sha256()
-        for name in ("server.py", "app.html"):
+        for name in ("app.html",):  # только фронт: правки логики сигналов не должны разлогинивать
             p = BASE_DIR / name
             if p.exists():
                 m.update(p.read_bytes())
@@ -216,15 +232,110 @@ def fetch_top100() -> dict:
     }
 
 
+# ---------------------------------------------------------------- сигналы (вебхуки)
+
+SIGNALS_FILE = BASE_DIR / "signals.json"
+SIGNALS_MAX = 300
+SIGNALS = deque(maxlen=SIGNALS_MAX)
+
+# нормализация типа сигнала к bull / bear / neutral
+_BULL = {"bull", "bullish", "long", "buy", "up", "green", "лонг", "покупка", "вверх"}
+_BEAR = {"bear", "bearish", "short", "sell", "down", "red", "шорт", "продажа", "вниз"}
+
+# нормализация таймфрейма TradingView ({{interval}} шлёт "60","240","D"...) к виду 1h/4h/1d
+_TF_MAP = {"1": "1m", "3": "3m", "5": "5m", "15": "15m", "30": "30m",
+           "45": "45m", "60": "1h", "120": "2h", "180": "3h", "240": "4h",
+           "360": "6h", "480": "8h", "720": "12h", "D": "1d", "1D": "1d",
+           "W": "1w", "1W": "1w", "M": "1M"}
+
+
+def _norm_base(sym: str) -> str:
+    """'BINANCE:ADAUSDT.P' / 'ADAUSDT' / 'ADA' -> 'ADA'."""
+    if not sym:
+        return ""
+    s = str(sym).upper().strip()
+    if ":" in s:
+        s = s.split(":", 1)[1]
+    s = s.split(".", 1)[0]  # убрать .P (перпетуал)
+    for q in ("USDT", "USDC", "USD", "PERP"):
+        if s.endswith(q) and len(s) > len(q):
+            s = s[:-len(q)]
+            break
+    return s
+
+
+def _norm_signal(v: str) -> str:
+    s = str(v or "").lower().strip()
+    if s in _BULL:
+        return "bull"
+    if s in _BEAR:
+        return "bear"
+    return "neutral"
+
+
+def _norm_tf(v) -> str:
+    s = str(v or "").strip()
+    return _TF_MAP.get(s, s)
+
+
+def _load_signals():
+    if SIGNALS_FILE.exists():
+        try:
+            for item in json.loads(SIGNALS_FILE.read_text(encoding="utf-8")):
+                SIGNALS.append(item)
+        except Exception as e:
+            print("signals.json не прочитан:", e)
+
+
+def _save_signals():
+    try:
+        SIGNALS_FILE.write_text(json.dumps(list(SIGNALS), ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def add_signal(payload: dict) -> dict:
+    """Разобрать входящий вебхук в унифицированную запись сигнала."""
+    raw_sym = payload.get("symbol") or payload.get("ticker") or ""
+    price = payload.get("price")
+    try:
+        price = float(price) if price not in (None, "") else None
+    except (TypeError, ValueError):
+        price = None
+    rec = {
+        "ts": time.time(),
+        "time": time.strftime("%H:%M:%S"),
+        "date": time.strftime("%Y-%m-%d"),
+        "base": _norm_base(raw_sym),
+        "symbol": re.sub(r"^[A-Z]+:", "", str(raw_sym).upper()),
+        "tf": _norm_tf(payload.get("tf") or payload.get("interval")),
+        "indicator": str(payload.get("indicator") or payload.get("ind") or "TV")[:40],
+        "signal": _norm_signal(payload.get("signal") or payload.get("side") or payload.get("action")),
+        "note": str(payload.get("note") or payload.get("message") or payload.get("comment") or "")[:200],
+    }
+    if price is not None:
+        rec["price"] = price
+    SIGNALS.append(rec)
+    _save_signals()
+    return rec
+
+
+_load_signals()
+
+
 # ---------------------------------------------------------------- приложение
 
 app = FastAPI(title="RSI Монитор")
 
 
+# Пути, доступные без входа (вебхук защищён своим токеном, не cookie)
+OPEN_PATHS = {"/login", "/favicon.ico", "/api/signal"}
+
+
 @app.middleware("http")
 async def auth_guard(request: Request, call_next):
     path = request.url.path
-    if AUTH is None or path == "/login" or path == "/favicon.ico":
+    if AUTH is None or path in OPEN_PATHS:
         return await call_next(request)
     if _is_authed(request):
         return await call_next(request)
@@ -266,6 +377,42 @@ def logout():
 @app.get("/")
 def index():
     return FileResponse(BASE_DIR / "app.html")
+
+
+@app.api_route("/api/signal", methods=["POST", "GET"])
+async def api_signal(request: Request, token: str = ""):
+    """Приём вебхука от Make/TradingView. Защита — токен в query (?token=...) или в теле."""
+    payload = {}
+    try:
+        body = await request.body()
+        if body:
+            try:
+                payload = json.loads(body)
+            except Exception:
+                # не-JSON тело: разберём как «KEY=VALUE; ...» или просто текст
+                txt = body.decode("utf-8", "ignore")
+                payload = {"note": txt}
+    except Exception:
+        payload = {}
+    if isinstance(payload, dict):
+        for k in list(payload.keys()):
+            payload.setdefault(k.lower(), payload[k])
+    tok = token or (payload.get("token") if isinstance(payload, dict) else "") \
+          or request.query_params.get("token", "")
+    if not WEBHOOK_TOKEN or not secrets.compare_digest(str(tok), str(WEBHOOK_TOKEN)):
+        return JSONResponse({"ok": False, "error": "bad token"}, status_code=403)
+    rec = add_signal(payload if isinstance(payload, dict) else {"note": str(payload)})
+    return JSONResponse({"ok": True, "signal": rec})
+
+
+@app.get("/api/signals")
+def api_signals(base: str = "", limit: int = 200):
+    items = list(SIGNALS)
+    if base:
+        b = _norm_base(base)
+        items = [s for s in items if s.get("base") == b]
+    items = items[-limit:][::-1]  # новые сверху
+    return JSONResponse({"count": len(items), "signals": items})
 
 
 @app.get("/api/scan")
