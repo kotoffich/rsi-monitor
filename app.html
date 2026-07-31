@@ -42,17 +42,6 @@
   .btn.on { border-color:var(--amberbar); color:var(--amber); }
   .auto { display:flex; align-items:center; gap:6px; padding:0 18px 10px; font-size:13px; color:var(--text2); }
   .auto select { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:3px 8px; font-size:12.5px; }
-  .sigfeed { display:flex; align-items:center; gap:10px; padding:7px 18px; background:var(--bg2);
-             border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-size:12.5px; overflow:hidden; }
-  .sigfeed .sf-ic { color:var(--muted); white-space:nowrap; font-weight:600; }
-  .sigfeed .sf-items { display:flex; gap:14px; overflow-x:auto; white-space:nowrap; }
-  .sigfeed .sf-items::-webkit-scrollbar { height:0; }
-  .sig-pill { white-space:nowrap; }
-  .sig-pill b { font-weight:600; }
-  .sig-pill.bull { color:var(--green); } .sig-pill.bear { color:var(--red); } .sig-pill.neutral { color:var(--text2); }
-  .sig-pill .sg-t { color:var(--faint); }
-  .sig-badge { cursor:default; font-size:11px; }
-  .sig-badge.bull { color:var(--green); } .sig-badge.bear { color:var(--red); } .sig-badge.neutral { color:var(--muted); }
   .demo-banner { display:none; background:var(--chip-near); color:var(--amber); border-top:1px solid var(--amberbar);
                  border-bottom:1px solid var(--amberbar); padding:10px 18px; font-size:14px; font-weight:600; text-align:center; }
 
@@ -172,11 +161,6 @@
     </select>
   </div>
   <div class="demo-banner" id="demoBanner">⚠ Это публичная демонстрация дизайна: цифры в таблице выдуманные. Живой сайт с реальными данными работает отдельно и защищён паролем.</div>
-
-  <div class="sigfeed" id="sigFeed" style="display:none;">
-    <span class="sf-ic">⚡ Сигналы TradingView:</span>
-    <span class="sf-items" id="sfItems"></span>
-  </div>
 
   <div class="cardswrap">
     <div class="leftcol">
@@ -386,9 +370,6 @@ function render() {
       '<span class="fav' + (isFav ? ' on' : '') + '" data-fav="' + c.base + '" title="В избранное">★</span></td>' +
       '<td class="mut" style="text-align:center;">' + (i + 1) + '</td>' +
       '<td class="l"><span class="sym">' + c.base + '<span>/USDT</span></span>' +
-        (SIG_BY_BASE[c.base] ? ' <span class="sig-badge ' + SIG_BY_BASE[c.base].signal + '" title="' +
-          SIG_BY_BASE[c.base].indicator + (SIG_BY_BASE[c.base].tf ? " · " + SIG_BY_BASE[c.base].tf : "") +
-          ' · ' + timeAgo(SIG_BY_BASE[c.base].ts) + '">⚡' + sigArrow(SIG_BY_BASE[c.base].signal) + '</span>' : '') +
         (s.label ? '<span class="st ' + s.kind + '">' + s.label + '</span>' : '') + '</td>' +
       '<td class="mono">' + fmtPrice(c.price) + '</td>' +
       '<td class="mono ' + pctClass(c.change24h) + '">' + fmtPct(c.change24h) + '</td>' +
@@ -584,40 +565,6 @@ document.getElementById("btnFav").addEventListener("click", () => {
 
 document.getElementById("btnOut").addEventListener("click", () => { window.location.href = "/logout"; });
 
-let SIG_BY_BASE = {};
-function sigArrow(s) { return s === "bull" ? "▲" : s === "bear" ? "▼" : "•"; }
-function timeAgo(ts) {
-  const m = Math.floor((Date.now() / 1000 - ts) / 60);
-  if (m < 1) return "только что";
-  if (m < 60) return m + " мин назад";
-  const h = Math.floor(m / 60);
-  if (h < 24) return h + " ч назад";
-  return Math.floor(h / 24) + " дн назад";
-}
-
-async function loadSignals() {
-  try {
-    const r = await fetch("/api/signals?limit=200", {cache: "no-store"});
-    if (!r.ok) return;
-    const data = await r.json();
-    const sigs = data.signals || [];
-    const byBase = {};
-    sigs.forEach(s => { if (s.base && !byBase[s.base]) byBase[s.base] = s; });  // самый свежий на монету
-    SIG_BY_BASE = byBase;
-
-    const feed = document.getElementById("sigFeed");
-    const items = document.getElementById("sfItems");
-    if (!sigs.length) { feed.style.display = "none"; return; }
-    feed.style.display = "flex";
-    items.innerHTML = sigs.slice(0, 30).map(s =>
-      '<span class="sig-pill ' + s.signal + '"><span class="sg-t">' + s.time + '</span> ' +
-      '<b>' + (s.base || s.symbol) + '</b> ' + sigArrow(s.signal) + ' ' +
-      s.indicator + (s.tf ? " · " + s.tf : "") + '</span>'
-    ).join("");
-    render();
-  } catch (e) {}
-}
-
 async function refresh(force) {
   const btn = document.getElementById("btnRefresh");
   btn.disabled = true; btn.textContent = "⟳ Загрузка…";
@@ -657,7 +604,7 @@ function setupAutoRefresh() {
   if (autoTimer) clearInterval(autoTimer);
   const sec = parseInt(document.getElementById("intSel").value, 10) || 60;
   store.set("rsi_interval", sec);
-  autoTimer = setInterval(() => { if (document.getElementById("autoChk").checked) { refresh(false); loadSignals(); } }, sec * 1000);
+  autoTimer = setInterval(() => { if (document.getElementById("autoChk").checked) refresh(false); }, sec * 1000);
 }
 document.getElementById("intSel").value = String(store.get("rsi_interval", 60));
 if (!document.getElementById("intSel").value) document.getElementById("intSel").value = "60";
@@ -667,7 +614,6 @@ setupAutoRefresh();
 render();
 autoOpenPanel();
 refresh(false);
-loadSignals();
 </script>
 </body>
 </html>
