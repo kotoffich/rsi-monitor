@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RSI Монитор</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:#1b1b1f; --bg2:#232327; --bg3:#232329; --bghead:#222226; --bghead2:#26262b; --bghov:#222228;
@@ -26,22 +29,33 @@
     --panelbg:#fafbfd; --panelborder:#d7dae1;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font:15px/1.45 "Segoe UI", system-ui, sans-serif; }
-  .mono { font-family: Consolas, "Cascadia Mono", monospace; }
-  .app { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); }
+  body { background:var(--bg); color:var(--text); font:15px/1.45 "Inter", "Segoe UI", system-ui, sans-serif; }
+  .mono { font-family: "Inter", Consolas, "Cascadia Mono", monospace; font-variant-numeric: tabular-nums; }
+  .app { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); zoom:0.75; }
 
-  .hdr { display:flex; align-items:center; gap:10px; padding:14px 18px 8px; flex-wrap:wrap; }
-  .hdr .logo { color:var(--accent); font-size:20px; }
-  .hdr h1 { font-size:19px; font-weight:600; }
+  .hdr { display:flex; align-items:center; gap:9px; padding:14px 18px 8px; flex-wrap:wrap; }
+  .hdr .logo { color:var(--accent); font-size:24px; }
+  .hdr h1 { font-size:23px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
   .hdr .sub { color:var(--muted); font-size:13px; }
   .hdr .sp { flex:1; }
   .badge-mode { font-size:12px; padding:3px 10px; border-radius:10px; background:var(--chip-near); color:var(--amber); }
   .badge-mode.live { background:var(--chip-up); color:var(--green); }
-  .btn { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:7px 15px; font-size:13.5px; cursor:pointer; }
+  .btn { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:9px;
+         padding:8px 15px; font-size:14px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
   .btn:hover { background:var(--bghov); }
+  .btn .ic { font-size:19px; line-height:1; }
+  .btn.icon-only { padding:8px 11px; }
   .btn.on { border-color:var(--amberbar); color:var(--amber); }
-  .auto { display:flex; align-items:center; gap:6px; padding:0 18px 10px; font-size:13px; color:var(--text2); }
-  .auto select { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:3px 8px; font-size:12.5px; }
+  .seg { display:inline-flex; background:var(--bg2); border:1px solid var(--border2); border-radius:8px; overflow:hidden; margin-left:8px; }
+  .seg button { background:transparent; border:none; border-left:1px solid var(--border2); color:var(--text2); font:600 12.5px "Inter",sans-serif; padding:5px 11px; cursor:pointer; }
+  .seg button:first-child { border-left:none; }
+  .seg button:hover { background:var(--bghov); }
+  .seg button.on { background:var(--accent); color:#0e1116; }
+  .mini { display:inline-flex; flex-direction:column; align-items:center; justify-content:center; background:var(--bg2);
+          border-radius:8px; padding:5px 10px; line-height:1.2; width:100px; }
+  .mini .lbl { font-size:11px; font-weight:500; white-space:nowrap; }
+  .mini .val { font-size:18px; font-weight:700; }
+  .divider { width:1px; align-self:stretch; background:var(--border2); margin:2px 4px; }
   .demo-banner { display:none; background:var(--chip-near); color:var(--amber); border-top:1px solid var(--amberbar);
                  border-bottom:1px solid var(--amberbar); padding:10px 18px; font-size:14px; font-weight:600; text-align:center; }
 
@@ -52,9 +66,23 @@
   .card .lbl { font-size:13px; margin-bottom:3px; }
   .card .val { font-size:26px; font-weight:600; }
 
-  .filters { display:flex; align-items:center; gap:8px; padding:0 18px 12px; flex-wrap:wrap; }
+  .filters { display:flex; align-items:center; gap:8px; padding:0 18px 12px; flex-wrap:wrap; border-bottom:2px solid var(--accent); }
+  .clrbtn { font:600 10px "Inter",sans-serif; padding:3px 10px; border-radius:999px; background:var(--bg3); border:1px solid var(--border2); color:var(--text2); cursor:pointer; letter-spacing:.5px; }
+  .clrbtn:hover { background:var(--bghov); color:var(--text); }
   .filters input { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:7px 13px; font-size:13.5px; width:190px; }
   .filters input::placeholder { color:var(--faint); }
+  td.coincol .sym { font-size:17px; }
+  td.coincol .st { white-space:normal; line-height:1.2; }
+  /* первая колонка действий: квадрат 2x2 из одинаковых пиктограмм */
+  td.actcol { width:60px; }
+  .actgrid { display:grid; grid-template-columns:repeat(2, 18px); grid-auto-rows:18px; gap:3px 5px; width:max-content; margin:0 auto; }
+  .actgrid .mic { font-size:15px; line-height:18px; text-align:center; opacity:.3; cursor:pointer; text-decoration:none; user-select:none; }
+  .actgrid .mic:hover { opacity:.9; }
+  .actgrid .mic.on { opacity:1; }
+  .actgrid .mic.fire { filter:grayscale(1); opacity:.22; }
+  .actgrid .mic.fire.lit { filter:none; opacity:1; }
+  /* спейсер справа забирает лишнюю ширину, остальные колонки жмутся по содержимому */
+  th[data-col="sp"], td[data-col="sp"] { width:100%; border-left:none; padding:0; }
   .chip { font-size:12.5px; padding:4px 13px; border-radius:12px; cursor:pointer; border:1px solid transparent; }
   .chip.dn { background:var(--chip-dn); color:var(--red); }
   .chip.up { background:var(--chip-up); color:var(--green); }
@@ -63,25 +91,41 @@
   .chip.on { border-color:var(--text); }
   .sort { margin-left:auto; font-size:12.5px; color:var(--muted); }
 
-  table.coins { width:100%; border-collapse:collapse; font-size:13.5px; }
-  table.coins th { background:var(--bghead); color:var(--muted); font-weight:600; padding:9px 8px; text-align:right; white-space:nowrap; }
-  table.coins th.l { text-align:left; }
-  table.coins th.sortable { cursor:pointer; }
-  table.coins th.sortable:hover { color:var(--text); }
+  table.coins { width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed; }
+  table.coins td { overflow:hidden; }
+  table.coins th { background:var(--bghead); color:var(--text); font-weight:600; padding:9px 8px; text-align:center; white-space:nowrap; font-size:15px; position:relative; border-left:1px solid var(--line); border-bottom:2px solid #e0a23c; }
+  table.coins th.dragging { opacity:.4; }
+  table.coins th.dragover { box-shadow:inset 2px 0 0 var(--selbar); }
+  table.coins th .hi { font-size:15px; margin-right:3px; vertical-align:-1px; }
+  .colrz { position:absolute; top:0; right:0; width:6px; height:100%; cursor:col-resize; }
+  .colrz:hover { background:var(--selbar); }
+  table.coins th.sortable { cursor:grab; }
+  table.coins th.sortable:hover { color:var(--accent); }
+  table.coins th.act { color:var(--accent); }
   table.coins th .arr { color:var(--accent); }
-  table.coins td { padding:9px 8px; border-top:1px solid var(--line); text-align:right; white-space:nowrap; }
-  table.coins td.l { text-align:left; }
+  table.coins td { padding:6px 8px; border-top:1px solid var(--line); border-left:1px solid var(--line); text-align:center; white-space:nowrap; }
+  table.coins td.l, table.coins th.l { text-align:left; }
+  table.coins td[data-col="num"] { color:#b8b8c0; }
+  table.coins td[data-col="rsi1"], table.coins td[data-col="rsi4"], table.coins td[data-col="rsi12"] { background:rgba(255,255,255,.03); font-size:18px; font-weight:600; }
+  body.light table.coins td[data-col="rsi1"], body.light table.coins td[data-col="rsi4"], body.light table.coins td[data-col="rsi12"] { background:rgba(0,0,0,.03); }
+  table.coins th[data-col="rsi1"], table.coins td[data-col="rsi1"] { border-left:1px solid var(--border2); }
+  table.coins th[data-col="rsi12"], table.coins td[data-col="rsi12"] { border-right:1px solid var(--border2); }
   table.coins tr.row { cursor:pointer; }
   table.coins tr.row:hover { background:var(--bghov); }
   tr.sel { background:var(--sel) !important; box-shadow:inset 3px 0 0 var(--selbar); }
   tr.pinned td { border-top:1px solid var(--border2); }
-  td.ico { text-align:center; width:58px; }
-  td.ico span { cursor:pointer; opacity:.3; font-size:14px; padding:0 3px; }
+  td.ico { text-align:center; width:60px; padding-left:4px; padding-right:4px; }
+  td.ico span { cursor:pointer; opacity:.3; font-size:19px; padding:0 2px; }
   td.ico span:hover { opacity:.8; }
   td.ico span.on { opacity:1; }
   td.ico .fav.on { color:#e0a23c; }
+  td.firecol { width:30px; text-align:center; padding:0 2px; }
+  .fire { cursor:pointer; font-size:17px; opacity:.2; filter:grayscale(1); vertical-align:-1px; transition:opacity .2s; }
+  .fire.lit { opacity:1; filter:none; }
   .sym { font-weight:600; }
-  .sym span { color:var(--sym2); font-weight:400; }
+  .sym span { color:var(--sym2); font-weight:400; font-size:12px; }
+  .probtxt { font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .p-up { color:var(--green); } .p-dn { color:var(--red); } .p-near { color:var(--amber); } .p-neu { color:var(--muted); }
   .st { font-size:12px; display:block; margin-top:2px; }
   .st.dn { color:var(--red); } .st.up { color:var(--green); } .st.near { color:var(--amber); }
   td.spark { text-align:center; }
@@ -101,30 +145,40 @@
   .lnk { color:var(--accent); text-decoration:none; font-size:14px; }
   .more { text-align:center !important; color:var(--faint); font-size:12.5px; }
 
-  .rz { width:6px; flex:none; cursor:col-resize; background:transparent; }
-  .rz:hover, .rz.drag { background:var(--selbar); }
+  .rz { width:6px; flex:none; cursor:col-resize; background:transparent; transition:background .15s; }
+  .rz:hover, .rz.drag { background:rgba(224,162,60,.55); }
   .rz.hidden { display:none; }
 
   .panel { width:348px; min-width:300px; flex:none; background:var(--panelbg); border-left:1px solid var(--panelborder); display:flex; flex-direction:column; }
   .panel.hidden { display:none; }
-  .p-hd { display:flex; align-items:center; gap:8px; padding:11px 14px; border-bottom:1px solid var(--border); }
-  .p-hd .x { margin-left:auto; color:var(--muted); cursor:pointer; font-size:15px; }
+  .p-hd { display:flex; align-items:center; gap:11px; padding:12px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .p-hd .sym { font-size:21px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+  .p-hd .p-price { font-size:23px; font-weight:700; }
+  .p-hd .p-chg { font-size:16px; font-weight:600; }
+  .p-hd .p-trgt { font-size:16px; color:var(--text2); }
+  .p-hd .p-trgt .mono { font-weight:700; font-size:17px; }
+  .p-hd .x { margin-left:auto; color:var(--muted); cursor:pointer; font-size:17px; }
   .p-badge { font-size:12px; padding:2px 9px; border-radius:9px; }
   .pb-dn { background:var(--chip-dn); color:var(--red); }
   .pb-up { background:var(--chip-up); color:var(--green); }
   .pb-near { background:var(--chip-near); color:var(--amber); }
   .pb-neu { background:var(--bghead2); color:var(--muted); }
-  .p-price { display:flex; align-items:flex-start; gap:12px; padding:10px 14px 8px; }
-  .p-price .big { font-size:26px; font-weight:600; line-height:1.1; }
-  .p-price .side { font-size:12.5px; text-align:right; margin-left:auto; line-height:1.7; }
-  #charts { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:10px; padding:4px 14px 10px; }
-  .chart-box .cap { font-size:12px; color:var(--muted); margin:0 0 4px 2px; }
-  .chart-host { height:240px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bghead2); }
-  table.ind { width:100%; border-collapse:collapse; font-size:12.5px; }
-  table.ind th { background:var(--bghead2); color:var(--muted); font-weight:600; padding:6px 9px; text-align:center; }
+  #charts { padding:6px 14px 10px; }
+  .ind-block { margin-bottom:8px; }
+  .ind-row { display:flex; align-items:center; gap:10px; padding:6px 2px; }
+  .ind-name { font-size:16px; font-weight:700; color:var(--text); }
+  .tf-btns { display:flex; gap:6px; margin-left:auto; }
+  .tf-btns button { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:6px 20px; font:600 13px "Inter",sans-serif; cursor:pointer; }
+  .tf-btns button:hover { background:var(--bghov); }
+  .tf-btns button.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
+  .ind-charts { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:10px; }
+  .chart-box .cap { font-size:15px; font-weight:600; color:var(--text2); margin:0 0 4px 2px; }
+  .chart-host { height:205px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bghead2); }
+  table.ind { width:100%; border-collapse:collapse; font-size:15px; }
+  table.ind th { background:var(--bghead2); color:var(--text2); font-weight:600; padding:8px 10px; text-align:center; font-size:14px; }
   table.ind th.l { text-align:left; padding-left:14px; }
-  table.ind td { padding:6px 9px; border-top:1px solid var(--line); text-align:center; font-family:Consolas, monospace; }
-  table.ind td.l { text-align:left; padding-left:14px; font-family:inherit; }
+  table.ind td { padding:8px 10px; border-top:1px solid var(--line); text-align:center; font-family:"Inter", Consolas, monospace; }
+  table.ind td.l { text-align:left; padding-left:14px; }
   .m { color:var(--red); font-weight:600; } .p { color:var(--green); font-weight:600; }
   tr.sum td { background:var(--bghead2); font-weight:600; }
   .p-txt { padding:10px 14px; font-size:12.5px; color:var(--text2); line-height:1.55; }
@@ -138,104 +192,81 @@
 <div class="app">
   <div class="hdr">
     <span class="logo">◭</span>
-    <h1>RSI Монитор</h1>
+    <h1>RSI MONITOR</h1>
     <span class="sub">TradingView · 4h</span>
-    <span class="badge-mode" id="modeBadge">демо-данные</span>
+    <span class="badge-mode" id="modeBadge">demo</span>
+    <div class="seg" id="intSeg">
+      <button data-sec="0">OFF</button>
+      <button data-sec="5">5S</button>
+      <button data-sec="10">10S</button>
+      <button data-sec="30">30S</button>
+      <button data-sec="60">1M</button>
+      <button data-sec="300">5M</button>
+    </div>
+    <span class="mini"><span class="lbl" style="color:var(--green);">Break up</span><span class="val" id="cUp">0</span></span>
+    <span class="mini"><span class="lbl" style="color:var(--amber);">Near</span><span class="val" id="cNear">0</span></span>
+    <span class="mini"><span class="lbl" style="color:var(--red);">Break down</span><span class="val" id="cDn">0</span></span>
     <span class="sp"></span>
-    <button class="btn" id="btnRefresh">⟳ Обновить</button>
-    <button class="btn" id="btnFav" title="Показать избранное">★ Избранное</button>
-    <button class="btn" onclick="alert('Настройка индикаторов появится на следующем шаге')">⛭ Индикаторы</button>
-    <button class="btn" onclick="alert('Управление списком монет появится на следующем шаге')">◎ Монеты</button>
-    <button class="btn" onclick="alert('Настройки появятся на следующем шаге')">⚙</button>
-    <button class="btn" id="btnTheme" title="Светлая/тёмная тема">☀</button>
-    <button class="btn" id="btnOut" style="display:none;" title="Выйти">⎋</button>
+    <button class="btn icon-only" onclick="alert('Settings — coming soon')" title="Settings"><span class="ic">⚙️</span></button>
+    <button class="btn icon-only" id="btnTheme" title="Light / dark theme"><span class="ic">🌙</span></button>
+    <button class="btn icon-only" id="btnOut" style="display:none;" title="Log out"><span class="ic">🚪</span></button>
   </div>
-  <div class="auto">
-    <input type="checkbox" id="autoChk" checked> авто-обновление
-    <select id="intSel">
-      <option value="5">каждые 5 сек</option>
-      <option value="10">каждые 10 сек</option>
-      <option value="30">каждые 30 сек</option>
-      <option value="60">каждую минуту</option>
-      <option value="300">каждые 5 минут</option>
-    </select>
+  <div class="demo-banner" id="demoBanner">⚠ Public design demo — numbers are fake. The live site with real data is separate and password-protected.</div>
+
+  <div class="filters">
+    <input placeholder="Search coin…" id="q">
+    <span class="chip dn" data-f="dn">Break ↓</span>
+    <span class="chip up" data-f="up">Break ↑</span>
+    <span class="chip near" data-f="near">Near</span>
+    <span class="chip all on" data-f="all">All</span>
+    <span class="divider"></span>
+    <button class="btn" id="btnRefresh"><span class="ic" style="color:var(--green);">↻</span> Refresh</button>
+    <button class="btn" id="btnFav" title="Show favorites"><span class="ic">⭐</span> Favorites</button>
+    <button class="btn" onclick="alert('Indicators — coming soon')"><span class="ic">📊</span> Indicators</button>
+    <button class="btn" onclick="alert('Coins — coming soon')"><span class="ic">🪙</span> Coins</button>
   </div>
-  <div class="demo-banner" id="demoBanner">⚠ Это публичная демонстрация дизайна: цифры в таблице выдуманные. Живой сайт с реальными данными работает отдельно и защищён паролем.</div>
 
   <div class="cardswrap">
     <div class="leftcol">
-      <div class="cards">
-        <div class="card"><div class="lbl" style="color:var(--red);">Пробои вниз</div><div class="val" id="cDn">0</div></div>
-        <div class="card"><div class="lbl" style="color:var(--green);">Пробои вверх</div><div class="val" id="cUp">0</div></div>
-        <div class="card"><div class="lbl" style="color:var(--amber);">Подходят</div><div class="val" id="cNear">0</div></div>
-        <div class="card"><div class="lbl" style="color:var(--muted);">Обновлено</div><div class="val" id="cTime">—</div></div>
-      </div>
-      <div class="filters">
-        <input placeholder="Поиск монеты…" id="q">
-        <span class="chip dn" data-f="dn">Пробои ↓</span>
-        <span class="chip up" data-f="up">Пробои ↑</span>
-        <span class="chip near" data-f="near">Подходят</span>
-        <span class="chip all on" data-f="all">Все</span>
-        <span class="sort" id="sortLabel">сортировка: вероятность ↓</span>
-      </div>
       <table class="coins">
-        <thead><tr id="heads">
-          <th style="width:58px;"></th>
-          <th style="width:28px; text-align:center;">#</th>
-          <th class="l sortable" data-k="base">Монета</th>
-          <th class="sortable" data-k="price">Цена $</th>
-          <th class="sortable" data-k="change24h">Δ 24ч</th>
-          <th class="sortable" data-k="chg7d">Δ 7д</th>
-          <th>Объём</th>
-          <th class="sortable" data-k="rsi1h">RSI 1h</th>
-          <th class="sortable" data-k="rsi2h">RSI 2h</th>
-          <th class="sortable" data-k="rsi4h">RSI 4h</th>
-          <th class="sortable" data-k="stoch">Stoch 4h</th>
-          <th>MACD 4h</th>
-          <th>Волат.</th>
-          <th>Рейтинг TV</th>
-          <th style="text-align:center;">Тренд RSI</th>
-          <th class="l sortable" data-k="prob" style="padding-left:12px;">Вер. пробоя</th>
-          <th></th>
-        </tr></thead>
+        <thead><tr id="heads"></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
 
-    <div class="rz hidden" id="rz" title="Потяни, чтобы изменить ширину панели"></div>
+    <div class="rz hidden" id="rz" title="Drag to resize the panel"></div>
 
     <aside class="panel hidden" id="panel">
       <div class="p-hd">
-        <span class="sym" style="font-size:15px;" id="pSym">—</span>
+        <span class="sym" id="pSym">—</span>
         <span class="p-badge pb-neu" id="pBadge">—</span>
+        <span class="p-price mono" id="pPrice">—</span>
+        <span class="p-chg mono" id="pChg">—</span>
+        <span class="p-trgt">TRGT <span class="mono" id="pProb">—</span></span>
         <span class="x" id="pClose">✕</span>
-      </div>
-      <div class="p-price">
-        <span class="big mono" id="pPrice">—</span>
-        <span class="side"><span class="mono" id="pChg">—</span><br>вер. пробоя <span class="mono" id="pProb" style="font-weight:600;">—</span></span>
       </div>
       <div id="charts"></div>
       <table class="ind">
-        <thead><tr><th class="l">Индикатор</th><th>1h</th><th>2h</th><th>4h</th></tr></thead>
+        <thead><tr><th class="l">Indicator</th><th>1h</th><th>4h</th><th>12h</th></tr></thead>
         <tbody>
-          <tr><td class="l">RSI (14)</td><td class="mut">—</td><td class="mut">—</td><td id="pRsi4">—</td></tr>
+          <tr><td class="l">RSI (14)</td><td class="mut" id="pRsi1">—</td><td id="pRsi4">—</td><td class="mut" id="pRsi12">—</td></tr>
           <tr><td class="l">Stochastic</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
           <tr><td class="l">MACD</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
           <tr><td class="l">EMA 50/200</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
           <tr><td class="l">Supertrend</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
           <tr><td class="l">Bollinger %B</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
-          <tr class="sum"><td class="l">Сумма плюсов</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
+          <tr class="sum"><td class="l">Sum of pluses</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
         </tbody>
       </table>
-      <div class="p-txt" id="pTxt">Пока подключён только RSI 4h. Остальные индикаторы и графики добавим следующим шагом — панель уже можно растягивать за левый край.</div>
+      <div class="p-txt" id="pTxt">Chart 1 — RSI 4h. The rest are empty templates: we'll overlay “ATR bottom” later.</div>
       <div class="p-foot">
-        <a class="btn" id="pTv" href="#" target="_blank" rel="noopener">Открыть на TradingView ↗</a>
+        <a class="btn" id="pTv" href="#" target="_blank" rel="noopener">Open on TradingView ↗</a>
       </div>
     </aside>
   </div>
 
   <div class="foot">
-    <span>клик по строке — панель аналитики</span><span id="fCount">монет: 0</span><span>уровни 30/70 · зона ±5</span><span id="fSrc">источник: демо</span>
+    <span>click a row for analytics</span><span id="fCount">coins: 0</span><span>levels 30/70 · zone ±5</span><span id="fSrc">source: demo</span><span>updated: <span id="cTime">—</span></span><span class="sort" id="sortLabel">sort: TRGT ↓</span>
   </div>
 </div>
 
@@ -269,18 +300,20 @@ const store = {
 const FAVS = new Set(store.get("rsi_favs", []));
 const PINS = new Set(store.get("rsi_pins", []));
 
-const SORT_NAMES = {base:"монета", price:"цена", change24h:"Δ 24ч", chg7d:"Δ 7д",
-  rsi1h:"RSI 1h", rsi2h:"RSI 2h", rsi4h:"RSI 4h", stoch:"Stoch 4h", prob:"вероятность"};
+const SORT_NAMES = {fav:"favorites", fire:"fire", base:"coin", price:"price",
+  change4h:"4H", change12h:"12H", change24h:"24H", change7d:"7D",
+  volUsd:"VOL", volat:"VLTL",
+  rsi1h:"RSI 1h", rsi4h:"RSI 4h", rsi12h:"RSI 12h", prob:"TRGT"};
 
 function statusOf(rsi) {
   if (rsi == null) return {kind:"", label:"", prob:0, dir:""};
-  if (rsi <= LO)  return {kind:"dn",   label:"пробой вниз · 4h",  prob:Math.min(99, Math.round(80 + (LO - rsi) * 3)), dir:"↓"};
-  if (rsi >= HI)  return {kind:"up",   label:"пробой вверх · 4h", prob:Math.min(99, Math.round(80 + (rsi - HI) * 3)), dir:"↑"};
+  if (rsi <= LO)  return {kind:"dn",   label:"break down · 4h",  prob:Math.min(99, Math.round(80 + (LO - rsi) * 3)), dir:"↓"};
+  if (rsi >= HI)  return {kind:"up",   label:"break up · 4h", prob:Math.min(99, Math.round(80 + (rsi - HI) * 3)), dir:"↑"};
   const dLo = rsi - LO, dHi = HI - rsi;
   const d = Math.min(dLo, dHi);
   const dir = dLo < dHi ? "↓" : "↑";
   const to = dLo < dHi ? "30" : "70";
-  if (d <= ZONE) return {kind:"near", label:"подходит к " + to + " · 4h", prob:Math.round(50 + (ZONE - d) * 6), dir:dir};
+  if (d <= ZONE) return {kind:"near", label:"near " + to + " · 4h", prob:Math.round(50 + (ZONE - d) * 6), dir:dir};
   return {kind:"", label:"", prob:Math.max(4, Math.round(40 - 2 * d)), dir:""};
 }
 
@@ -304,8 +337,8 @@ function rsiCell(v, lo, hi) {
   return '<td class="rsi ' + zone(v, lo, hi) + '">' + v.toFixed(1) + '</td>';
 }
 function ratingClass(r) {
-  if (r === "Покупать") return "tv-buy";
-  if (r === "Продавать") return "tv-sell";
+  if (r === "Buy") return "tv-buy";
+  if (r === "Sell") return "tv-sell";
   return "tv-neu";
 }
 function sparkSvg(pts) {
@@ -315,8 +348,44 @@ function sparkSvg(pts) {
 }
 function probLevel(p) { return p >= 75 ? "hi" : p >= 40 ? "mid" : "lo"; }
 
+function houstonTime() {
+  return new Date().toLocaleTimeString("en-US", {
+    timeZone: "America/Chicago", hour12: false,
+    hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+}
+
+// --- огонёк: резкий рост вероятности пробоя между обновлениями ---
+const FIRE_THRESHOLD = 10;      // на сколько пунктов вероятность должна прибавить
+let PREV_PROB = {};             // base -> вероятность на прошлом обновлении
+let FIRE_LIT = new Set();       // монеты, которые загорелись на последнем обновлении
+let FIRE_SUPPRESS = new Set();  // вручную погашенные пользователем
+
+function computeFire(coins) {
+  const lit = new Set();
+  coins.forEach(c => {
+    const p = statusOf(c.rsi4h).prob;
+    const prev = PREV_PROB[c.base];
+    if (prev != null && p - prev >= FIRE_THRESHOLD) lit.add(c.base);
+    PREV_PROB[c.base] = p;
+  });
+  FIRE_LIT = lit;
+  FIRE_SUPPRESS = new Set();  // новый цикл — сбрасываем ручные гашения
+}
+
+function isFired(base) { return FIRE_LIT.has(base) && !FIRE_SUPPRESS.has(base); }
+function probGroup(s) { return s.kind === "up" ? 0 : s.kind === "dn" ? 1 : s.kind === "near" ? 2 : 3; }
+function fmtVol(v) {
+  if (v == null) return "—";
+  if (v >= 1e9) return (v / 1e9).toFixed(1) + "B";
+  if (v >= 1e6) return (v / 1e6).toFixed(0) + "M";
+  if (v >= 1e3) return (v / 1e3).toFixed(0) + "K";
+  return Math.round(v).toString();
+}
 function sortVal(x, key) {
   if (key === "prob") return x.s.prob;
+  if (key === "fav") return FAVS.has(x.c.base) ? 1 : 0;
+  if (key === "fire") return isFired(x.c.base) ? 1 : 0;
   const v = x.c[key];
   return v == null ? null : v;
 }
@@ -325,11 +394,126 @@ function updateHeads() {
   document.querySelectorAll("#heads th.sortable").forEach(th => {
     const k = th.getAttribute("data-k");
     th.querySelectorAll(".arr").forEach(a => a.remove());
+    th.classList.toggle("act", k === SORT.key);
     if (k === SORT.key) th.insertAdjacentHTML("beforeend", ' <span class="arr">' + (SORT.dir < 0 ? "↓" : "↑") + '</span>');
   });
   document.getElementById("sortLabel").textContent =
-    "сортировка: " + (SORT_NAMES[SORT.key] || SORT.key) + (SORT.dir < 0 ? " ↓" : " ↑");
+    "sort: " + (SORT_NAMES[SORT.key] || SORT.key) + (SORT.dir < 0 ? " ↓" : " ↑");
 }
+
+// ---- модель колонок: порядок и ширина настраиваются пользователем ----
+function td(cls, h, style) { return {c: cls, h: h, s: style || ""}; }
+function chgTd(v) { return td("mono " + (v != null ? pctClass(v) : "mut"), v != null ? fmtPct(v) : "—"); }
+function rsiTd(v) { return td("rsi " + zone(v, LO, HI), v != null ? v.toFixed(1) : "—"); }
+
+const COLUMNS = {
+  act:  {th:'<button class="clrbtn" id="btnClear" title="Clear all pins / favorites / fires">CLEAR</button>',
+         cell:c=>{
+           const pin  = '<span class="mic pin'+(PINS.has(c.base)?" on":"")+'" data-pin="'+c.base+'" title="Pin to top">📌</span>';
+           const fav  = '<span class="mic fav'+(FAVS.has(c.base)?" on":"")+'" data-fav="'+c.base+'" title="Favorite">⭐</span>';
+           const fire = '<span class="mic fire'+(isFired(c.base)?" lit":"")+'" data-fire="'+c.base+'" title="Sharp jump — click to dismiss">🔥</span>';
+           const link = '<a class="mic lnk" href="https://www.tradingview.com/chart/?symbol=BINANCE:'+c.sym+'" target="_blank" rel="noopener" title="Open on TradingView">🔗</a>';
+           return td("actcol", '<div class="actgrid">'+pin+fav+fire+link+'</div>');
+         }},
+  num:  {th:'#', thStyle:"text-align:center", cell:(c,s,i)=>td("mut", String(i+1), "text-align:center")},
+  coin: {th:'<span class="hi">🪙</span>COIN', k:"base", thClass:"l",
+         cell:(c,s)=>td("l coincol", '<span class="sym">'+c.base+'<span>/USDT</span></span>'+(s.label?'<div class="st '+s.kind+'">'+s.label+'</div>':""))},
+  price:{th:'<span class="hi">💲</span>PRICE', k:"price", cell:c=>td("mono", fmtPrice(c.price))},
+  ch4:  {th:'<span class="hi">📈</span>4H', k:"change4h", cell:c=>chgTd(c.change4h)},
+  ch12: {th:'<span class="hi">📈</span>12H', k:"change12h", cell:c=>chgTd(c.change12h)},
+  ch24: {th:'<span class="hi">📈</span>24H', k:"change24h", cell:c=>chgTd(c.change24h)},
+  ch7:  {th:'<span class="hi">📈</span>7D', k:"change7d", cell:c=>chgTd(c.change7d)},
+  vol:  {th:'<span class="hi">💰</span>VOL', k:"volUsd", cell:c=>td("mono mut", fmtVol(c.volUsd))},
+  rsi1: {th:'RSI 1h', k:"rsi1h", cell:c=>rsiTd(c.rsi1h)},
+  rsi4: {th:'RSI 4h', k:"rsi4h", cell:c=>rsiTd(c.rsi4h)},
+  rsi12:{th:'RSI 12h', k:"rsi12h", cell:c=>rsiTd(c.rsi12h)},
+  vltl: {th:'<span class="hi">🌊</span>VLTL', k:"volat", cell:c=>td("mono mut", c.volat!=null?c.volat+"%":"—")},
+  tv:   {th:'<span class="hi">⭐</span>TV', cell:c=>td(ratingClass(c.rating), c.rating||"—")},
+  trgt: {th:'<span class="hi">🎯</span>TRGT', k:"prob", thClass:"l",
+         cell:(c,s)=>td("l", '<span class="probtxt p-'+(s.kind||"neu")+'">'+s.prob+"%"+s.dir+"</span>", "padding-left:12px")},
+  sp:   {th:'', cell:()=>td("", "")},
+};
+const DEFAULT_ORDER = ["act","num","coin","price","ch4","ch12","ch24","ch7","vol","rsi1","rsi4","rsi12","vltl","tv","trgt","sp"];
+// дефолтные ширины колонок (px, в координатах таблицы); спейсер (sp) забирает остаток
+const DEFAULT_W = {act:60, num:30, coin:130, price:88, ch4:62, ch12:62, ch24:62, ch7:62,
+  vol:64, rsi1:58, rsi4:58, rsi12:60, vltl:74, tv:72, trgt:96};
+function colW(key) { return COL_W[key] || DEFAULT_W[key] || 0; }
+
+const COL_VER = 3;  // менять при изменении набора колонок — сбрасывает сохранённый порядок
+let COL_ORDER, COL_W;
+if (store.get("rsi_colv", 0) !== COL_VER) {
+  COL_ORDER = DEFAULT_ORDER.slice(); COL_W = {};
+  store.set("rsi_colorder", COL_ORDER); store.set("rsi_colw", COL_W); store.set("rsi_colv", COL_VER);
+} else {
+  COL_ORDER = (store.get("rsi_colorder", DEFAULT_ORDER.slice()) || []).filter(k => COLUMNS[k]);
+  DEFAULT_ORDER.forEach(k => { if (!COL_ORDER.includes(k)) COL_ORDER.push(k); });
+  COL_W = store.get("rsi_colw", {}) || {};
+}
+let justResized = false;
+
+function buildHeads() {
+  const tr = document.getElementById("heads");
+  tr.innerHTML = COL_ORDER.map(key => {
+    const col = COLUMNS[key];
+    const cls = ((col.k ? "sortable " : "") + (col.thClass || "") + (key === SORT.key ? " act" : "")).trim();
+    const w = colW(key) ? ("width:" + colW(key) + "px;") : "";
+    const arrow = (col.k && key === SORT.key) ? ' <span class="arr">' + (SORT.dir < 0 ? "↓" : "↑") + '</span>' : "";
+    return '<th data-col="' + key + '"' + (col.k ? ' data-k="' + col.k + '"' : "") +
+      ' draggable="true" class="' + cls + '" style="' + w + (col.thStyle || "") + '"' +
+      (col.title ? ' title="' + col.title + '"' : "") + '>' + col.th + arrow + '<span class="colrz"></span></th>';
+  }).join("");
+  document.getElementById("sortLabel").textContent =
+    "sort: " + (SORT_NAMES[SORT.key] || SORT.key) + (SORT.dir < 0 ? " ↓" : " ↑");
+}
+
+(function initColDnD() {
+  const heads = document.getElementById("heads");
+  let dragKey = null;
+  heads.addEventListener("dragstart", e => {
+    const th = e.target.closest("th"); if (!th) return;
+    dragKey = th.getAttribute("data-col"); th.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", dragKey); } catch (_) {}
+  });
+  heads.addEventListener("dragend", () => heads.querySelectorAll("th").forEach(t => t.classList.remove("dragging", "dragover")));
+  heads.addEventListener("dragover", e => {
+    e.preventDefault(); const th = e.target.closest("th"); if (!th) return;
+    heads.querySelectorAll("th").forEach(t => t.classList.remove("dragover")); th.classList.add("dragover");
+  });
+  heads.addEventListener("drop", e => {
+    e.preventDefault(); const th = e.target.closest("th"); if (!th || !dragKey) return;
+    const targetKey = th.getAttribute("data-col");
+    if (targetKey !== dragKey) {
+      const from = COL_ORDER.indexOf(dragKey);
+      COL_ORDER.splice(from, 1);
+      COL_ORDER.splice(COL_ORDER.indexOf(targetKey) + 1, 0, dragKey);
+      store.set("rsi_colorder", COL_ORDER);
+      render();
+    }
+    dragKey = null;
+  });
+  // изменение ширины за правый край заголовка
+  let rz = null, startX = 0, startW = 0, rzKey = null;
+  heads.addEventListener("mousedown", e => {
+    if (!e.target.classList.contains("colrz")) return;
+    e.preventDefault(); e.stopPropagation();
+    const th = e.target.closest("th"); rzKey = th.getAttribute("data-col");
+    startX = e.clientX; startW = th.getBoundingClientRect().width / 0.75; rz = th;  // /0.75 из-за zoom .app
+    th.setAttribute("draggable", "false"); document.body.style.userSelect = "none";
+  });
+  document.addEventListener("mousemove", e => {
+    if (!rz) return;
+    const w = Math.max(24, Math.round(startW + (e.clientX - startX) / 0.75));
+    COL_W[rzKey] = w; justResized = true;
+    rz.style.width = w + "px";
+    document.querySelectorAll('#rows td[data-col="' + rzKey + '"]').forEach(t => t.style.width = w + "px");
+  });
+  document.addEventListener("mouseup", () => {
+    if (!rz) return;
+    store.set("rsi_colw", COL_W);
+    rz.setAttribute("draggable", "true"); rz = null; document.body.style.userSelect = "";
+  });
+})();
 
 function render() {
   const tb = document.getElementById("rows");
@@ -343,6 +527,11 @@ function render() {
   document.getElementById("cNear").textContent = near;
 
   list.sort((a, b) => {
+    if (SORT.key === "prob") {
+      const ga = probGroup(a.s), gb = probGroup(b.s);
+      if (ga !== gb) return ga - gb;         // зелёные → красные → жёлтые → серые
+      return b.s.prob - a.s.prob;            // внутри группы по убыванию
+    }
     const va = sortVal(a, SORT.key), vb = sortVal(b, SORT.key);
     if (va == null && vb == null) return 0;
     if (va == null) return 1;
@@ -357,38 +546,30 @@ function render() {
     if (filterMode !== "all" && x.s.kind !== filterMode) return false;
     return true;
   });
+  // порядок: закреплённые → загоревшиеся огоньком → остальные
   const pinned = shown.filter(x => PINS.has(x.c.base));
-  const rest = shown.filter(x => !PINS.has(x.c.base));
-  const ordered = pinned.concat(rest);
+  const notPin = shown.filter(x => !PINS.has(x.c.base));
+  const fired = notPin.filter(x => isFired(x.c.base));
+  const rest = notPin.filter(x => !isFired(x.c.base));
+  const ordered = pinned.concat(fired, rest);
 
   let html = "";
   ordered.forEach((x, i) => {
     const c = x.c, s = x.s;
-    const isPin = PINS.has(c.base), isFav = FAVS.has(c.base);
-    html += '<tr class="row' + (c.sym === selectedSym ? ' sel' : '') + (isPin ? ' pinned' : '') + '" data-sym="' + c.sym + '">' +
-      '<td class="ico"><span class="pin' + (isPin ? ' on' : '') + '" data-pin="' + c.base + '" title="Закрепить сверху">📌</span>' +
-      '<span class="fav' + (isFav ? ' on' : '') + '" data-fav="' + c.base + '" title="В избранное">★</span></td>' +
-      '<td class="mut" style="text-align:center;">' + (i + 1) + '</td>' +
-      '<td class="l"><span class="sym">' + c.base + '<span>/USDT</span></span>' +
-        (s.label ? '<span class="st ' + s.kind + '">' + s.label + '</span>' : '') + '</td>' +
-      '<td class="mono">' + fmtPrice(c.price) + '</td>' +
-      '<td class="mono ' + pctClass(c.change24h) + '">' + fmtPct(c.change24h) + '</td>' +
-      '<td class="mono ' + (c.chg7d != null ? pctClass(c.chg7d) : 'mut') + '">' + (c.chg7d != null ? fmtPct(c.chg7d) : '—') + '</td>' +
-      '<td class="mono mut">' + (c.vol || '—') + '</td>' +
-      rsiCell(c.rsi1h, LO, HI) + rsiCell(c.rsi2h, LO, HI) + rsiCell(c.rsi4h, LO, HI) +
-      rsiCell(c.stoch, 20, 80) +
-      '<td class="mono mut">' + (c.macd || '—') + '</td>' +
-      '<td class="mono mut">' + (c.volat || '—') + '</td>' +
-      '<td class="' + ratingClass(c.rating) + '">' + (c.rating || '—') + '</td>' +
-      '<td class="spark">' + sparkSvg(c.spark) + '</td>' +
-      '<td class="l" style="padding-left:12px;"><span class="prob"><span class="bar"><i class="' + probLevel(s.prob) + '" style="width:' + s.prob + '%;"></i></span><span class="mono" style="font-size:12px;">' + s.prob + '%' + s.dir + '</span></span></td>' +
-      '<td><a class="lnk" href="https://www.tradingview.com/chart/?symbol=BINANCE:' + c.sym + '" target="_blank" rel="noopener">⧉</a></td>' +
-      '</tr>';
+    const isPin = PINS.has(c.base);
+    let cells = "";
+    COL_ORDER.forEach(key => {
+      const col = COLUMNS[key];
+      const r = col.cell(c, s, i);
+      const w = colW(key) ? ("width:" + colW(key) + "px;") : "";
+      cells += '<td data-col="' + key + '" class="' + (r.c || "") + '" style="' + w + (r.s || "") + '">' + r.h + '</td>';
+    });
+    html += '<tr class="row' + (c.sym === selectedSym ? ' sel' : '') + (isPin ? ' pinned' : '') + '" data-sym="' + c.sym + '">' + cells + '</tr>';
   });
-  if (!ordered.length) html = '<tr><td colspan="17" class="more">ничего не найдено</td></tr>';
+  if (!ordered.length) html = '<tr><td colspan="' + COL_ORDER.length + '" class="more">nothing found</td></tr>';
   tb.innerHTML = html;
-  document.getElementById("fCount").textContent = "монет: " + COINS.length;
-  updateHeads();
+  document.getElementById("fCount").textContent = "coins: " + COINS.length;
+  buildHeads();
 }
 
 document.getElementById("rows").addEventListener("click", e => {
@@ -396,12 +577,22 @@ document.getElementById("rows").addEventListener("click", e => {
   if (pin) { const b = pin.getAttribute("data-pin"); PINS.has(b) ? PINS.delete(b) : PINS.add(b); store.set("rsi_pins", [...PINS]); render(); return; }
   const fav = e.target.closest("[data-fav]");
   if (fav) { const b = fav.getAttribute("data-fav"); FAVS.has(b) ? FAVS.delete(b) : FAVS.add(b); store.set("rsi_favs", [...FAVS]); render(); return; }
+  const fire = e.target.closest("[data-fire]");
+  if (fire) { const b = fire.getAttribute("data-fire"); FIRE_SUPPRESS.has(b) ? FIRE_SUPPRESS.delete(b) : FIRE_SUPPRESS.add(b); render(); return; }
   if (e.target.closest("a.lnk")) return;
   const tr = e.target.closest("tr.row");
   if (tr) openPanel(tr.getAttribute("data-sym"));
 });
 
 document.getElementById("heads").addEventListener("click", e => {
+  if (e.target.closest("#btnClear")) {
+    FAVS.clear(); store.set("rsi_favs", []);
+    PINS.clear(); store.set("rsi_pins", []);
+    FIRE_LIT = new Set(); FIRE_SUPPRESS = new Set();
+    render(); return;
+  }
+  if (e.target.classList.contains("colrz")) return;
+  if (justResized) { justResized = false; return; }
   const th = e.target.closest("th.sortable");
   if (!th) return;
   const k = th.getAttribute("data-k");
@@ -410,12 +601,13 @@ document.getElementById("heads").addEventListener("click", e => {
   render();
 });
 
-const TV_CHARTS = [
-  {label:"RSI (14) · 1h", interval:"60",  study:"RSI@tv-basicstudies"},
-  {label:"RSI (14) · 2h", interval:"120", study:"RSI@tv-basicstudies"},
-  {label:"RSI (14) · 4h", interval:"240", study:"RSI@tv-basicstudies"},
-  {label:"Stochastic (14,3,3) · 4h", interval:"240", study:"Stochastic@tv-basicstudies"},
+const CHART_INDS = [
+  {name:"RSI",        study:"RSI@tv-basicstudies"},
+  {name:"ATR bottom", study:null},
+  {name:"Pifagor",    study:null},
 ];
+const CHART_TFS = [{tf:"60", lbl:"1h"}, {tf:"240", lbl:"4h"}, {tf:"720", lbl:"12h"}];
+let CHART_ON = new Set(store.get("rsi_charts", ["RSI|60", "RSI|240", "ATR bottom|240", "Pifagor|240"]));
 let tvScript = null;
 let userClosedPanel = false;
 
@@ -433,36 +625,50 @@ function loadTv() {
 
 async function buildCharts(sym) {
   const wrap = document.getElementById("charts");
-  wrap.innerHTML = TV_CHARTS.map((c, i) =>
-    '<div class="chart-box"><div class="cap">' + c.label + '</div><div class="chart-host" id="tvc' + i + '"></div></div>'
-  ).join("");
+  let htm = "", idx = 0;
+  const widgets = [];
+  CHART_INDS.forEach(ind => {
+    const short = ind.name.replace(" bottom", "");
+    const btns = CHART_TFS.map(t => '<button data-ck="' + ind.name + '|' + t.tf + '" class="' +
+      (CHART_ON.has(ind.name + "|" + t.tf) ? "on" : "") + '">' + t.lbl + '</button>').join("");
+    htm += '<div class="ind-block"><div class="ind-row"><span class="ind-name">' + short + '</span><div class="tf-btns">' + btns + '</div></div>';
+    const enabled = CHART_TFS.filter(t => CHART_ON.has(ind.name + "|" + t.tf));
+    if (enabled.length) {
+      htm += '<div class="ind-charts">';
+      enabled.forEach(t => {
+        const id = "tvc" + (idx++);
+        widgets.push({id: id, interval: t.tf, study: ind.study});
+        htm += '<div class="chart-box"><div class="cap">' + short + ' · ' + t.lbl + (ind.study ? "" : " — template") +
+               '</div><div class="chart-host" id="' + id + '"></div></div>';
+      });
+      htm += '</div>';
+    }
+    htm += '</div>';
+  });
+  wrap.innerHTML = htm;
+  if (!widgets.length) return;
   await loadTv();
-  if (typeof TradingView === "undefined") {
-    wrap.innerHTML = '<div class="p-txt">Графики TradingView не загрузились (нет интернета?)</div>';
-    return;
-  }
+  if (typeof TradingView === "undefined") return;
   const theme = document.body.classList.contains("light") ? "light" : "dark";
-  TV_CHARTS.forEach((c, i) => {
-    if (!document.getElementById("tvc" + i)) return;
+  widgets.forEach(w => {
+    if (!document.getElementById(w.id)) return;
     new TradingView.widget({
-      container_id: "tvc" + i,
-      autosize: true,
-      symbol: "BINANCE:" + sym,
-      interval: c.interval,
-      timezone: "Etc/UTC",
-      theme: theme,
-      style: "1",
-      locale: "ru",
-      hide_top_toolbar: true,
-      hide_legend: true,
-      hide_side_toolbar: true,
-      allow_symbol_change: false,
-      save_image: false,
-      withdateranges: false,
-      studies: [c.study],
+      container_id: w.id, autosize: true, symbol: "BINANCE:" + sym,
+      interval: w.interval, timezone: "Etc/UTC", theme: theme, style: "1", locale: "en",
+      hide_top_toolbar: true, hide_legend: true, hide_side_toolbar: true,
+      allow_symbol_change: false, save_image: false, withdateranges: false,
+      studies: w.study ? [w.study] : [],
     });
   });
 }
+
+document.getElementById("charts").addEventListener("click", e => {
+  const b = e.target.closest("button[data-ck]"); if (!b) return;
+  const ck = b.getAttribute("data-ck");
+  CHART_ON.has(ck) ? CHART_ON.delete(ck) : CHART_ON.add(ck);
+  store.set("rsi_charts", [...CHART_ON]);
+  if (selectedSym) buildCharts(selectedSym);
+});
 
 function openPanel(sym) {
   const c = COINS.find(x => x.sym === sym);
@@ -472,17 +678,21 @@ function openPanel(sym) {
   const s = statusOf(c.rsi4h);
   document.getElementById("pSym").innerHTML = c.base + '<span style="color:var(--sym2);font-weight:400;">/USDT</span>';
   const b = document.getElementById("pBadge");
-  b.textContent = s.label || "нейтрально";
+  b.textContent = s.label || "neutral";
   b.className = "p-badge " + (s.kind === "dn" ? "pb-dn" : s.kind === "up" ? "pb-up" : s.kind === "near" ? "pb-near" : "pb-neu");
   document.getElementById("pPrice").textContent = fmtPrice(c.price) + " $";
   const chg = document.getElementById("pChg");
-  chg.textContent = fmtPct(c.change24h) + " 24ч";
-  chg.className = "mono " + pctClass(c.change24h);
+  chg.textContent = fmtPct(c.change24h) + " 24h";
+  chg.className = "mono p-chg " + pctClass(c.change24h);
   const pr = document.getElementById("pProb");
   pr.textContent = s.prob + "% " + s.dir;
   pr.className = "mono c-" + probLevel(s.prob);
-  const r4 = document.getElementById("pRsi4");
-  r4.innerHTML = c.rsi4h != null ? c.rsi4h.toFixed(1) + ' <span class="' + (c.rsi4h <= LO ? 'm' : c.rsi4h >= HI ? 'p' : 'mut') + '">' + (c.rsi4h <= LO ? '−' : c.rsi4h >= HI ? '+' : '·') + '</span>' : "—";
+  const rsiTd = (v) => v != null
+    ? v.toFixed(1) + ' <span class="' + (v <= LO ? 'm' : v >= HI ? 'p' : 'mut') + '">' + (v <= LO ? '−' : v >= HI ? '+' : '·') + '</span>'
+    : "—";
+  document.getElementById("pRsi1").innerHTML = rsiTd(c.rsi1h);
+  document.getElementById("pRsi4").innerHTML = rsiTd(c.rsi4h);
+  document.getElementById("pRsi12").innerHTML = rsiTd(c.rsi12h);
   document.getElementById("pTv").href = "https://www.tradingview.com/chart/?symbol=BINANCE:" + c.sym;
   document.getElementById("panel").classList.remove("hidden");
   document.getElementById("rz").classList.remove("hidden");
@@ -520,8 +730,10 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closePanel()
   rz.addEventListener("mousedown", e => { drag = true; rz.classList.add("drag"); document.body.style.userSelect = "none"; e.preventDefault(); });
   document.addEventListener("mousemove", e => {
     if (!drag) return;
-    const w = Math.min(Math.round(window.innerWidth * 0.75), Math.max(300, window.innerWidth - e.clientX));
-    panel.style.width = w + "px";
+    const real = window.innerWidth - e.clientX;   // экранные px от курсора до правого края
+    let w = real / 0.75;                           // .app zoom:0.75 -> координаты панели
+    w = Math.max(300, Math.min(w, window.innerWidth / 0.75 * 0.85));
+    panel.style.width = Math.round(w) + "px";
   });
   document.addEventListener("mouseup", () => {
     if (!drag) return;
@@ -549,7 +761,7 @@ document.getElementById("btnFav").addEventListener("click", () => {
   const btn = document.getElementById("btnTheme");
   const apply = t => {
     document.body.classList.toggle("light", t === "light");
-    btn.textContent = t === "light" ? "🌙" : "☀";
+    btn.querySelector(".ic").textContent = t === "light" ? "🌙" : "☀️";
   };
   apply(store.get("rsi_theme", "dark"));
   btn.addEventListener("click", () => {
@@ -565,19 +777,21 @@ document.getElementById("btnFav").addEventListener("click", () => {
 
 document.getElementById("btnOut").addEventListener("click", () => { window.location.href = "/logout"; });
 
+const REFRESH_HTML = '<span class="ic" style="color:var(--green);">↻</span> Refresh';
 async function refresh(force) {
   const btn = document.getElementById("btnRefresh");
-  btn.disabled = true; btn.textContent = "⟳ Загрузка…";
+  btn.disabled = true; btn.innerHTML = '<span class="ic" style="color:var(--green);">↻</span> Loading…';
   try {
     const r = await fetch("/api/scan" + (force ? "?force=1" : ""), {cache: "no-store"});
     if (r.status === 401) { window.location.href = "/login"; return; }
     if (!r.ok) throw new Error("HTTP " + r.status);
     const data = await r.json();
-    if (!data.coins || !data.coins.length) throw new Error(data.error || "пустой ответ");
+    if (!data.coins || !data.coins.length) throw new Error(data.error || "empty");
     COINS = data.coins;
+    computeFire(COINS);
     live = true;
-    document.getElementById("cTime").textContent = data.updated;
-    document.getElementById("fSrc").textContent = "источник: " + data.source + (data.error ? " · " + data.error : "");
+    document.getElementById("cTime").textContent = houstonTime();
+    document.getElementById("fSrc").textContent = "source: " + data.source + (data.error ? " · " + data.error : "");
     const mb = document.getElementById("modeBadge");
     mb.textContent = "live · " + data.updated;
     mb.className = "badge-mode live";
@@ -587,28 +801,33 @@ async function refresh(force) {
     autoOpenPanel();
   } catch (err) {
     if (!live) {
-      document.getElementById("modeBadge").textContent = "демо-данные (сервер недоступен)";
-      document.getElementById("fSrc").textContent = "источник: демо";
+      document.getElementById("modeBadge").textContent = "demo (server offline)";
+      document.getElementById("fSrc").textContent = "source: demo";
       document.getElementById("cTime").textContent = "—";
       document.getElementById("demoBanner").style.display = "block";
     }
   } finally {
-    btn.disabled = false; btn.textContent = "⟳ Обновить";
+    btn.disabled = false; btn.innerHTML = REFRESH_HTML;
   }
 }
 
 document.getElementById("btnRefresh").addEventListener("click", () => refresh(true));
 
 let autoTimer = null;
+let autoSec = parseInt(store.get("rsi_interval", 60), 10);
+if (![0, 5, 10, 30, 60, 300].includes(autoSec)) autoSec = 60;
 function setupAutoRefresh() {
   if (autoTimer) clearInterval(autoTimer);
-  const sec = parseInt(document.getElementById("intSel").value, 10) || 60;
-  store.set("rsi_interval", sec);
-  autoTimer = setInterval(() => { if (document.getElementById("autoChk").checked) refresh(false); }, sec * 1000);
+  document.querySelectorAll("#intSeg button").forEach(b =>
+    b.classList.toggle("on", parseInt(b.getAttribute("data-sec"), 10) === autoSec));
+  if (autoSec > 0) autoTimer = setInterval(() => refresh(false), autoSec * 1000);
 }
-document.getElementById("intSel").value = String(store.get("rsi_interval", 60));
-if (!document.getElementById("intSel").value) document.getElementById("intSel").value = "60";
-document.getElementById("intSel").addEventListener("change", setupAutoRefresh);
+document.getElementById("intSeg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-sec]"); if (!b) return;
+  autoSec = parseInt(b.getAttribute("data-sec"), 10);
+  store.set("rsi_interval", autoSec);
+  setupAutoRefresh();
+});
 setupAutoRefresh();
 
 render();

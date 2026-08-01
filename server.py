@@ -17,6 +17,7 @@ import os
 import secrets
 import time
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -38,6 +39,86 @@ EXCLUDED_BASES = {
 }
 
 _cache = {"ts": 0.0, "data": None}
+
+# RSI 12h нет в scanner — считаем по свечам Binance, кэшируем отдельно (меняется медленно)
+_rsi12_cache = {"ts": 0.0, "map": {}}
+RSI12_TTL = 300
+
+
+def _binance_klines(symbol: str, interval: str, limit: int):
+    url = ("https://api.binance.com/api/v3/klines"
+           f"?symbol={symbol}&interval={interval}&limit={limit}")
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.loads(r.read())
+
+
+def _rsi(closes, period: int = 14):
+    """RSI по Уайлдеру (как в TradingView)."""
+    if len(closes) < period + 1:
+        return None
+    gains = losses = 0.0
+    for i in range(1, period + 1):
+        d = closes[i] - closes[i - 1]
+        if d >= 0:
+            gains += d
+        else:
+            losses -= d
+    avg_g, avg_l = gains / period, losses / period
+    for i in range(period + 1, len(closes)):
+        d = closes[i] - closes[i - 1]
+        g = d if d > 0 else 0.0
+        l = -d if d < 0 else 0.0
+        avg_g = (avg_g * (period - 1) + g) / period
+        avg_l = (avg_l * (period - 1) + l) / period
+    if avg_l == 0:
+        return 100.0
+    rs = avg_g / avg_l
+    return 100.0 - 100.0 / (1.0 + rs)
+
+
+def kl12h_for(bases) -> dict:
+    """По 12h-свечам Binance считаем RSI 12h и изменение цены за 12ч. base -> {rsi12h, change12h}."""
+    now = time.time()
+    if _rsi12_cache["map"] and now - _rsi12_cache["ts"] < RSI12_TTL:
+        return _rsi12_cache["map"]
+    out = {}
+
+    def work(base):
+        try:
+            kl = _binance_klines(base + "USDT", "12h", 200)
+            closes = [float(k[4]) for k in kl]
+            info = {}
+            v = _rsi(closes)
+            if v is not None:
+                info["rsi12h"] = round(v, 1)
+            if len(closes) >= 2 and closes[-2] != 0:
+                info["change12h"] = round((closes[-1] / closes[-2] - 1) * 100, 2)
+            if info:
+                out[base] = info
+        except Exception:
+            pass
+
+    try:
+        with ThreadPoolExecutor(max_workers=16) as ex:
+            list(ex.map(work, bases))
+    except Exception:
+        pass
+    if out:
+        _rsi12_cache["map"] = out
+        _rsi12_cache["ts"] = now
+    return _rsi12_cache["map"]
+
+
+def _rating_label(rec):
+    """Recommend.All (-1..1 из TradingView) -> текст."""
+    if rec is None:
+        return None
+    if rec >= 0.1:
+        return "Buy"
+    if rec <= -0.1:
+        return "Sell"
+    return "Neutral"
 
 
 # ---------------------------------------------------------------- авторизация
@@ -178,35 +259,51 @@ def fetch_top100() -> dict:
         mcap_by_base[base] = mcap
 
     # Шаг 2: данные USDT-пар Binance по этому списку (несуществующие пары отпадут сами)
+    cols = ["name", "close", "change|240", "change", "Perf.W",
+            "RSI|60", "RSI|240", "volume", "Volatility.D", "Recommend.All"]
     tickers = ["BINANCE:" + b + "USDT" for b in bases]
     pair_raw = _tv_request(PAIR_SCAN_URL, {
-        "columns": ["name", "close", "change", "RSI|240"],
+        "columns": cols,
         "symbols": {"query": {"types": []}, "tickers": tickers},
     })
     by_name = {}
     for row in pair_raw.get("data", []):
-        name, close, change, rsi = row["d"]
-        if name:
-            by_name[name] = (close, change, rsi)
+        d = row["d"]
+        if d and d[0]:
+            by_name[d[0]] = d
 
-    coins = []
+    coins, chosen_bases = [], []
     for base in bases:
-        data = by_name.get(base + "USDT")
-        if not data:
+        d = by_name.get(base + "USDT")
+        if not d:
             continue
-        close, change, rsi = data
-        if close is None or rsi is None:
+        _name, close, chg4h, chg24h, chg7d, rsi1h, rsi4h, vol, volat, rec = d
+        if close is None or rsi4h is None:
             continue
         coins.append({
             "sym": base + "USDT",
             "base": base,
             "price": close,
-            "change24h": round(change, 2) if change is not None else None,
-            "rsi4h": round(rsi, 1),
+            "change4h": round(chg4h, 2) if chg4h is not None else None,
+            "change24h": round(chg24h, 2) if chg24h is not None else None,
+            "change7d": round(chg7d, 2) if chg7d is not None else None,
+            "rsi1h": round(rsi1h, 1) if rsi1h is not None else None,
+            "rsi4h": round(rsi4h, 1),
+            "volUsd": (vol * close) if (vol is not None and close is not None) else None,
+            "volat": round(volat, 2) if volat is not None else None,
+            "rating": _rating_label(rec),
             "mcap": mcap_by_base.get(base),
         })
+        chosen_bases.append(base)
         if len(coins) >= TOP_N:
             break
+
+    # RSI 12h и Δ12ч — считаем по свечам Binance (в scanner их нет)
+    kl12 = kl12h_for(chosen_bases)
+    for c in coins:
+        info = kl12.get(c["base"], {})
+        c["rsi12h"] = info.get("rsi12h")
+        c["change12h"] = info.get("change12h")
 
     return {
         "updated": time.strftime("%H:%M:%S"),
