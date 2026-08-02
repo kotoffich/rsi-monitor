@@ -47,12 +47,28 @@ _rsi12_cache = {"ts": 0.0, "map": {}}
 RSI12_TTL = 300
 
 
+# data-api.binance.vision — публичный домен рыночных данных Binance (обычно НЕ блокируется на облачных IP,
+# в отличие от api.binance.com, который на Render/AWS часто отдаёт HTTP 451). Пробуем по очереди, рабочий хост кэшируем.
+_KLINE_HOSTS = ["data-api.binance.vision", "api.binance.com", "api-gcp.binance.com"]
+_kline_host = None
+
+
 def _binance_klines(symbol: str, interval: str, limit: int):
-    url = ("https://api.binance.com/api/v3/klines"
-           f"?symbol={symbol}&interval={interval}&limit={limit}")
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=15) as r:
-        return json.loads(r.read())
+    global _kline_host
+    hosts = ([_kline_host] if _kline_host else []) + [h for h in _KLINE_HOSTS if h != _kline_host]
+    last = None
+    for host in hosts:
+        url = f"https://{host}/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                data = json.loads(r.read())
+            _kline_host = host          # запомнили рабочий хост
+            return data
+        except Exception as e:
+            last = e
+            continue
+    raise last if last else RuntimeError("klines: все хосты недоступны")
 
 
 def _rsi(closes, period: int = 14):

@@ -237,7 +237,11 @@
   .flog-buy td { background:rgba(95,174,99,.06); }
   .flog-empty { padding:24px; text-align:center; color:var(--muted); }
   /* окно настроек */
-  .set-box { width:min(460px,92vw); background:var(--bg2); border:1px solid var(--border2); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  .set-box { width:min(540px,94vw); max-height:88vh; background:var(--bg2); border:1px solid var(--border2); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  .set-tabs { display:flex; gap:6px; padding:10px 16px 0; flex:none; }
+  .set-tab { flex:1; background:var(--bg3); border:1px solid var(--border2); color:var(--text2); border-radius:8px 8px 0 0; padding:8px 6px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; }
+  .set-tab:hover { background:var(--bghov); }
+  .set-tab.on { border-color:var(--accent); border-bottom-color:transparent; color:var(--text); background:var(--bg2); }
   .set-hd { display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); font-size:16px; font-weight:600; }
   .set-hd .set-x { margin-left:auto; cursor:pointer; color:var(--muted); font-size:18px; }
   .set-body { padding:14px 16px; flex:1; overflow-y:auto; min-height:0; }
@@ -249,8 +253,7 @@
   body.light .set-row input[type=datetime-local] { color-scheme:light; }
   .set-chk { width:18px; height:18px; accent-color:var(--accent); cursor:pointer; }
   .pf-chk { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; }
-  .set-block { padding-bottom:4px; }
-  .set-block + .set-block { border-top:1px solid var(--border); padding-top:10px; margin-top:6px; }
+  .set-block { padding-bottom:4px; }   /* каждый блок — своя вкладка, разделители не нужны */
   .set-block-t { font-size:14px; font-weight:700; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; }
   .set-block-t .ic { font-size:17px; }
   .set-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 16px; border-top:1px solid var(--border); }
@@ -399,15 +402,20 @@
 <div class="flog-overlay" id="setOverlay" style="display:none;">
   <div class="set-box">
     <div class="set-hd"><span>⚙️ Настройки</span><span class="set-x" id="setClose">✕</span></div>
+    <div class="set-tabs">
+      <button class="set-tab on" data-tab="fire"><span class="ic">🔥</span> Огонёк</button>
+      <button class="set-tab" data-tab="star"><span class="star-hd">✳</span> Валидация *</button>
+      <button class="set-tab" data-tab="trg"><span style="color:#e0a23c;">🎯</span> Таргет</button>
+    </div>
     <div class="set-body">
-      <div class="set-block">
+      <div class="set-block" data-tabc="fire">
         <div class="set-block-t"><span class="ic">🔥</span> Огонёк</div>
         <div class="set-row">
           <label>Порог, %<div class="set-hint">на сколько должна прибавить вероятность (TRGT), чтобы загорелся огонёк</div></label>
           <input type="number" id="setFireThr" min="1" max="90" step="1">
         </div>
       </div>
-      <div class="set-block">
+      <div class="set-block" data-tabc="star" style="display:none;">
         <div class="set-block-t"><span class="star-hd">✳</span> Валидация «*»</div>
         <div class="set-row">
           <label>Порог фиксации TSumm, %<div class="set-hint">при каком TSumm (пробитие вниз) «*» фиксирует точку входа</div></label>
@@ -426,7 +434,7 @@
           <input type="number" id="setStarGr" min="1" max="100" step="1">
         </div>
       </div>
-      <div class="set-block">
+      <div class="set-block" data-tabc="trg" style="display:none;">
         <div class="set-block-t"><span style="color:#e0a23c;">🎯</span> Таргет (TRG)</div>
         <div class="set-row">
           <label>Шаг на индикатор, %<div class="set-hint">на сколько двигает TRG каждый включённый индикатор (EMA/CE/DIV/ATR-дно). Влияет на TSumm и «*»</div></label>
@@ -1355,7 +1363,13 @@ document.getElementById("fireBlock").addEventListener("click", e => {
 
 // окно настроек
 const setOverlay = document.getElementById("setOverlay");
+function setTab(tab) {
+  document.querySelectorAll("#setOverlay .set-tab").forEach(x => x.classList.toggle("on", x.getAttribute("data-tab") === tab));
+  document.querySelectorAll("#setOverlay [data-tabc]").forEach(b => b.style.display = b.getAttribute("data-tabc") === tab ? "" : "none");
+}
+document.querySelectorAll("#setOverlay .set-tab").forEach(t => t.addEventListener("click", () => setTab(t.getAttribute("data-tab"))));
 document.getElementById("btnSettings").addEventListener("click", () => {
+  setTab("fire");
   document.getElementById("setFireThr").value = FIRE_THRESHOLD;
   document.getElementById("setStarThr").value = STAR_THRESHOLD;
   document.getElementById("setStarWin").value = STAR_WINDOW_D;
