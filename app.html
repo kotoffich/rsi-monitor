@@ -29,9 +29,10 @@
     --panelbg:#fafbfd; --panelborder:#d7dae1;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; margin:0; }
   body { background:var(--bg); color:var(--text); font:15px/1.45 "Inter", "Segoe UI", system-ui, sans-serif; }
   .mono { font-family: "Inter", Consolas, "Cascadia Mono", monospace; font-variant-numeric: tabular-nums; }
-  .app { min-height:100vh; display:flex; flex-direction:column; background:var(--bg); zoom:0.75; }
+  .app { height:calc(100vh / 0.75); display:flex; flex-direction:column; background:var(--bg); zoom:0.75; overflow:hidden; }  /* /0.75 — компенсируем zoom, чтобы заполнить экран */
 
   .hdr { display:flex; align-items:center; gap:9px; padding:14px 18px 8px; flex-wrap:wrap; }
   .hdr .logo { color:var(--accent); font-size:24px; }
@@ -46,6 +47,8 @@
   .btn .ic { font-size:19px; line-height:1; }
   .btn.icon-only { padding:8px 11px; }
   .btn.on { border-color:var(--amberbar); color:var(--amber); }
+  .btn.frbtn { padding:8px 13px; font-weight:700; }
+  .btn.frbtn.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
   .seg { display:inline-flex; background:var(--bg2); border:1px solid var(--border2); border-radius:8px; overflow:hidden; margin-left:8px; }
   .seg button { background:transparent; border:none; border-left:1px solid var(--border2); color:var(--text2); font:600 12.5px "Inter",sans-serif; padding:5px 11px; cursor:pointer; }
   .seg button:first-child { border-left:none; }
@@ -59,8 +62,14 @@
   .demo-banner { display:none; background:var(--chip-near); color:var(--amber); border-top:1px solid var(--amberbar);
                  border-bottom:1px solid var(--amberbar); padding:10px 18px; font-size:14px; font-weight:600; text-align:center; }
 
-  .cardswrap { display:flex; flex:1; align-items:stretch; }
-  .leftcol { flex:1; min-width:0; }
+  .cardswrap { display:flex; flex:1; align-items:stretch; min-height:0; }
+  .leftcol { flex:1; min-width:0; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+  /* тонкий скроллбар в тему */
+  .leftcol, .panel, .ind-list, .flog-scroll { scrollbar-width:thin; scrollbar-color:var(--border2) transparent; }
+  .leftcol::-webkit-scrollbar, .panel::-webkit-scrollbar, .ind-list::-webkit-scrollbar, .flog-scroll::-webkit-scrollbar { width:7px; height:7px; }
+  .leftcol::-webkit-scrollbar-thumb, .panel::-webkit-scrollbar-thumb, .ind-list::-webkit-scrollbar-thumb, .flog-scroll::-webkit-scrollbar-thumb { background:var(--border2); border-radius:6px; }
+  .leftcol::-webkit-scrollbar-thumb:hover, .panel::-webkit-scrollbar-thumb:hover, .ind-list::-webkit-scrollbar-thumb:hover, .flog-scroll::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+  .leftcol::-webkit-scrollbar-track, .panel::-webkit-scrollbar-track, .ind-list::-webkit-scrollbar-track, .flog-scroll::-webkit-scrollbar-track { background:transparent; }
   .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:4px 18px 12px; }
   .card { background:var(--bg2); border-radius:9px; padding:12px 16px; }
   .card .lbl { font-size:13px; margin-bottom:3px; }
@@ -93,7 +102,8 @@
 
   table.coins { width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed; }
   table.coins td { overflow:hidden; }
-  table.coins th { background:var(--bghead); color:var(--text); font-weight:600; padding:9px 8px; text-align:center; white-space:nowrap; font-size:15px; position:relative; border-left:1px solid var(--line); border-bottom:2px solid #e0a23c; }
+  table.coins th { background:var(--bghead); color:var(--text); font-weight:600; padding:9px 8px; text-align:center; white-space:nowrap; font-size:15px; position:relative; border-left:1px solid var(--line); }
+  table.coins thead th { position:sticky; top:0; z-index:5; box-shadow:inset 0 -2px 0 #e0a23c; }   /* залипает; оранж-разделитель через box-shadow (едет с шапкой при border-collapse) */
   table.coins th.dragging { opacity:.4; }
   table.coins th.dragover { box-shadow:inset 2px 0 0 var(--selbar); }
   table.coins th .hi { font-size:15px; margin-right:3px; vertical-align:-1px; }
@@ -106,10 +116,18 @@
   table.coins td { padding:6px 8px; border-top:1px solid var(--line); border-left:1px solid var(--line); text-align:center; white-space:nowrap; }
   table.coins td.l, table.coins th.l { text-align:left; }
   table.coins td[data-col="num"] { color:#b8b8c0; }
-  table.coins td[data-col="rsi1"], table.coins td[data-col="rsi4"], table.coins td[data-col="rsi12"] { background:rgba(255,255,255,.03); font-size:18px; font-weight:600; }
-  body.light table.coins td[data-col="rsi1"], body.light table.coins td[data-col="rsi4"], body.light table.coins td[data-col="rsi12"] { background:rgba(0,0,0,.03); }
-  table.coins th[data-col="rsi1"], table.coins td[data-col="rsi1"] { border-left:1px solid var(--border2); }
-  table.coins th[data-col="rsi12"], table.coins td[data-col="rsi12"] { border-right:1px solid var(--border2); }
+  table.coins td[data-col="rsi1"], table.coins td[data-col="rsi4"], table.coins td[data-col="rsi12"],
+  table.coins td[data-col="atr1"], table.coins td[data-col="atr4"], table.coins td[data-col="atr12"],
+  table.coins td[data-col="pf1"], table.coins td[data-col="pf4"], table.coins td[data-col="pf12"] { background:rgba(255,255,255,.03); font-size:18px; font-weight:600; }
+  body.light table.coins td[data-col="rsi1"], body.light table.coins td[data-col="rsi4"], body.light table.coins td[data-col="rsi12"],
+  body.light table.coins td[data-col="atr1"], body.light table.coins td[data-col="atr4"], body.light table.coins td[data-col="atr12"],
+  body.light table.coins td[data-col="pf1"], body.light table.coins td[data-col="pf4"], body.light table.coins td[data-col="pf12"] { background:rgba(0,0,0,.03); }
+  table.coins th[data-col="rsi1"], table.coins td[data-col="rsi1"],
+  table.coins th[data-col="atr1"], table.coins td[data-col="atr1"],
+  table.coins th[data-col="pf1"], table.coins td[data-col="pf1"] { border-left:1px solid var(--border2); }
+  table.coins th[data-col="rsi12"], table.coins td[data-col="rsi12"],
+  table.coins th[data-col="atr12"], table.coins td[data-col="atr12"],
+  table.coins th[data-col="pf12"], table.coins td[data-col="pf12"] { border-right:1px solid var(--border2); }
   table.coins tr.row { cursor:pointer; }
   table.coins tr.row:hover { background:var(--bghov); }
   tr.sel { background:var(--sel) !important; box-shadow:inset 3px 0 0 var(--selbar); }
@@ -126,6 +144,17 @@
   .sym span { color:var(--sym2); font-weight:400; font-size:12px; }
   .probtxt { font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; }
   .p-up { color:var(--green); } .p-dn { color:var(--red); } .p-near { color:var(--amber); } .p-neu { color:var(--muted); }
+  td[data-col="t1"] .probtxt, td[data-col="trgt"] .probtxt, td[data-col="t12"] .probtxt { font-size:16px; }  /* детальные фреймы мельче, TSumm крупный */
+  .pdir { display:block; font-size:12px; line-height:1; margin-top:1px; min-height:12px; }   /* стрелка на 2-й строке; min-height резервирует место даже без стрелки — % на одном уровне */
+  .star-hd { color:#e0a23c; font-size:19px; font-weight:800; }
+  td[data-col="pf"] { text-align:center; }
+  .pfmic { cursor:pointer; opacity:.28; font-size:16px; user-select:none; }
+  .pfmic:hover { opacity:.65; }
+  .pfmic.on { opacity:1; }
+  td[data-col="star"].star-open  { background:rgba(79,156,247,.45); }
+  td[data-col="star"].star-green { background:rgba(95,174,99,.5); }
+  td[data-col="star"].star-red   { background:rgba(230,70,70,.5); }
+  .star-block { margin:0 14px; padding:10px 0; border-bottom:1px solid var(--border); }
   .st { font-size:12px; display:block; margin-top:2px; }
   .st.dn { color:var(--red); } .st.up { color:var(--green); } .st.near { color:var(--amber); }
   td.spark { text-align:center; }
@@ -142,6 +171,16 @@
   .prob .bar i { display:block; height:5px; border-radius:3px; }
   .bar i.hi { background:var(--redbar); } .bar i.mid { background:var(--amberbar); } .bar i.lo { background:var(--graybar); }
   .c-hi { color:var(--red); } .c-mid { color:var(--amber); } .c-lo { color:var(--muted); }
+  .atr-hi, .atr-mid, .atr-lo { font-family:Consolas, monospace; font-variant-numeric:tabular-nums; }
+  .atr-hi { color:var(--red); } .atr-mid { color:var(--amber); } .atr-lo { color:var(--muted); }
+  table.coins th { vertical-align:middle; padding-top:5px; padding-bottom:5px; }
+  .hd1 { display:block; text-align:center; }               /* центр по горизонтали даже в левых колонках (th.l) */
+  table.coins th.l .hd1 { text-align:left; }                /* COIN — обратно к левому краю */
+  .hd2, .hd3 { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; line-height:1.15; }
+  .hd-ab { font-weight:700; font-size:14px; letter-spacing:.3px; }
+  .hd-tf { color:var(--text); font-weight:700; font-size:11px; }   /* как имя заголовка, только мельче */
+  .hd-tf.sum { color:var(--accent); font-weight:800; font-size:16px; line-height:1; }
+  .hd-ic { font-size:13px; line-height:1; }
   .lnk { color:var(--accent); text-decoration:none; font-size:14px; }
   .more { text-align:center !important; color:var(--faint); font-size:12.5px; }
 
@@ -149,12 +188,15 @@
   .rz:hover, .rz.drag { background:rgba(224,162,60,.55); }
   .rz.hidden { display:none; }
 
-  .panel { width:348px; min-width:300px; flex:none; background:var(--panelbg); border-left:1px solid var(--panelborder); display:flex; flex-direction:column; }
+  .panel { width:348px; min-width:300px; flex:none; background:var(--panelbg); border-left:1px solid var(--panelborder); display:flex; flex-direction:column; overflow-y:auto; overscroll-behavior:contain; }
   .panel.hidden { display:none; }
   .p-hd { display:flex; align-items:center; gap:11px; padding:12px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
   .p-hd .sym { font-size:21px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
   .p-hd .p-price { font-size:23px; font-weight:700; }
   .p-hd .p-chg { font-size:16px; font-weight:600; }
+  .pf-btn { margin-left:auto; background:var(--bg3); border:1px solid var(--border2); color:var(--text2); border-radius:8px; padding:6px 11px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .pf-btn:hover { background:var(--bghov); }
+  .pf-btn.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
   .p-hd .p-trgt { font-size:16px; color:var(--text2); }
   .p-hd .p-trgt .mono { font-weight:700; font-size:17px; }
   .p-hd .x { margin-left:auto; color:var(--muted); cursor:pointer; font-size:17px; }
@@ -163,6 +205,69 @@
   .pb-up { background:var(--chip-up); color:var(--green); }
   .pb-near { background:var(--chip-near); color:var(--amber); }
   .pb-neu { background:var(--bghead2); color:var(--muted); }
+  .ai-box { margin:0 14px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .ai-head { display:flex; align-items:center; gap:10px; }
+  .ai-title { font-size:14px; font-weight:600; color:var(--text2); }
+  .ai-run { margin-left:auto; }
+  .ai-head .x { color:var(--muted); cursor:pointer; font-size:17px; margin-left:10px; }
+  .ai-head .x:hover { color:var(--red); }
+  .ai-body { padding-top:10px; font-size:13px; color:var(--text); line-height:1.55; }
+  .ai-loading { color:var(--text2); }
+  .ai-result { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:11px 13px; white-space:pre-wrap; }
+  .ai-note { color:var(--amber); font-size:12px; margin-top:6px; }
+  .fire-block { margin:0 14px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .fb-head { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:var(--text); }
+  .fb-x { margin-left:auto; font-size:12px; color:var(--muted); cursor:pointer; }
+  .fb-x:hover { color:var(--red); }
+  .fb-lines { margin-top:6px; font-size:13px; color:var(--text2); line-height:1.6; }
+  /* окно хронологии огоньков */
+  .flog-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:50; }
+  .flog-box { width:min(640px,92vw); max-height:82vh; background:var(--bg2); border:1px solid var(--border-strong,var(--border2)); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
+  .flog-hd { display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); font-size:16px; font-weight:600; }
+  .flog-hd .flog-x { margin-left:auto; cursor:pointer; color:var(--muted); font-size:18px; }
+  .flog-scroll { overflow:auto; flex:1; min-height:0; }
+  .flog-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+  .flog-tbl th { position:sticky; top:0; background:var(--bghead); color:var(--text); font-weight:600; padding:8px 10px; text-align:left; white-space:nowrap; }
+  .flog-tbl th.srt { cursor:pointer; } .flog-tbl th.srt:hover { color:var(--accent); }
+  .flog-tbl td { padding:7px 10px; border-top:1px solid var(--line); white-space:nowrap; }
+  .flog-tbl td.d { color:var(--green); font-weight:600; }
+  .flog-tag { font-size:11px; font-weight:600; padding:2px 8px; border-radius:9px; white-space:nowrap; }
+  .flog-tag.buy { background:var(--chip-up); color:var(--green); }
+  .flog-tag.anl { background:var(--bghead2); color:var(--muted); }
+  .flog-buy td { background:rgba(95,174,99,.06); }
+  .flog-empty { padding:24px; text-align:center; color:var(--muted); }
+  /* окно настроек */
+  .set-box { width:min(460px,92vw); background:var(--bg2); border:1px solid var(--border2); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  .set-hd { display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); font-size:16px; font-weight:600; }
+  .set-hd .set-x { margin-left:auto; cursor:pointer; color:var(--muted); font-size:18px; }
+  .set-body { padding:14px 16px; flex:1; overflow-y:auto; min-height:0; }
+  .set-row { display:flex; align-items:center; gap:12px; padding:8px 0; }
+  .set-row label { flex:1; font-size:14px; }
+  .set-hint { font-size:12px; color:var(--muted); margin-top:2px; }
+  .set-row input[type=number] { width:88px; background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:7px 10px; font-size:14px; }
+  .set-row input[type=datetime-local] { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:6px 9px; font-size:13px; color-scheme:dark; }
+  body.light .set-row input[type=datetime-local] { color-scheme:light; }
+  .set-chk { width:18px; height:18px; accent-color:var(--accent); cursor:pointer; }
+  .pf-chk { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; }
+  .set-block { padding-bottom:4px; }
+  .set-block + .set-block { border-top:1px solid var(--border); padding-top:10px; margin-top:6px; }
+  .set-block-t { font-size:14px; font-weight:700; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+  .set-block-t .ic { font-size:17px; }
+  .set-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 16px; border-top:1px solid var(--border); }
+  /* попап выбора колонок (Indicators) */
+  .ind-sec { padding-bottom:12px; }
+  .ind-sec + .ind-sec { border-top:1px solid var(--border); padding-top:12px; }
+  .ind-sec-t { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+  .ind-checks { display:flex; flex-wrap:wrap; gap:8px; }
+  .ind-chk { display:inline-flex; align-items:center; gap:6px; cursor:pointer; user-select:none;
+    background:var(--bg3); border:1px solid var(--border2); border-radius:8px; padding:7px 12px; font-size:14px; font-weight:600; color:var(--text2); }
+  .ind-chk.on { border-color:var(--accent); color:var(--text); }
+  .ind-chk input { accent-color:var(--accent); width:15px; height:15px; cursor:pointer; }
+  .ind-list { overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:6px; }
+  .ind-item { display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;
+    background:var(--bg3); border:1px solid var(--border2); border-radius:8px; padding:10px 12px; font-size:14px; color:var(--text2); }
+  .ind-item.on { border-color:var(--accent); color:var(--text); }
+  .ind-item input { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; flex:none; }
   #charts { padding:6px 14px 10px; }
   .ind-block { margin-bottom:8px; }
   .ind-row { display:flex; align-items:center; gap:10px; padding:6px 2px; }
@@ -173,12 +278,17 @@
   .tf-btns button.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
   .ind-charts { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:10px; }
   .chart-box .cap { font-size:15px; font-weight:600; color:var(--text2); margin:0 0 4px 2px; }
-  .chart-host { height:205px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bghead2); }
+  .chart-host { height:246px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bghead2); }
   table.ind { width:100%; border-collapse:collapse; font-size:15px; }
   table.ind th { background:var(--bghead2); color:var(--text2); font-weight:600; padding:8px 10px; text-align:center; font-size:14px; }
   table.ind th.l { text-align:left; padding-left:14px; }
   table.ind td { padding:8px 10px; border-top:1px solid var(--line); text-align:center; font-family:"Inter", Consolas, monospace; }
   table.ind td.l { text-align:left; padding-left:14px; }
+  table.ind tbody tr[draggable] { cursor:grab; }
+  table.ind tbody tr.rdragging { opacity:.4; }
+  table.ind tbody tr.rdragover td { box-shadow:inset 0 2px 0 var(--accent); }
+  table.ind .pr-h { user-select:none; color:var(--text); }
+  table.ind .pr-h::first-letter { color:var(--faint); }
   .m { color:var(--red); font-weight:600; } .p { color:var(--green); font-weight:600; }
   tr.sum td { background:var(--bghead2); font-weight:600; }
   .p-txt { padding:10px 14px; font-size:12.5px; color:var(--text2); line-height:1.55; }
@@ -202,12 +312,16 @@
       <button data-sec="30">30S</button>
       <button data-sec="60">1M</button>
       <button data-sec="300">5M</button>
+      <button data-sec="600">10M</button>
+      <button data-sec="1200">20M</button>
+      <button data-sec="1800">30M</button>
+      <button data-sec="3600">1H</button>
     </div>
     <span class="mini"><span class="lbl" style="color:var(--green);">Break up</span><span class="val" id="cUp">0</span></span>
     <span class="mini"><span class="lbl" style="color:var(--amber);">Near</span><span class="val" id="cNear">0</span></span>
     <span class="mini"><span class="lbl" style="color:var(--red);">Break down</span><span class="val" id="cDn">0</span></span>
     <span class="sp"></span>
-    <button class="btn icon-only" onclick="alert('Settings — coming soon')" title="Settings"><span class="ic">⚙️</span></button>
+    <button class="btn icon-only" id="btnSettings" title="Настройки"><span class="ic">⚙️</span></button>
     <button class="btn icon-only" id="btnTheme" title="Light / dark theme"><span class="ic">🌙</span></button>
     <button class="btn icon-only" id="btnOut" style="display:none;" title="Log out"><span class="ic">🚪</span></button>
   </div>
@@ -215,15 +329,17 @@
 
   <div class="filters">
     <input placeholder="Search coin…" id="q">
-    <span class="chip dn" data-f="dn">Break ↓</span>
-    <span class="chip up" data-f="up">Break ↑</span>
-    <span class="chip near" data-f="near">Near</span>
-    <span class="chip all on" data-f="all">All</span>
-    <span class="divider"></span>
     <button class="btn" id="btnRefresh"><span class="ic" style="color:var(--green);">↻</span> Refresh</button>
     <button class="btn" id="btnFav" title="Show favorites"><span class="ic">⭐</span> Favorites</button>
-    <button class="btn" onclick="alert('Indicators — coming soon')"><span class="ic">📊</span> Indicators</button>
+    <button class="btn" id="btnInd"><span class="ic">📊</span> Indicators</button>
     <button class="btn" onclick="alert('Coins — coming soon')"><span class="ic">🪙</span> Coins</button>
+    <button class="btn" id="btnPortfolio" title="Портфель — активные позиции и лог"><span class="ic">💼</span> Портфель</button>
+    <button class="btn" id="btnFireLog" title="Хронология огоньков"><span class="ic">🔥</span> Fire log</button>
+    <button class="btn" id="btnStarLog" title="Хронология * (валидация сигнала)"><span class="ic" style="color:#e0a23c;">✳</span> * log</button>
+    <span class="divider"></span>
+    <button class="btn frbtn on" data-fr="1h"  title="Фрейм 1h в анализе (клик — выключить)">1H</button>
+    <button class="btn frbtn on" data-fr="4h"  title="Фрейм 4h в анализе (клик — выключить)">4H</button>
+    <button class="btn frbtn on" data-fr="12h" title="Фрейм 12h в анализе (клик — выключить)">12H</button>
   </div>
 
   <div class="cardswrap">
@@ -237,28 +353,28 @@
     <div class="rz hidden" id="rz" title="Drag to resize the panel"></div>
 
     <aside class="panel hidden" id="panel">
+      <div class="ai-box">
+        <div class="ai-head">
+          <span class="ai-title">🤖 AI analysis</span>
+          <button class="btn ai-run" id="btnAnalyze"><span class="ic">🤖</span> Run AI analysis</button>
+          <span class="x" id="pClose" title="Закрыть">✕</span>
+        </div>
+        <div class="ai-body" id="aiBody" style="display:none;"></div>
+      </div>
       <div class="p-hd">
         <span class="sym" id="pSym">—</span>
         <span class="p-badge pb-neu" id="pBadge">—</span>
         <span class="p-price mono" id="pPrice">—</span>
         <span class="p-chg mono" id="pChg">—</span>
-        <span class="p-trgt">TRGT <span class="mono" id="pProb">—</span></span>
-        <span class="x" id="pClose">✕</span>
+        <button class="pf-btn" id="pPortfolio" title="В портфеле — получать SELL-уведомления в Telegram">💼 В портфель</button>
       </div>
-      <div id="charts"></div>
-      <table class="ind">
+      <div class="fire-block" id="fireBlock" style="display:none;"></div>
+      <div class="star-block" id="starBlock" style="display:none;"></div>
+      <table class="ind" id="indTable">
         <thead><tr><th class="l">Indicator</th><th>1h</th><th>4h</th><th>12h</th></tr></thead>
-        <tbody>
-          <tr><td class="l">RSI (14)</td><td class="mut" id="pRsi1">—</td><td id="pRsi4">—</td><td class="mut" id="pRsi12">—</td></tr>
-          <tr><td class="l">Stochastic</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
-          <tr><td class="l">MACD</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
-          <tr><td class="l">EMA 50/200</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
-          <tr><td class="l">Supertrend</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
-          <tr><td class="l">Bollinger %B</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
-          <tr class="sum"><td class="l">Sum of pluses</td><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td></tr>
-        </tbody>
+        <tbody></tbody>
       </table>
-      <div class="p-txt" id="pTxt">Chart 1 — RSI 4h. The rest are empty templates: we'll overlay “ATR bottom” later.</div>
+      <div id="charts"></div>
       <div class="p-foot">
         <a class="btn" id="pTv" href="#" target="_blank" rel="noopener">Open on TradingView ↗</a>
       </div>
@@ -267,6 +383,122 @@
 
   <div class="foot">
     <span>click a row for analytics</span><span id="fCount">coins: 0</span><span>levels 30/70 · zone ±5</span><span id="fSrc">source: demo</span><span>updated: <span id="cTime">—</span></span><span class="sort" id="sortLabel">sort: TRGT ↓</span>
+  </div>
+</div>
+
+<div class="flog-overlay" id="indOverlay" style="display:none;">
+  <div class="set-box">
+    <div class="set-hd"><span>📊 Колонки таблицы</span><span class="set-x" id="indClose">✕</span></div>
+    <div class="set-body">
+      <div class="set-hint" style="margin-bottom:10px;">Галочки — какие индикаторы показывать. Фреймы (1H/4H/12H) выбираются кнопками в шапке сайта.</div>
+      <div class="ind-list" id="indList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="flog-overlay" id="setOverlay" style="display:none;">
+  <div class="set-box">
+    <div class="set-hd"><span>⚙️ Настройки</span><span class="set-x" id="setClose">✕</span></div>
+    <div class="set-body">
+      <div class="set-block">
+        <div class="set-block-t"><span class="ic">🔥</span> Огонёк</div>
+        <div class="set-row">
+          <label>Порог, %<div class="set-hint">на сколько должна прибавить вероятность (TRGT), чтобы загорелся огонёк</div></label>
+          <input type="number" id="setFireThr" min="1" max="90" step="1">
+        </div>
+      </div>
+      <div class="set-block">
+        <div class="set-block-t"><span class="star-hd">✳</span> Валидация «*»</div>
+        <div class="set-row">
+          <label>Порог фиксации TSumm, %<div class="set-hint">при каком TSumm (пробитие вниз) «*» фиксирует точку входа</div></label>
+          <input type="number" id="setStarThr" min="50" max="99" step="1">
+        </div>
+        <div class="set-row">
+          <label>Окно слежения, дней<div class="set-hint">сколько дней ждём рост цены до красного</div></label>
+          <input type="number" id="setStarWin" min="1" max="30" step="1">
+        </div>
+        <div class="set-row">
+          <label>Следить до (дата и время)<div class="set-hint">необязательно: кейс закроется по этому дедлайну ИЛИ по окну выше — что раньше</div></label>
+          <input type="datetime-local" id="setStarDeadline">
+        </div>
+        <div class="set-row">
+          <label>Рост цены для 🟩, %<div class="set-hint">на сколько должна вырасти цена, чтобы сигнал засчитался зелёным</div></label>
+          <input type="number" id="setStarGr" min="1" max="100" step="1">
+        </div>
+      </div>
+      <div class="set-block">
+        <div class="set-block-t"><span style="color:#e0a23c;">🎯</span> Таргет (TRG)</div>
+        <div class="set-row">
+          <label>Шаг на индикатор, %<div class="set-hint">на сколько двигает TRG каждый включённый индикатор (EMA/CE/DIV/ATR-дно). Влияет на TSumm и «*»</div></label>
+          <input type="number" id="setTrgStep" min="1" max="20" step="1">
+        </div>
+        <div class="set-row">
+          <label>Вес по ATR<div class="set-hint">умножать шаг на волатильность (сильное движение → голоса весомее). Выкл = фиксированный шаг</div></label>
+          <input type="checkbox" id="setTrgAtrW" class="set-chk">
+        </div>
+      </div>
+    </div>
+    <div class="set-foot"><button class="btn" id="setSave">Сохранить</button></div>
+  </div>
+</div>
+
+<div class="flog-overlay" id="flogOverlay" style="display:none;">
+  <div class="flog-box">
+    <div class="flog-hd"><span>🔥 Хронология огоньков</span><span class="flog-x" id="flogClose">✕</span></div>
+    <div class="flog-scroll">
+      <table class="flog-tbl">
+        <thead><tr>
+          <th>Тип</th>
+          <th>Обновление</th>
+          <th class="srt" data-fs="date">Дата</th>
+          <th>Время</th>
+          <th class="srt" data-fs="base">Монета</th>
+          <th>Рост, %</th>
+        </tr></thead>
+        <tbody id="flogBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="flog-overlay" id="starOverlay" style="display:none;">
+  <div class="flog-box">
+    <div class="flog-hd"><span>✳ Хронология * — валидация сигнала TSumm</span><span class="flog-x" id="starLogClose">✕</span></div>
+    <div class="flog-scroll">
+      <table class="flog-tbl">
+        <thead><tr>
+          <th>Итог</th>
+          <th>Дата</th>
+          <th>Время</th>
+          <th>Монета</th>
+          <th>Цена входа</th>
+          <th>Фрейм</th>
+          <th>Цена закрытия</th>
+        </tr></thead>
+        <tbody id="starLogBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="flog-overlay" id="pfOverlay" style="display:none;">
+  <div class="flog-box">
+    <div class="flog-hd"><span>💼 Портфель</span><span class="flog-x" id="pfClose">✕</span></div>
+    <div class="flog-scroll">
+      <table class="flog-tbl">
+        <thead><tr>
+          <th></th>
+          <th>Дата метки</th>
+          <th>Время</th>
+          <th>Монета</th>
+          <th>Цена входа</th>
+          <th>Сейчас / выход</th>
+          <th>Δ%</th>
+          <th>Статус</th>
+        </tr></thead>
+        <tbody id="pfBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -299,11 +531,29 @@ const store = {
 };
 const FAVS = new Set(store.get("rsi_favs", []));
 const PINS = new Set(store.get("rsi_pins", []));
+// ---- Портфель: активные позиции (объект base→{вход}) + постоянный лог закрытых ----
+let PORTFOLIO = store.get("rsi_portfolio", {}) || {};
+if (Array.isArray(PORTFOLIO)) PORTFOLIO = {};                 // миграция со старого формата (Set→объект)
+let PORTFOLIO_LOG = store.get("rsi_portfolio_log", []) || []; // закрытые позиции (с датой/ценой снятия)
+function savePf() { store.set("rsi_portfolio", PORTFOLIO); store.set("rsi_portfolio_log", PORTFOLIO_LOG); }
+function pfAdd(base, price) {
+  PORTFOLIO[base] = {ts: Date.now(), date: houstonDate(), time: houstonTime(), price: price};
+  savePf();
+}
+function pfRemove(base, price) {
+  const p = PORTFOLIO[base];
+  if (p) {
+    PORTFOLIO_LOG.push({base: base, entryTs: p.ts, entryDate: p.date, entryTime: p.time, entryPrice: p.price,
+      exitTs: Date.now(), exitDate: houstonDate(), exitTime: houstonTime(), exitPrice: price});
+    delete PORTFOLIO[base];
+    savePf();
+  }
+}
 
 const SORT_NAMES = {fav:"favorites", fire:"fire", base:"coin", price:"price",
-  change4h:"4H", change12h:"12H", change24h:"24H", change7d:"7D",
+  change1h:"Δ 1h", change4h:"Δ 4h", change12h:"Δ 12h",
   volUsd:"VOL", volat:"VLTL",
-  rsi1h:"RSI 1h", rsi4h:"RSI 4h", rsi12h:"RSI 12h", prob:"TRGT"};
+  rsi1h:"RSI 1h", rsi4h:"RSI 4h", rsi12h:"RSI 12h", t1:"T1", prob:"T4", t12:"T12", tsum:"TSumm"};
 
 function statusOf(rsi) {
   if (rsi == null) return {kind:"", label:"", prob:0, dir:""};
@@ -315,6 +565,27 @@ function statusOf(rsi) {
   const to = dLo < dHi ? "30" : "70";
   if (d <= ZONE) return {kind:"near", label:"near " + to + " · 4h", prob:Math.round(50 + (ZONE - d) * 6), dir:dir};
   return {kind:"", label:"", prob:Math.max(4, Math.round(40 - 2 * d)), dir:""};
+}
+
+// ---- TRG с подмешиванием индикаторов (EMA/CE/DIV/ATR-дно), вход рулится галочками IND_ON ----
+// TRG_STEP / TRG_ATRW объявлены ниже (после SETTINGS), тут только функция
+const _FN = { "1h":"1", "4h":"4", "12h":"12" };    // суффиксы полей индикаторов
+function trgOf(c, frame) {
+  const rsi = frame === "1h" ? c.rsi1h : frame === "4h" ? c.rsi4h : c.rsi12h;
+  const base = statusOf(rsi);
+  if (rsi == null || (base.kind !== "up" && base.kind !== "dn")) return base;   // блендим только чёткие пробои
+  const n = _FN[frame], dir = base.kind === "dn" ? 1 : -1;   // dn→бычье подтверждение (bounce), up→медвежье
+  const vote = v => (v == null || v === 0) ? 0 : (v === dir ? 1 : -1);
+  let net = 0;
+  if (IND_ON.has("ema")) net += vote(c["ema" + n]);
+  if (IND_ON.has("ce"))  net += vote(c["ce" + n]);
+  if (IND_ON.has("div")) net += vote(c["div" + n]);
+  if (IND_ON.has("atrb") && base.kind === "dn" && c["atrb" + n] === 1) net += 1;   // дно подтверждает только bounce
+  let step = TRG_STEP;
+  if (TRG_ATRW) { const pct = frame === "1h" ? c.atr1 : frame === "4h" ? c.atr4 : c.atr12;
+    if (pct != null) step *= Math.max(0.5, Math.min(2, atrScore(pct, frame) / 40)); }
+  const prob = Math.max(4, Math.min(99, Math.round(base.prob + step * net)));
+  return { kind: base.kind, dir: base.dir, label: base.label, prob };
 }
 
 function fmtPrice(p) {
@@ -356,24 +627,198 @@ function houstonTime() {
 }
 
 // --- огонёк: резкий рост вероятности пробоя между обновлениями ---
-const FIRE_THRESHOLD = 10;      // на сколько пунктов вероятность должна прибавить
-let PREV_PROB = {};             // base -> вероятность на прошлом обновлении
-let FIRE_LIT = new Set();       // монеты, которые загорелись на последнем обновлении
-let FIRE_SUPPRESS = new Set();  // вручную погашенные пользователем
+let SETTINGS = store.get("rsi_settings", {}) || {};
+let FIRE_THRESHOLD = Number(SETTINGS.fireThreshold) || 10;  // порог огонька (%), настраивается в Settings
+const NOTIFY_MIN_PROB = 90;  // в Telegram (сигнал к покупке) шлём только огоньки с вероятностью пробоя ≥ 90%
+const FIRE_TF = "4h";        // таймфрейм, на котором сейчас считается огонёк (позже будет свой для разных %)
+let PREV_PROB = store.get("rsi_prevprob", {}) || {};    // base -> вероятность на прошлом обновлении (база отсчёта)
+let FIRE_HISTORY = store.get("rsi_firehist", {}) || {}; // base -> [{from,to,delta,time}] — живые скачки
+let FIRE_PEAK = store.get("rsi_firepeak", {}) || {};    // base -> пик вероятности с момента загорания (для «остыл»)
+let FIRE_LOG = store.get("rsi_firelog", []) || [];      // вечный журнал всех срабатываний (не удаляется)
 
-function computeFire(coins) {
-  const lit = new Set();
-  coins.forEach(c => {
-    const p = statusOf(c.rsi4h).prob;
-    const prev = PREV_PROB[c.base];
-    if (prev != null && p - prev >= FIRE_THRESHOLD) lit.add(c.base);
-    PREV_PROB[c.base] = p;
-  });
-  FIRE_LIT = lit;
-  FIRE_SUPPRESS = new Set();  // новый цикл — сбрасываем ручные гашения
+// ---- «*» — валидация сигнала TSumm (браузерный трекер, проверка при обновлении сайта) ----
+let TRG_STEP = Number(SETTINGS.trgStep) || 6;      // шаг % на индикатор в TRG (настройка)
+let TRG_ATRW = !!SETTINGS.trgAtrWeight;            // вес по ATR (опция, по умолчанию выкл)
+let STAR_THRESHOLD = Number(SETTINGS.starThreshold) || 99;  // порог TSumm для фиксации, %
+let STAR_WINDOW_D  = Number(SETTINGS.starWindowDays) || 3;  // окно слежения, дней
+let STAR_GROWTH    = Number(SETTINGS.starGrowth) || 5;      // рост цены для 🟩, %
+let STAR_DEADLINE  = SETTINGS.starDeadline ? new Date(SETTINGS.starDeadline).getTime() : null;  // необяз. абсолютный дедлайн окна
+let STAR_OPEN  = store.get("rsi_star_open", {}) || {};   // base -> {ts,date,time,price,frames} — открытый кейс
+let STAR_STATE = store.get("rsi_star_state", {}) || {};  // base -> "open"|"green"|"red" (цвет ячейки)
+let STAR_PREV  = store.get("rsi_star_prev", {}) || {};   // base -> прошлый TSumm (дедуп: фиксируем только на пересечении вверх)
+let STAR_LOG   = store.get("rsi_star_log", []) || [];    // вечный журнал закрытых кейсов
+function saveStar() { store.set("rsi_star_open", STAR_OPEN); store.set("rsi_star_state", STAR_STATE); store.set("rsi_star_prev", STAR_PREV); store.set("rsi_star_log", STAR_LOG); }
+
+// TSumm одного коина (среднее по видимым фреймам + направление) — общий хелпер
+function tsummOf(c) {
+  const probs = [], kinds = [];
+  [["1h", c.rsi1h], ["4h", c.rsi4h], ["12h", c.rsi12h]].forEach(([f, v]) => {
+    if (FRAME_ON.has(f) && v != null) { const t = trgOf(c, f); probs.push(t.prob); kinds.push(t.kind); } });
+  const prob = probs.length ? Math.round(probs.reduce((a, b) => a + b, 0) / probs.length) : 0;
+  const kind = (kinds.length && kinds[0] && kinds.every(k => k === kinds[0])) ? kinds[0] : "neu";
+  return { prob, kind };
 }
 
-function isFired(base) { return FIRE_LIT.has(base) && !FIRE_SUPPRESS.has(base); }
+// трекер «*»: фиксация при TSumm≥порога (вниз) и проверка исхода по цене. Гоняется на свежих данных (refresh).
+function starCheck(coins) {
+  const now = Date.now(), winMs = STAR_WINDOW_D * 86400000;
+  coins.forEach(c => {
+    const b = c.base, price = c.price, ts = tsummOf(c), open = STAR_OPEN[b];
+    if (open) {
+      if (price != null && open.price && price >= open.price * (1 + STAR_GROWTH / 100)) {
+        STAR_LOG.push({ts: now, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames, outcome: "green", closePrice: price});
+        delete STAR_OPEN[b]; STAR_STATE[b] = "green";
+      } else if ((now - open.ts >= winMs) || (STAR_DEADLINE && now >= STAR_DEADLINE)) {
+        STAR_LOG.push({ts: now, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames, outcome: "red", closePrice: price});
+        delete STAR_OPEN[b]; STAR_STATE[b] = "red";
+      }
+    } else {
+      const prev = STAR_PREV[b];
+      // вход в мониторинг: направление ВНИЗ + TSumm ≥ порога, и либо свежее пересечение вверх,
+      // либо монета уже в зоне и ещё ни разу не отслеживалась (подхватываем «зависших» в зоне)
+      if (ts.prob >= STAR_THRESHOLD && ts.kind === "dn" &&
+          (prev == null || prev < STAR_THRESHOLD || STAR_STATE[b] == null)) {
+        STAR_OPEN[b] = {ts: now, date: houstonDate(), time: houstonTime(), price: price, frames: [...FRAME_ON].join("·")};
+        STAR_STATE[b] = "open";
+      }
+    }
+    STAR_PREV[b] = ts.prob;
+  });
+  saveStar();
+}
+
+function houstonDate() {
+  return new Date().toLocaleDateString("en-CA", {timeZone: "America/Chicago"});  // ГГГГ-ММ-ДД
+}
+function intervalLabel(sec) {
+  if (sec === 0) return "OFF";
+  if (sec >= 3600) return (sec / 3600) + " ч";
+  if (sec >= 60) return (sec / 60) + " мин";
+  return sec + " сек";
+}
+function intervalLabelEn(sec) {
+  if (sec === 0) return "OFF";
+  if (sec >= 3600) return (sec / 3600) + " h";
+  if (sec >= 60) return (sec / 60) + " min";
+  return sec + " s";
+}
+
+function saveFireState() {
+  store.set("rsi_prevprob", PREV_PROB);
+  store.set("rsi_firehist", FIRE_HISTORY);
+  store.set("rsi_firepeak", FIRE_PEAK);
+  store.set("rsi_firelog", FIRE_LOG);
+}
+
+function computeFire(coins, manual) {
+  const mode = manual ? "ручное" : intervalLabel(autoSec);
+  const winEn = manual ? "manual" : intervalLabelEn(autoSec);
+  const buys = [];
+  coins.forEach(c => {
+    const st = statusOf(c.rsi4h);
+    const p = st.prob;
+    const prev = PREV_PROB[c.base];
+    // огонёк на экране (резкий скачок) + журнал — для будущей дневной логики
+    if (prev != null && p - prev >= FIRE_THRESHOLD) {
+      (FIRE_HISTORY[c.base] = FIRE_HISTORY[c.base] || []).push({from: prev, to: p, delta: p - prev, time: houstonTime()});
+      FIRE_PEAK[c.base] = p;
+      FIRE_LOG.push({ts: Date.now(), date: houstonDate(), time: houstonTime(), base: c.base, from: prev, to: p, delta: p - prev, mode: mode, kind: st.kind, tf: FIRE_TF});
+    } else if (FIRE_HISTORY[c.base]) {
+      if (p > (FIRE_PEAK[c.base] || 0)) FIRE_PEAK[c.base] = p;
+      else if (p <= (FIRE_PEAK[c.base] || 0) - FIRE_THRESHOLD) { delete FIRE_HISTORY[c.base]; delete FIRE_PEAK[c.base]; }
+    }
+    // СИГНАЛ К ПОКУПКЕ в Telegram — вероятность пересекла 90% снизу вверх
+    if (prev != null && prev < NOTIFY_MIN_PROB && p >= NOTIFY_MIN_PROB) {
+      buys.push({base: c.base, from: prev, to: p, delta: p - prev, kind: st.kind, rsi4h: c.rsi4h, tf: FIRE_TF, win: winEn});
+    }
+    PREV_PROB[c.base] = p;
+  });
+  saveFireState();
+  return buys;
+}
+
+function notifyFires(fires) {
+  fires.forEach(f => {
+    if (f.kind === "up" && !PORTFOLIO[f.base]) return;   // SELL шлём только для монет в портфеле
+    fetch("/api/notify", {
+      method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(f),
+    }).catch(() => {});
+  });
+}
+
+function isFired(base) { return !!(FIRE_HISTORY[base] && FIRE_HISTORY[base].length); }
+function fireTip(base) {
+  const h = FIRE_HISTORY[base];
+  if (!h || !h.length) return "Резкий рост вероятности";
+  return h.map(x => "было " + x.from + "% → " + x.to + "% (+" + x.delta + ") " + x.time).join("\n");
+}
+
+// живой блок сигнала в панели (для выбранной монеты)
+function updateFireBlock(base) {
+  const el = document.getElementById("fireBlock");
+  if (!el) return;
+  const h = FIRE_HISTORY[base];
+  if (h && h.length) {
+    el.style.display = "block";
+    el.innerHTML = '<div class="fb-head">🔥 Активный сигнал огонька<span class="fb-x" id="fbDismiss">снять ✕</span></div>' +
+      '<div class="fb-lines">' + h.map(x => "было " + x.from + "% → " + x.to + "% (+" + x.delta + ") · " + x.time).join("<br>") + '</div>';
+  } else {
+    el.style.display = "none";
+    el.innerHTML = "";
+  }
+}
+
+// блок «*» в панели — показывает только открытый кейс с обратным отсчётом
+let _starTimer = null;
+function fmtLeft(ms) {
+  if (ms <= 0) return "0с";
+  const d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000),
+        m = Math.floor(ms % 3600000 / 60000), s = Math.floor(ms % 60000 / 1000);
+  if (d) return d + "д " + h + "ч " + m + "м";
+  if (h) return h + "ч " + m + "м " + s + "с";
+  return m + "м " + s + "с";
+}
+function updateStarBlock(base) {
+  const el = document.getElementById("starBlock");
+  if (!el) return;
+  if (_starTimer) { clearInterval(_starTimer); _starTimer = null; }
+  const o = STAR_OPEN[base];
+  if (!o) { el.style.display = "none"; el.innerHTML = ""; return; }
+  el.style.display = "block";
+  const endTs = Math.min(o.ts + STAR_WINDOW_D * 86400000, STAR_DEADLINE || Infinity);
+  const draw = () => {
+    el.innerHTML = '<div class="fb-head">🟦 * — сигнал в процессе</div>' +
+      '<div class="fb-lines">Фиксация: ' + o.date + ' ' + o.time +
+      '<br>Цена входа: ' + fmtPrice(o.price) +
+      '<br>Цель: +' + STAR_GROWTH + '% · осталось: <b>' + fmtLeft(endTs - Date.now()) + '</b></div>';
+  };
+  draw();
+  _starTimer = setInterval(draw, 1000);
+}
+
+// окно хронологии (вечный журнал)
+let FLOG_SORT = {key: "ts", dir: -1};  // по умолчанию новые сверху
+function renderFireLog() {
+  const body = document.getElementById("flogBody");
+  const rows = FIRE_LOG.slice();
+  rows.sort((a, b) => {
+    if (FLOG_SORT.key === "base") return FLOG_SORT.dir * String(a.base).localeCompare(String(b.base));
+    if (FLOG_SORT.key === "date") return FLOG_SORT.dir * (a.ts - b.ts);
+    return FLOG_SORT.dir * (a.ts - b.ts);
+  });
+  if (!rows.length) { body.innerHTML = '<tr><td colspan="6" class="flog-empty">Пока пусто — огоньки ещё не срабатывали</td></tr>'; return; }
+  body.innerHTML = rows.map(r => {
+    const buy = r.to >= NOTIFY_MIN_PROB;
+    const tag = buy
+      ? '<span class="flog-tag buy">🛒 ≥90 покупка</span>'
+      : '<span class="flog-tag anl">анализ</span>';
+    const dir = r.kind === "up" ? '<span style="color:var(--green);">📈 UP</span> ' :
+                r.kind === "dn" ? '<span style="color:var(--red);">📉 DOWN</span> ' : '';
+    const tf = r.tf ? ' <span style="color:var(--muted);font-weight:400;font-size:11px;">' + r.tf + '</span>' : '';
+    return '<tr class="' + (buy ? 'flog-buy' : '') + '"><td>' + tag + '</td><td>' + (r.mode || "—") + '</td><td>' + r.date + '</td><td>' + r.time + '</td>' +
+      '<td style="font-weight:600;">' + dir + r.base + tf + '</td><td class="d">+' + r.delta + '% <span style="color:var(--muted);font-weight:400;">(' + r.from + '→' + r.to + ')</span></td></tr>';
+  }).join("");
+}
 function probGroup(s) { return s.kind === "up" ? 0 : s.kind === "dn" ? 1 : s.kind === "near" ? 2 : 3; }
 function fmtVol(v) {
   if (v == null) return "—";
@@ -383,7 +828,10 @@ function fmtVol(v) {
   return Math.round(v).toString();
 }
 function sortVal(x, key) {
-  if (key === "prob") return x.s.prob;
+  if (key === "prob") return trgOf(x.c, "4h").prob;
+  if (key === "t1") return trgOf(x.c, "1h").prob;
+  if (key === "t12") return x.c.rsi12h == null ? null : trgOf(x.c, "12h").prob;
+  if (key === "tsum") return tsummOf(x.c).prob;
   if (key === "fav") return FAVS.has(x.c.base) ? 1 : 0;
   if (key === "fire") return isFired(x.c.base) ? 1 : 0;
   const v = x.c[key];
@@ -405,41 +853,92 @@ function updateHeads() {
 function td(cls, h, style) { return {c: cls, h: h, s: style || ""}; }
 function chgTd(v) { return td("mono " + (v != null ? pctClass(v) : "mut"), v != null ? fmtPct(v) : "—"); }
 function rsiTd(v) { return td("rsi " + zone(v, LO, HI), v != null ? v.toFixed(1) : "—"); }
+// состояние индикатора: 1 бык/дно ▲ / -1 медведь ▼ / 0 нейтр · / null —
+function stateTd(v, bottom) {
+  if (v == null) return td("mut", "—");
+  if (v === 1)  return td("", '<span class="p-up">' + (bottom ? "⊥" : "▲") + '</span>');
+  if (v === -1) return td("", '<span class="p-dn">▼</span>');
+  return td("mut", "·");
+}
+// ATR% → балл 0–100 по фиксированным порогам на каждый фрейм; сырой % прячем в подсказку
+const ATR_CAL = { "1h": [0.2, 2.0], "4h": [0.4, 4.0], "12h": [0.8, 8.0] };
+function atrScore(pct, tf) {
+  if (pct == null) return null;
+  const cal = ATR_CAL[tf], lo = cal[0], hi = cal[1];
+  const s = Math.round((pct - lo) / (hi - lo) * 100);
+  return s < 0 ? 0 : s > 100 ? 100 : s;
+}
+function atrTd(pct, tf) {
+  if (pct == null) return td("mut", "—");
+  const sc = atrScore(pct, tf);
+  const cls = sc >= 60 ? "atr-hi" : sc >= 25 ? "atr-mid" : "atr-lo";
+  const tip = "ATR " + tf + " = " + pct.toFixed(2) + "% (реальная амплитуда свечи)";
+  return td(cls, '<span title="' + tip + '">' + sc + '</span>');
+}
 
 const COLUMNS = {
   act:  {th:'<button class="clrbtn" id="btnClear" title="Clear all pins / favorites / fires">CLEAR</button>',
          cell:c=>{
            const pin  = '<span class="mic pin'+(PINS.has(c.base)?" on":"")+'" data-pin="'+c.base+'" title="Pin to top">📌</span>';
            const fav  = '<span class="mic fav'+(FAVS.has(c.base)?" on":"")+'" data-fav="'+c.base+'" title="Favorite">⭐</span>';
-           const fire = '<span class="mic fire'+(isFired(c.base)?" lit":"")+'" data-fire="'+c.base+'" title="Sharp jump — click to dismiss">🔥</span>';
+           const fire = '<span class="mic fire'+(isFired(c.base)?" lit":"")+'" data-fire="'+c.base+'" title="'+fireTip(c.base)+'">🔥</span>';
            const link = '<a class="mic lnk" href="https://www.tradingview.com/chart/?symbol=BINANCE:'+c.sym+'" target="_blank" rel="noopener" title="Open on TradingView">🔗</a>';
            return td("actcol", '<div class="actgrid">'+pin+fav+fire+link+'</div>');
          }},
+  pf:   {th:'<span class="hi">💼</span>', title:'Портфель — клик добавить/убрать (SELL-уведомления)',
+         cell:c=>td("", '<span class="pfmic'+(PORTFOLIO[c.base]?" on":"")+'" data-pf="'+c.base+'" title="'+(PORTFOLIO[c.base]?"В портфеле — клик убрать":"Добавить в портфель")+'">💼</span>')},
   num:  {th:'#', thStyle:"text-align:center", cell:(c,s,i)=>td("mut", String(i+1), "text-align:center")},
   coin: {th:'<span class="hi">🪙</span>COIN', k:"base", thClass:"l",
          cell:(c,s)=>td("l coincol", '<span class="sym">'+c.base+'<span>/USDT</span></span>'+(s.label?'<div class="st '+s.kind+'">'+s.label+'</div>':""))},
   price:{th:'<span class="hi">💲</span>PRICE', k:"price", cell:c=>td("mono", fmtPrice(c.price))},
-  ch4:  {th:'<span class="hi">📈</span>4H', k:"change4h", cell:c=>chgTd(c.change4h)},
-  ch12: {th:'<span class="hi">📈</span>12H', k:"change12h", cell:c=>chgTd(c.change12h)},
-  ch24: {th:'<span class="hi">📈</span>24H', k:"change24h", cell:c=>chgTd(c.change24h)},
-  ch7:  {th:'<span class="hi">📈</span>7D', k:"change7d", cell:c=>chgTd(c.change7d)},
+  ch1:  {th:'Δ 1H',  k:"change1h",  cell:c=>chgTd(c.change1h)},
+  ch4:  {th:'Δ 4H',  k:"change4h",  cell:c=>chgTd(c.change4h)},
+  ch12: {th:'Δ 12H', k:"change12h", cell:c=>chgTd(c.change12h)},
   vol:  {th:'<span class="hi">💰</span>VOL', k:"volUsd", cell:c=>td("mono mut", fmtVol(c.volUsd))},
   rsi1: {th:'RSI 1h', k:"rsi1h", cell:c=>rsiTd(c.rsi1h)},
   rsi4: {th:'RSI 4h', k:"rsi4h", cell:c=>rsiTd(c.rsi4h)},
   rsi12:{th:'RSI 12h', k:"rsi12h", cell:c=>rsiTd(c.rsi12h)},
+  atr1: {th:'ATR 1h',  k:"atr1",  cell:c=>atrTd(c.atr1,  "1h")},
+  atr4: {th:'ATR 4h',  k:"atr4",  cell:c=>atrTd(c.atr4,  "4h")},
+  atr12:{th:'ATR 12h', k:"atr12", cell:c=>atrTd(c.atr12, "12h")},
+  pf1:  {th:'PFG 1h',  cell:c=>td("mut", "—")},
+  pf4:  {th:'PFG 4h',  cell:c=>td("mut", "—")},
+  pf12: {th:'PFG 12h', cell:c=>td("mut", "—")},
+  ema1: {th:'EMA 1h',  k:"ema1",  cell:c=>stateTd(c.ema1)},
+  ema4: {th:'EMA 4h',  k:"ema4",  cell:c=>stateTd(c.ema4)},
+  ema12:{th:'EMA 12h', k:"ema12", cell:c=>stateTd(c.ema12)},
+  ce1:  {th:'CE 1h',   k:"ce1",   cell:c=>stateTd(c.ce1)},
+  ce4:  {th:'CE 4h',   k:"ce4",   cell:c=>stateTd(c.ce4)},
+  ce12: {th:'CE 12h',  k:"ce12",  cell:c=>stateTd(c.ce12)},
+  div1: {th:'DIV 1h',  k:"div1",  cell:c=>stateTd(c.div1)},
+  div4: {th:'DIV 4h',  k:"div4",  cell:c=>stateTd(c.div4)},
+  div12:{th:'DIV 12h', k:"div12", cell:c=>stateTd(c.div12)},
+  atrb1:{th:'ДНО 1h',  k:"atrb1", cell:c=>stateTd(c.atrb1, true)},
+  atrb4:{th:'ДНО 4h',  k:"atrb4", cell:c=>stateTd(c.atrb4, true)},
+  atrb12:{th:'ДНО 12h',k:"atrb12",cell:c=>stateTd(c.atrb12, true)},
   vltl: {th:'<span class="hi">🌊</span>VLTL', k:"volat", cell:c=>td("mono mut", c.volat!=null?c.volat+"%":"—")},
-  tv:   {th:'<span class="hi">⭐</span>TV', cell:c=>td(ratingClass(c.rating), c.rating||"—")},
-  trgt: {th:'<span class="hi">🎯</span>TRGT', k:"prob", thClass:"l",
-         cell:(c,s)=>td("l", '<span class="probtxt p-'+(s.kind||"neu")+'">'+s.prob+"%"+s.dir+"</span>", "padding-left:12px")},
+  t1:   {th:'<span class="hi">🎯</span>T1', k:"t1", thClass:"l",
+         cell:(c)=>{ const s1 = trgOf(c, "1h"); return td("l", '<span class="probtxt p-'+(s1.kind||"neu")+'">'+s1.prob+'%<span class="pdir">'+s1.dir+'</span></span>', "padding-left:8px"); }},
+  trgt: {th:'<span class="hi">🎯</span>T4', k:"prob", thClass:"l",
+         cell:(c)=>{ const s4 = trgOf(c, "4h"); return td("l", '<span class="probtxt p-'+(s4.kind||"neu")+'">'+s4.prob+'%<span class="pdir">'+s4.dir+'</span></span>', "padding-left:8px"); }},
+  t12:  {th:'<span class="hi">🎯</span>T12', k:"t12", thClass:"l",
+         cell:(c)=>{ if (c.rsi12h == null) return td("l mut", "—", "padding-left:8px");
+           const s12 = trgOf(c, "12h"); return td("l", '<span class="probtxt p-'+(s12.kind||"neu")+'">'+s12.prob+'%<span class="pdir">'+s12.dir+'</span></span>', "padding-left:8px"); }},
+  tsum: {th:'<span class="hi">Σ</span>TSumm', k:"tsum", thClass:"l",
+         cell:(c)=>{ const t = tsummOf(c); return td("l", '<span class="probtxt p-'+t.kind+'">'+t.prob+"%</span>", "padding-left:8px"); }},
+  star: {th:'<span class="star-hd">✳</span>', title:'Валидация сигнала: TSumm ≥ порога (пробитие вниз) → фиксируем цену и ждём рост. 🟦 в процессе / 🟩 сработал / 🟥 не дошёл',
+         cell:(c)=>{ const s = STAR_STATE[c.base]; return s ? td("star-"+s, "") : td("", ""); }},
   sp:   {th:'', cell:()=>td("", "")},
 };
-const DEFAULT_ORDER = ["act","num","coin","price","ch4","ch12","ch24","ch7","vol","rsi1","rsi4","rsi12","vltl","tv","trgt","sp"];
+const DEFAULT_ORDER = ["act","pf","num","coin","price","ch1","ch4","ch12","vol","rsi1","rsi4","rsi12","atr1","atr4","atr12","pf1","pf4","pf12","ema1","ema4","ema12","ce1","ce4","ce12","div1","div4","div12","atrb1","atrb4","atrb12","vltl","t1","trgt","t12","tsum","star","sp"];
 // дефолтные ширины колонок (px, в координатах таблицы); спейсер (sp) забирает остаток
-const DEFAULT_W = {act:60, num:30, coin:130, price:88, ch4:62, ch12:62, ch24:62, ch7:62,
-  vol:64, rsi1:58, rsi4:58, rsi12:60, vltl:74, tv:72, trgt:96};
+const DEFAULT_W = {act:60, pf:30, num:30, coin:130, price:88, ch1:62, ch4:62, ch12:62,
+  vol:64, rsi1:58, rsi4:58, rsi12:60, atr1:58, atr4:58, atr12:60, pf1:58, pf4:58, pf12:60,
+  ema1:48, ema4:48, ema12:50, ce1:48, ce4:48, ce12:50, div1:48, div4:48, div12:50, atrb1:48, atrb4:48, atrb12:52,
+  vltl:74, t1:60, trgt:60, t12:60, tsum:92, star:34};
 function colW(key) { return COL_W[key] || DEFAULT_W[key] || 0; }
 
-const COL_VER = 3;  // менять при изменении набора колонок — сбрасывает сохранённый порядок
+const COL_VER = 11;  // менять при изменении набора колонок — сбрасывает сохранённый порядок
 let COL_ORDER, COL_W;
 if (store.get("rsi_colv", 0) !== COL_VER) {
   COL_ORDER = DEFAULT_ORDER.slice(); COL_W = {};
@@ -451,16 +950,71 @@ if (store.get("rsi_colv", 0) !== COL_VER) {
 }
 let justResized = false;
 
+// ---- группы колонок: аббревиатура + карта колонка→метка-фрейма (шапка = 2 строки: аббрев / фрейм) ----
+const GROUPS = {
+  chg: { ab:"Δ%",  cols:{ ch1:"1h", ch4:"4h", ch12:"12h" } },
+  rsi: { ab:"RSI", cols:{ rsi1:"1h", rsi4:"4h", rsi12:"12h" } },
+  atr: { ab:"ATR", cols:{ atr1:"1h", atr4:"4h", atr12:"12h" } },
+  pfg: { ab:"PFG", cols:{ pf1:"1h", pf4:"4h", pf12:"12h" } },
+  ema: { ab:"EMA", cols:{ ema1:"1h", ema4:"4h", ema12:"12h" } },
+  ce:  { ab:"CE",  cols:{ ce1:"1h", ce4:"4h", ce12:"12h" } },
+  div: { ab:"DIV", cols:{ div1:"1h", div4:"4h", div12:"12h" } },
+  atrb:{ ab:"ДНО", cols:{ atrb1:"1h", atrb4:"4h", atrb12:"12h" } },
+  t:   { ab:"TGT", cols:{ t1:"1h", trgt:"4h", t12:"12h", tsum:"Σ" } },
+};
+const GROUP_OF = {};
+Object.keys(GROUPS).forEach(g => Object.keys(GROUPS[g].cols).forEach(k => GROUP_OF[k] = g));
+// VOL / VLTL — 2 строки: текст / пиктограмма
+const HEAD2 = { vol:{ ab:"VOL", ic:"💰" }, vltl:{ ab:"VLTL", ic:"🌊" } };
+// полные имена для подсказок на заголовках (аббревиатура в колонке → полное имя при наведении)
+const GROUP_NAME = { chg:"Рост цены (Δ%)", rsi:"RSI — индекс относительной силы", atr:"ATR — средний истинный диапазон", pfg:"PFG — Пифагор",
+  ema:"EMA-тренд (EMA 9/21)", ce:"Chandelier Exit — ATR-трейлинг-стоп", div:"Дивергенция (RSI против цены)", atrb:"ATR-дно (свежий разворот снизу)",
+  t:"TRG — вероятность пробоя (таргет)" };
+const HEAD2_NAME = { vol:"Объём торгов, $", vltl:"Волатильность (Volatility.D)" };
+// колонка → фрейм (1h/4h/12h у chg/rsi/atr/pfg/t; tsum(Σ) исключён)
+const COL_FRAME = {};
+["chg","rsi","atr","pfg","ema","ce","div","atrb","t"].forEach(g => Object.entries(GROUPS[g].cols).forEach(([k,f]) => { if (f !== "Σ") COL_FRAME[k] = f; }));
+const indOfGroup = g => g === "t" ? "trg" : g;   // группа → индикатор (chg/rsi/atr/pfg/trg)
+
+// ---- видимость колонок: попап Indicators (вкл/выкл индикатор) + кнопки 1H/4H/12H в шапке (фреймы) ----
+// вариант A: невыбранный фрейм = колонка скрыта И не в TSumm. Панель монеты это не трогает (там нет суммы).
+let IND_ON   = new Set(store.get("rsi_ind",   ["chg","rsi","atr","pfg","trg"]));  // видимые индикаторы (вкл. рост цены)
+let FRAME_ON = new Set(store.get("rsi_frames", ["4h"]));                          // видимые фреймы (влияют на TSumm)
+function saveCols() { store.set("rsi_ind", [...IND_ON]); store.set("rsi_frames", [...FRAME_ON]); }
+function syncFrameButtons() { document.querySelectorAll(".frbtn").forEach(b => b.classList.toggle("on", FRAME_ON.has(b.getAttribute("data-fr")))); }
+function colHidden(key) {
+  const g = GROUP_OF[key];
+  if (key === "tsum") return !IND_ON.has("trg");                                          // сумма таргета — с индикатором TRG
+  if (g)              return !IND_ON.has(indOfGroup(g)) || !FRAME_ON.has(COL_FRAME[key]);  // все индикаторы: chg/rsi/atr/pfg/t
+  return false;
+}
+
+function headInner(key, col) {
+  const arrow = (col.k && key === SORT.key) ? ' <span class="arr">' + (SORT.dir < 0 ? "↓" : "↑") + '</span>' : "";
+  const g = GROUP_OF[key];
+  if (g) {                                    // индикатор-группа: 2 строки — аббрев / фрейм
+    const grp = GROUPS[g];
+    const tfCls = key === "tsum" ? "hd-tf sum" : "hd-tf";
+    return '<div class="hd3"><div class="hd-ab">' + grp.ab + '</div>' +
+           '<div class="' + tfCls + '">' + grp.cols[key] + arrow + '</div></div>';
+  }
+  if (HEAD2[key]) {                           // VOL / VLTL: 2 строки — текст / пиктограмма
+    return '<div class="hd2"><div class="hd-ab">' + HEAD2[key].ab + arrow +
+           '</div><div class="hd-ic">' + HEAD2[key].ic + '</div></div>';
+  }
+  return '<div class="hd1">' + col.th + arrow + '</div>';   // остальные: 1 строка, центр по высоте и ширине
+}
+
 function buildHeads() {
   const tr = document.getElementById("heads");
-  tr.innerHTML = COL_ORDER.map(key => {
+  tr.innerHTML = COL_ORDER.filter(key => !colHidden(key)).map(key => {
     const col = COLUMNS[key];
     const cls = ((col.k ? "sortable " : "") + (col.thClass || "") + (key === SORT.key ? " act" : "")).trim();
     const w = colW(key) ? ("width:" + colW(key) + "px;") : "";
-    const arrow = (col.k && key === SORT.key) ? ' <span class="arr">' + (SORT.dir < 0 ? "↓" : "↑") + '</span>' : "";
+    const full = col.title || GROUP_NAME[GROUP_OF[key]] || HEAD2_NAME[key] || "";   // полное имя — в подсказку при наведении
     return '<th data-col="' + key + '"' + (col.k ? ' data-k="' + col.k + '"' : "") +
       ' draggable="true" class="' + cls + '" style="' + w + (col.thStyle || "") + '"' +
-      (col.title ? ' title="' + col.title + '"' : "") + '>' + col.th + arrow + '<span class="colrz"></span></th>';
+      (full ? ' title="' + full + '"' : "") + '>' + headInner(key, col) + '<span class="colrz"></span></th>';
   }).join("");
   document.getElementById("sortLabel").textContent =
     "sort: " + (SORT_NAMES[SORT.key] || SORT.key) + (SORT.dir < 0 ? " ↓" : " ↑");
@@ -530,7 +1084,7 @@ function render() {
     if (SORT.key === "prob") {
       const ga = probGroup(a.s), gb = probGroup(b.s);
       if (ga !== gb) return ga - gb;         // зелёные → красные → жёлтые → серые
-      return b.s.prob - a.s.prob;            // внутри группы по убыванию
+      return trgOf(b.c, "4h").prob - trgOf(a.c, "4h").prob;   // внутри группы по TRG4h (с индикаторами)
     }
     const va = sortVal(a, SORT.key), vb = sortVal(b, SORT.key);
     if (va == null && vb == null) return 0;
@@ -559,6 +1113,7 @@ function render() {
     const isPin = PINS.has(c.base);
     let cells = "";
     COL_ORDER.forEach(key => {
+      if (colHidden(key)) return;
       const col = COLUMNS[key];
       const r = col.cell(c, s, i);
       const w = colW(key) ? ("width:" + colW(key) + "px;") : "";
@@ -577,8 +1132,13 @@ document.getElementById("rows").addEventListener("click", e => {
   if (pin) { const b = pin.getAttribute("data-pin"); PINS.has(b) ? PINS.delete(b) : PINS.add(b); store.set("rsi_pins", [...PINS]); render(); return; }
   const fav = e.target.closest("[data-fav]");
   if (fav) { const b = fav.getAttribute("data-fav"); FAVS.has(b) ? FAVS.delete(b) : FAVS.add(b); store.set("rsi_favs", [...FAVS]); render(); return; }
+  const pfi = e.target.closest("[data-pf]");
+  if (pfi) { const b = pfi.getAttribute("data-pf"); const price = (COINS.find(x => x.base === b) || {}).price ?? null;
+    PORTFOLIO[b] ? pfRemove(b, price) : pfAdd(b, price);
+    if (selectedSym && selectedSym.replace(/USDT$/, "") === b) updatePfBtn(b);
+    render(); return; }
   const fire = e.target.closest("[data-fire]");
-  if (fire) { const b = fire.getAttribute("data-fire"); FIRE_SUPPRESS.has(b) ? FIRE_SUPPRESS.delete(b) : FIRE_SUPPRESS.add(b); render(); return; }
+  if (fire) { const b = fire.getAttribute("data-fire"); delete FIRE_HISTORY[b]; delete FIRE_PEAK[b]; saveFireState(); if (selectedSym) updateFireBlock(selectedSym.replace(/USDT$/, "")); render(); return; }
   if (e.target.closest("a.lnk")) return;
   const tr = e.target.closest("tr.row");
   if (tr) openPanel(tr.getAttribute("data-sym"));
@@ -588,7 +1148,7 @@ document.getElementById("heads").addEventListener("click", e => {
   if (e.target.closest("#btnClear")) {
     FAVS.clear(); store.set("rsi_favs", []);
     PINS.clear(); store.set("rsi_pins", []);
-    FIRE_LIT = new Set(); FIRE_SUPPRESS = new Set();
+    FIRE_HISTORY = {}; FIRE_PEAK = {}; saveFireState();
     render(); return;
   }
   if (e.target.classList.contains("colrz")) return;
@@ -602,12 +1162,16 @@ document.getElementById("heads").addEventListener("click", e => {
 });
 
 const CHART_INDS = [
-  {name:"RSI",        study:"RSI@tv-basicstudies"},
-  {name:"ATR bottom", study:null},
-  {name:"Pifagor",    study:null},
+  {name:"RSI",     study:"RSI@tv-basicstudies"},
+  {name:"ATR",     study:"ATR@tv-basicstudies"},
+  {name:"EMA",     study:"MAExp@tv-basicstudies"},
+  {name:"CE",      study:null},
+  {name:"DIV",     study:null},
+  {name:"ATR-дно", study:null},
+  {name:"Pifagor", study:null},
 ];
 const CHART_TFS = [{tf:"60", lbl:"1h"}, {tf:"240", lbl:"4h"}, {tf:"720", lbl:"12h"}];
-let CHART_ON = new Set(store.get("rsi_charts", ["RSI|60", "RSI|240", "ATR bottom|240", "Pifagor|240"]));
+let CHART_ON = new Set(store.get("rsi_charts", ["RSI|60", "RSI|240", "ATR|240", "Pifagor|240"]));
 let tvScript = null;
 let userClosedPanel = false;
 
@@ -670,6 +1234,56 @@ document.getElementById("charts").addEventListener("click", e => {
   if (selectedSym) buildCharts(selectedSym);
 });
 
+// ---- панельная матрица индикаторов: строки перетаскиваются (порядок под себя) ----
+const _cRsi = v => v == null ? '<span class="mut">—</span>' : v.toFixed(1) + ' <span class="' + (v<=LO?'m':v>=HI?'p':'mut') + '">' + (v<=LO?'−':v>=HI?'+':'·') + '</span>';
+const _cAtr = (pct,tf) => { if (pct==null) return '<span class="mut">—</span>'; const sc=atrScore(pct,tf); return '<span class="'+(sc>=60?'atr-hi':sc>=25?'atr-mid':'atr-lo')+'">'+sc+'</span>'; };
+const _cState = (v,bottom) => v==null ? '<span class="mut">—</span>' : v===1 ? '<span class="p-up">'+(bottom?'⊥':'▲')+'</span>' : v===-1 ? '<span class="p-dn">▼</span>' : '<span class="mut">·</span>';
+const _cTrg = rsi => { if (rsi==null) return '<span class="mut">—</span>'; const st=statusOf(rsi); return '<span class="p-'+(st.kind||'neu')+'">'+st.prob+'%'+st.dir+'</span>'; };
+const _cMut = () => '<span class="mut">—</span>';
+const PANEL_ROWS = {
+  rsi:  { label:"RSI (14)", fill:c=>[_cRsi(c.rsi1h), _cRsi(c.rsi4h), _cRsi(c.rsi12h)] },
+  atr:  { label:"ATR",      fill:c=>[_cAtr(c.atr1,"1h"), _cAtr(c.atr4,"4h"), _cAtr(c.atr12,"12h")] },
+  pfg:  { label:"PFG",      fill:c=>[_cMut(), _cMut(), _cMut()] },
+  ema:  { label:"EMA",      fill:c=>[_cState(c.ema1), _cState(c.ema4), _cState(c.ema12)] },
+  ce:   { label:"CE",       fill:c=>[_cState(c.ce1), _cState(c.ce4), _cState(c.ce12)] },
+  div:  { label:"DIV",      fill:c=>[_cState(c.div1), _cState(c.div4), _cState(c.div12)] },
+  atrb: { label:"ATR-дно",  fill:c=>[_cState(c.atrb1,true), _cState(c.atrb4,true), _cState(c.atrb12,true)] },
+  trg:  { label:"TRG",      fill:c=>[_cTrg(c.rsi1h), _cTrg(c.rsi4h), _cTrg(c.rsi12h)] },
+};
+const PANEL_DEFAULT = ["rsi","atr","pfg","ema","ce","div","atrb","trg"];
+let PANEL_ORDER = (store.get("rsi_panelrows", PANEL_DEFAULT.slice()) || []).filter(k => PANEL_ROWS[k]);
+PANEL_DEFAULT.forEach(k => { if (!PANEL_ORDER.includes(k)) PANEL_ORDER.push(k); });
+
+function buildPanelMatrix(c) {
+  const tb = document.querySelector("#indTable tbody");
+  if (!tb) return;
+  tb.innerHTML = PANEL_ORDER.map(k => {
+    const r = PANEL_ROWS[k]; const cells = r.fill(c);
+    return '<tr draggable="true" data-prow="' + k + '"><td class="l pr-h" title="перетащи, чтобы поменять порядок">⠿ ' + r.label + '</td>' +
+      cells.map(h => '<td>' + h + '</td>').join('') + '</tr>';
+  }).join('');
+}
+
+(function initPanelRowDnD() {
+  const tb = document.querySelector("#indTable tbody");
+  if (!tb) return;
+  let dragKey = null;
+  tb.addEventListener("dragstart", e => { const tr = e.target.closest("tr[data-prow]"); if (!tr) return; dragKey = tr.getAttribute("data-prow"); tr.classList.add("rdragging"); });
+  tb.addEventListener("dragend", () => tb.querySelectorAll("tr").forEach(t => t.classList.remove("rdragging", "rdragover")));
+  tb.addEventListener("dragover", e => { e.preventDefault(); const tr = e.target.closest("tr[data-prow]"); if (!tr) return; tb.querySelectorAll("tr").forEach(t => t.classList.remove("rdragover")); tr.classList.add("rdragover"); });
+  tb.addEventListener("drop", e => {
+    e.preventDefault();
+    const tr = e.target.closest("tr[data-prow]"); if (!tr || !dragKey) return;
+    const targetKey = tr.getAttribute("data-prow");
+    if (targetKey === dragKey) return;
+    const order = PANEL_ORDER.filter(k => k !== dragKey);
+    order.splice(order.indexOf(targetKey), 0, dragKey);
+    PANEL_ORDER = order;
+    store.set("rsi_panelrows", PANEL_ORDER);
+    if (selectedSym) { const cc = COINS.find(x => x.sym === selectedSym); if (cc) buildPanelMatrix(cc); }
+  });
+})();
+
 function openPanel(sym) {
   const c = COINS.find(x => x.sym === sym);
   if (!c) return;
@@ -684,16 +1298,12 @@ function openPanel(sym) {
   const chg = document.getElementById("pChg");
   chg.textContent = fmtPct(c.change24h) + " 24h";
   chg.className = "mono p-chg " + pctClass(c.change24h);
-  const pr = document.getElementById("pProb");
-  pr.textContent = s.prob + "% " + s.dir;
-  pr.className = "mono c-" + probLevel(s.prob);
-  const rsiTd = (v) => v != null
-    ? v.toFixed(1) + ' <span class="' + (v <= LO ? 'm' : v >= HI ? 'p' : 'mut') + '">' + (v <= LO ? '−' : v >= HI ? '+' : '·') + '</span>'
-    : "—";
-  document.getElementById("pRsi1").innerHTML = rsiTd(c.rsi1h);
-  document.getElementById("pRsi4").innerHTML = rsiTd(c.rsi4h);
-  document.getElementById("pRsi12").innerHTML = rsiTd(c.rsi12h);
+  buildPanelMatrix(c);
   document.getElementById("pTv").href = "https://www.tradingview.com/chart/?symbol=BINANCE:" + c.sym;
+  if (changed) { const ab = document.getElementById("aiBody"); ab.style.display = "none"; ab.innerHTML = ""; }
+  updateFireBlock(c.base);
+  updateStarBlock(c.base);
+  updatePfBtn(c.base);
   document.getElementById("panel").classList.remove("hidden");
   document.getElementById("rz").classList.remove("hidden");
   if (changed) buildCharts(c.sym);
@@ -702,6 +1312,7 @@ function openPanel(sym) {
 function closePanel() {
   document.getElementById("panel").classList.add("hidden");
   document.getElementById("rz").classList.add("hidden");
+  if (_starTimer) { clearInterval(_starTimer); _starTimer = null; }
   selectedSym = null;
   userClosedPanel = true;
   render();
@@ -719,7 +1330,243 @@ function autoOpenPanel() {
   if (best) openPanel(best.sym);
 }
 document.getElementById("pClose").addEventListener("click", closePanel);
-document.addEventListener("keydown", e => { if (e.key === "Escape") closePanel(); });
+
+// кнопка «портфель» — монета в портфеле → получаем SELL-уведомления
+function updatePfBtn(base) {
+  const b = document.getElementById("pPortfolio");
+  const on = !!PORTFOLIO[base];
+  b.classList.toggle("on", on);
+  b.textContent = on ? "💼 В портфеле" : "💼 В портфель";
+}
+document.getElementById("pPortfolio").addEventListener("click", () => {
+  if (!selectedSym) return;
+  const b = selectedSym.replace(/USDT$/, "");
+  const price = (COINS.find(x => x.base === b) || {}).price ?? null;
+  PORTFOLIO[b] ? pfRemove(b, price) : pfAdd(b, price);
+  updatePfBtn(b);
+});
+
+// снятие огонька из блока в панели
+document.getElementById("fireBlock").addEventListener("click", e => {
+  if (!e.target.closest("#fbDismiss")) return;
+  const b = selectedSym ? selectedSym.replace(/USDT$/, "") : null;
+  if (b) { delete FIRE_HISTORY[b]; delete FIRE_PEAK[b]; saveFireState(); updateFireBlock(b); render(); }
+});
+
+// окно настроек
+const setOverlay = document.getElementById("setOverlay");
+document.getElementById("btnSettings").addEventListener("click", () => {
+  document.getElementById("setFireThr").value = FIRE_THRESHOLD;
+  document.getElementById("setStarThr").value = STAR_THRESHOLD;
+  document.getElementById("setStarWin").value = STAR_WINDOW_D;
+  document.getElementById("setStarGr").value = STAR_GROWTH;
+  document.getElementById("setStarDeadline").value = SETTINGS.starDeadline || "";
+  document.getElementById("setTrgStep").value = TRG_STEP;
+  document.getElementById("setTrgAtrW").checked = TRG_ATRW;
+  setOverlay.style.display = "flex";
+});
+document.getElementById("setClose").addEventListener("click", () => setOverlay.style.display = "none");
+setOverlay.addEventListener("click", e => { if (e.target === setOverlay) setOverlay.style.display = "none"; });
+document.getElementById("setSave").addEventListener("click", () => {
+  const v = Math.max(1, Math.min(90, Math.round(Number(document.getElementById("setFireThr").value) || 10)));
+  FIRE_THRESHOLD = v; SETTINGS.fireThreshold = v;
+  STAR_THRESHOLD = Math.max(50, Math.min(99, Math.round(Number(document.getElementById("setStarThr").value) || 99)));
+  STAR_WINDOW_D  = Math.max(1, Math.min(30, Math.round(Number(document.getElementById("setStarWin").value) || 3)));
+  STAR_GROWTH    = Math.max(1, Math.min(100, Math.round(Number(document.getElementById("setStarGr").value) || 5)));
+  const dl = document.getElementById("setStarDeadline").value;   // "" или "2026-08-05T18:00"
+  STAR_DEADLINE = dl ? new Date(dl).getTime() : null;
+  TRG_STEP = Math.max(1, Math.min(20, Math.round(Number(document.getElementById("setTrgStep").value) || 6)));
+  TRG_ATRW = document.getElementById("setTrgAtrW").checked;
+  SETTINGS.starThreshold = STAR_THRESHOLD; SETTINGS.starWindowDays = STAR_WINDOW_D; SETTINGS.starGrowth = STAR_GROWTH; SETTINGS.starDeadline = dl || null;
+  SETTINGS.trgStep = TRG_STEP; SETTINGS.trgAtrWeight = TRG_ATRW;
+  store.set("rsi_settings", SETTINGS);
+  setOverlay.style.display = "none";
+  render();
+  if (selectedSym) updateStarBlock(selectedSym.replace(/USDT$/, ""));
+});
+
+// окно хронологии
+const flogOverlay = document.getElementById("flogOverlay");
+function openFireLog() { renderFireLog(); flogOverlay.style.display = "flex"; }
+function closeFireLog() { flogOverlay.style.display = "none"; }
+document.getElementById("btnFireLog").addEventListener("click", openFireLog);
+
+// окно хронологии «*»
+const starOverlay = document.getElementById("starOverlay");
+function renderStarLog() {
+  const body = document.getElementById("starLogBody");
+  const rows = STAR_LOG.slice().sort((a, b) => b.ts - a.ts);
+  if (!rows.length) { body.innerHTML = '<tr><td colspan="7" class="flog-empty">Пока пусто — сигналов * ещё не было</td></tr>'; return; }
+  body.innerHTML = rows.map(r => {
+    const tag = r.outcome === "green"
+      ? '<span class="flog-tag buy">🟩 сработал</span>'
+      : '<span class="flog-tag anl" style="background:var(--chip-dn);color:var(--red);">🟥 не дошёл</span>';
+    return '<tr class="' + (r.outcome === "green" ? "flog-buy" : "") + '"><td>' + tag + '</td><td>' + r.date + '</td><td>' + r.time +
+      '</td><td style="font-weight:600;">' + r.base + '</td><td>' + fmtPrice(r.entryPrice) +
+      '</td><td style="color:var(--muted);">' + (r.frames || "") + '</td><td>' + fmtPrice(r.closePrice) + '</td></tr>';
+  }).join("");
+}
+document.getElementById("btnStarLog").addEventListener("click", () => { renderStarLog(); starOverlay.style.display = "flex"; });
+document.getElementById("starLogClose").addEventListener("click", () => starOverlay.style.display = "none");
+starOverlay.addEventListener("click", e => { if (e.target === starOverlay) starOverlay.style.display = "none"; });
+
+// окно «Портфель»: активные сверху (галочка), снятые — постоянный лог ниже
+const pfOverlay = document.getElementById("pfOverlay");
+function renderPortfolio() {
+  const body = document.getElementById("pfBody");
+  const active = Object.keys(PORTFOLIO).map(b => Object.assign({base: b}, PORTFOLIO[b])).sort((a, b) => b.ts - a.ts);
+  const closed = PORTFOLIO_LOG.slice().sort((a, b) => b.exitTs - a.exitTs);
+  if (!active.length && !closed.length) {
+    body.innerHTML = '<tr><td colspan="8" class="flog-empty">Портфель пуст — отметь монету кнопкой «В портфель» в боковой панели</td></tr>';
+    return;
+  }
+  const pct = (entry, cur) => { if (entry == null || cur == null) return "—"; const d = (cur / entry - 1) * 100; return '<span class="' + (d >= 0 ? "pos" : "neg") + '">' + (d >= 0 ? "+" : "") + d.toFixed(1) + '%</span>'; };
+  let html = active.map(p => {
+    const cur = (COINS.find(x => x.base === p.base) || {}).price;
+    return '<tr class="flog-buy"><td><input type="checkbox" class="pf-chk" data-pf="' + p.base + '" checked title="снять из портфеля"></td>' +
+      '<td>' + p.date + '</td><td>' + p.time + '</td><td style="font-weight:600;">' + p.base + '</td>' +
+      '<td>' + fmtPrice(p.price) + '</td><td>' + fmtPrice(cur) + '</td><td>' + pct(p.price, cur) + '</td>' +
+      '<td><span class="flog-tag buy">🟢 в портфеле</span></td></tr>';
+  }).join("");
+  html += closed.map(p =>
+    '<tr><td style="color:var(--faint);">—</td><td>' + p.entryDate + '</td><td>' + p.entryTime + '</td>' +
+    '<td style="font-weight:600;color:var(--muted);">' + p.base + '</td><td>' + fmtPrice(p.entryPrice) + '</td>' +
+    '<td>' + fmtPrice(p.exitPrice) + '</td><td>' + pct(p.entryPrice, p.exitPrice) + '</td>' +
+    '<td style="color:var(--muted);font-size:11px;">закрыто ' + p.exitDate + ' ' + p.exitTime + '</td></tr>'
+  ).join("");
+  body.innerHTML = html;
+}
+document.getElementById("btnPortfolio").addEventListener("click", () => { renderPortfolio(); pfOverlay.style.display = "flex"; });
+document.getElementById("pfClose").addEventListener("click", () => pfOverlay.style.display = "none");
+pfOverlay.addEventListener("click", e => { if (e.target === pfOverlay) pfOverlay.style.display = "none"; });
+document.getElementById("pfBody").addEventListener("change", e => {
+  const chk = e.target.closest(".pf-chk"); if (!chk || chk.checked) return;   // снятие галочки = убрать из портфеля
+  const b = chk.getAttribute("data-pf");
+  const price = (COINS.find(c => c.base === b) || {}).price ?? null;
+  pfRemove(b, price);
+  if (selectedSym && selectedSym.replace(/USDT$/, "") === b) updatePfBtn(b);
+  renderPortfolio();
+});
+
+// ---- перетаскиваемые + растягиваемые окна (портфель / индикаторы / fire log / * log), запоминают место и размер ----
+function makeMovableWindow(box, header, key) {
+  box.style.maxHeight = "none"; box.style.maxWidth = "none";
+  box.style.resize = "both"; box.style.overflow = "hidden";
+  box.style.minWidth = "320px"; box.style.minHeight = "160px";
+  const g = store.get(key, null);
+  if (g) {
+    box.style.position = "fixed"; box.style.margin = "0";
+    if (g.w) box.style.width = g.w + "px";
+    if (g.h) box.style.height = g.h + "px";
+    if (g.left != null) { box.style.left = g.left + "px"; box.style.top = g.top + "px"; }
+  }
+  const save = () => {
+    const r = box.getBoundingClientRect();
+    if (r.width < 60 || r.height < 60) return;   // не сохраняем закрытое (свёрнутое) окно
+    store.set(key, {left: Math.round(r.left), top: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height)});
+  };
+  let drag = null;
+  header.style.cursor = "move";
+  header.addEventListener("mousedown", e => {
+    if (e.target.closest(".flog-x, .set-x")) return;   // за крестик не тащим
+    const r = box.getBoundingClientRect();
+    box.style.position = "fixed"; box.style.margin = "0";
+    box.style.left = r.left + "px"; box.style.top = r.top + "px";
+    box.style.width = r.width + "px"; box.style.height = r.height + "px";
+    drag = {dx: e.clientX - r.left, dy: e.clientY - r.top};
+    e.preventDefault();
+  });
+  document.addEventListener("mousemove", e => {
+    if (!drag) return;
+    box.style.left = Math.max(0, Math.min(window.innerWidth - 100, e.clientX - drag.dx)) + "px";
+    box.style.top = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - drag.dy)) + "px";
+  });
+  document.addEventListener("mouseup", () => { if (drag) { drag = null; save(); } });
+  try { const ro = new ResizeObserver(() => { if (box.offsetParent !== null) save(); }); ro.observe(box); } catch (_) {}
+}
+[["pfOverlay", "rsi_geo_pf"], ["indOverlay", "rsi_geo_ind"], ["flogOverlay", "rsi_geo_flog"], ["starOverlay", "rsi_geo_star"]].forEach(([id, key]) => {
+  const overlay = document.getElementById(id);
+  if (!overlay) return;
+  const box = overlay.querySelector(".flog-box, .set-box");
+  const header = box && box.querySelector(".flog-hd, .set-hd");
+  if (box && header) makeMovableWindow(box, header, key);
+});
+
+// кнопки фрейм-фильтра 1H/4H/12H в шапке (синхронны с попапом Indicators)
+syncFrameButtons();
+document.querySelectorAll(".frbtn").forEach(b => {
+  b.addEventListener("click", () => {
+    const f = b.getAttribute("data-fr");
+    FRAME_ON.has(f) ? FRAME_ON.delete(f) : FRAME_ON.add(f);
+    saveCols(); syncFrameButtons(); render();
+  });
+});
+
+// попап выбора колонок (кнопка Indicators): единый список индикаторов с полными именами (рост цены сверху)
+const indOverlay = document.getElementById("indOverlay");
+const IND_LIST = [
+  {key:"chg",  name:"Рост цены (Δ%)"},
+  {key:"rsi",  name:"RSI — индекс относительной силы"},
+  {key:"atr",  name:"ATR — средний истинный диапазон"},
+  {key:"pfg",  name:"PFG — Пифагор"},
+  {key:"trg",  name:"TRG — вероятность пробоя (таргет)"},
+  {key:"ema",  name:"EMA-тренд (EMA 9/21)"},
+  {key:"ce",   name:"Chandelier Exit — ATR-трейлинг-стоп"},
+  {key:"div",  name:"Дивергенция (RSI против цены)"},
+  {key:"atrb", name:"ATR-дно (свежий разворот снизу)"},
+];
+function buildIndPopup() {
+  document.getElementById("indList").innerHTML = IND_LIST.map(o =>
+    '<label class="ind-item' + (IND_ON.has(o.key) ? " on" : "") + '">' +
+    '<input type="checkbox" data-key="' + o.key + '"' + (IND_ON.has(o.key) ? " checked" : "") + '>' +
+    '<span>' + o.name + '</span></label>').join("");
+}
+document.getElementById("btnInd").addEventListener("click", () => { buildIndPopup(); indOverlay.style.display = "flex"; });
+document.getElementById("indClose").addEventListener("click", () => indOverlay.style.display = "none");
+indOverlay.addEventListener("click", e => { if (e.target === indOverlay) indOverlay.style.display = "none"; });
+indOverlay.addEventListener("change", e => {
+  const inp = e.target.closest("input[type=checkbox]"); if (!inp) return;
+  const key = inp.getAttribute("data-key");
+  inp.checked ? IND_ON.add(key) : IND_ON.delete(key);
+  saveCols(); buildIndPopup(); render();
+});
+// колёсико крутит только список, не сайт за попапом
+indOverlay.addEventListener("wheel", e => { if (!e.target.closest("#indList")) e.preventDefault(); }, {passive:false});
+document.getElementById("flogClose").addEventListener("click", closeFireLog);
+flogOverlay.addEventListener("click", e => { if (e.target === flogOverlay) closeFireLog(); });
+document.querySelectorAll(".flog-tbl th.srt").forEach(th => th.addEventListener("click", () => {
+  const k = th.getAttribute("data-fs");
+  if (FLOG_SORT.key === k) FLOG_SORT.dir = -FLOG_SORT.dir; else FLOG_SORT = {key: k, dir: k === "base" ? 1 : -1};
+  renderFireLog();
+}));
+
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (setOverlay.style.display === "flex") setOverlay.style.display = "none";
+  else if (flogOverlay.style.display === "flex") closeFireLog();
+  else closePanel();
+});
+
+async function runAnalyze() {
+  if (!selectedSym) return;
+  const body = document.getElementById("aiBody");
+  const btn = document.getElementById("btnAnalyze");
+  body.style.display = "block";
+  body.innerHTML = '<span class="ai-loading">🤖 Analyzing ' + selectedSym + '…</span>';
+  btn.disabled = true;
+  try {
+    const r = await fetch("/api/analyze?coin=" + encodeURIComponent(selectedSym), {cache: "no-store"});
+    const d = await r.json();
+    let html = '<div class="ai-result">' + (d.text || "—") + '</div>';
+    if (d.ready === false) html += '<div class="ai-note">⚠ Демо-ответ: реальный ИИ-анализ подключим после добавления ключа Anthropic API.</div>';
+    body.innerHTML = html;
+  } catch (e) {
+    body.innerHTML = '<div class="ai-result">Error: ' + e + '</div>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+document.getElementById("btnAnalyze").addEventListener("click", runAnalyze);
 
 (function initResizer() {
   const rz = document.getElementById("rz");
@@ -788,8 +1635,11 @@ async function refresh(force) {
     const data = await r.json();
     if (!data.coins || !data.coins.length) throw new Error(data.error || "empty");
     COINS = data.coins;
-    computeFire(COINS);
+    const buys = computeFire(COINS, !!force);
+    if (buys.length) notifyFires(buys);  // в Telegram — только пересечение 90% (сигнал к покупке)
+    starCheck(COINS);                     // трекер «*» — фиксация/проверка на свежих ценах
     live = true;
+    if (selectedSym) { updateFireBlock(selectedSym.replace(/USDT$/, "")); updateStarBlock(selectedSym.replace(/USDT$/, "")); }
     document.getElementById("cTime").textContent = houstonTime();
     document.getElementById("fSrc").textContent = "source: " + data.source + (data.error ? " · " + data.error : "");
     const mb = document.getElementById("modeBadge");
@@ -815,7 +1665,7 @@ document.getElementById("btnRefresh").addEventListener("click", () => refresh(tr
 
 let autoTimer = null;
 let autoSec = parseInt(store.get("rsi_interval", 60), 10);
-if (![0, 5, 10, 30, 60, 300].includes(autoSec)) autoSec = 60;
+if (![0, 5, 10, 30, 60, 300, 600, 1200, 1800, 3600].includes(autoSec)) autoSec = 60;
 function setupAutoRefresh() {
   if (autoTimer) clearInterval(autoTimer);
   document.querySelectorAll("#intSeg button").forEach(b =>
