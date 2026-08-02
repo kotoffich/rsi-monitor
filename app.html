@@ -236,6 +236,11 @@
   .flog-tag.anl { background:var(--bghead2); color:var(--muted); }
   .flog-buy td { background:rgba(95,174,99,.06); }
   .flog-empty { padding:24px; text-align:center; color:var(--muted); }
+  .flog-sep td { text-align:center; color:var(--muted); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; padding:5px 10px; background:var(--bghead2); border-top:2px solid var(--border2); }
+  .flog-subhd td { background:var(--bghead); color:var(--muted); font-weight:600; font-size:12px; padding:8px 10px; text-align:left; border-top:2px solid var(--border2); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .flog-tbl td.star-left { width:120px; font-weight:600; color:var(--accent); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .star-del { background:transparent; border:1px solid var(--border2); color:var(--muted); border-radius:5px; width:20px; height:18px; font-size:11px; line-height:1; padding:0; cursor:pointer; vertical-align:middle; margin-left:2px; }
+  .star-del:hover { color:var(--red); border-color:var(--red); }
   /* окно настроек */
   .set-box { width:min(540px,94vw); max-height:88vh; background:var(--bg2); border:1px solid var(--border2); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
   .set-tabs { display:flex; gap:6px; padding:10px 16px 0; flex:none; }
@@ -474,15 +479,6 @@
     <div class="flog-hd"><span>✳ Хронология * — валидация сигнала TSumm</span><span class="flog-x" id="starLogClose">✕</span></div>
     <div class="flog-scroll">
       <table class="flog-tbl">
-        <thead><tr>
-          <th>Итог</th>
-          <th>Дата</th>
-          <th>Время</th>
-          <th>Монета</th>
-          <th>Цена входа</th>
-          <th>Фрейм</th>
-          <th>Цена закрытия</th>
-        </tr></thead>
         <tbody id="starLogBody"></tbody>
       </table>
     </div>
@@ -808,14 +804,21 @@ function updateStarBlock(base) {
 let FLOG_SORT = {key: "ts", dir: -1};  // по умолчанию новые сверху
 function renderFireLog() {
   const body = document.getElementById("flogBody");
+  const active = Object.keys(FIRE_HISTORY).filter(b => FIRE_HISTORY[b] && FIRE_HISTORY[b].length)
+    .map(b => { const h = FIRE_HISTORY[b], last = h[h.length - 1]; return {base: b, from: last.from, to: last.to, delta: last.delta, time: last.time}; });
   const rows = FIRE_LOG.slice();
   rows.sort((a, b) => {
     if (FLOG_SORT.key === "base") return FLOG_SORT.dir * String(a.base).localeCompare(String(b.base));
     if (FLOG_SORT.key === "date") return FLOG_SORT.dir * (a.ts - b.ts);
     return FLOG_SORT.dir * (a.ts - b.ts);
   });
-  if (!rows.length) { body.innerHTML = '<tr><td colspan="6" class="flog-empty">Пока пусто — огоньки ещё не срабатывали</td></tr>'; return; }
-  body.innerHTML = rows.map(r => {
+  if (!active.length && !rows.length) { body.innerHTML = '<tr><td colspan="6" class="flog-empty">Пока пусто — огоньки ещё не срабатывали</td></tr>'; return; }
+  let html = active.map(a =>
+    '<tr class="flog-buy"><td><span class="flog-tag" style="background:rgba(224,162,60,.22);color:var(--amber);">🔥 активен</span></td><td>—</td><td>' + houstonDate() + '</td><td>' + a.time +
+    '</td><td style="font-weight:600;">' + a.base + '</td><td class="d">+' + a.delta + '% <span style="color:var(--muted);font-weight:400;">(' + a.from + '→' + a.to + ')</span></td></tr>'
+  ).join("");
+  if (active.length && rows.length) html += '<tr class="flog-sep"><td colspan="6">журнал</td></tr>';
+  html += rows.map(r => {
     const buy = r.to >= NOTIFY_MIN_PROB;
     const tag = buy
       ? '<span class="flog-tag buy">🛒 ≥90 покупка</span>'
@@ -826,6 +829,7 @@ function renderFireLog() {
     return '<tr class="' + (buy ? 'flog-buy' : '') + '"><td>' + tag + '</td><td>' + (r.mode || "—") + '</td><td>' + r.date + '</td><td>' + r.time + '</td>' +
       '<td style="font-weight:600;">' + dir + r.base + tf + '</td><td class="d">+' + r.delta + '% <span style="color:var(--muted);font-weight:400;">(' + r.from + '→' + r.to + ')</span></td></tr>';
   }).join("");
+  body.innerHTML = html;
 }
 function probGroup(s) { return s.kind === "up" ? 0 : s.kind === "dn" ? 1 : s.kind === "near" ? 2 : 3; }
 function fmtVol(v) {
@@ -1361,6 +1365,13 @@ document.getElementById("fireBlock").addEventListener("click", e => {
   if (b) { delete FIRE_HISTORY[b]; delete FIRE_PEAK[b]; saveFireState(); updateFireBlock(b); render(); }
 });
 
+// закрытие по клику на фон — ТОЛЬКО если и mousedown был на фоне (иначе ресайз/выделение с выходом за окно закрывало его)
+function backdropClose(overlay, closeFn) {
+  let downOnSelf = false;
+  overlay.addEventListener("mousedown", e => { downOnSelf = (e.target === overlay); });
+  overlay.addEventListener("click", e => { if (e.target === overlay && downOnSelf) closeFn(); });
+}
+
 // окно настроек
 const setOverlay = document.getElementById("setOverlay");
 function setTab(tab) {
@@ -1380,7 +1391,7 @@ document.getElementById("btnSettings").addEventListener("click", () => {
   setOverlay.style.display = "flex";
 });
 document.getElementById("setClose").addEventListener("click", () => setOverlay.style.display = "none");
-setOverlay.addEventListener("click", e => { if (e.target === setOverlay) setOverlay.style.display = "none"; });
+backdropClose(setOverlay, () => setOverlay.style.display = "none");
 document.getElementById("setSave").addEventListener("click", () => {
   const v = Math.max(1, Math.min(90, Math.round(Number(document.getElementById("setFireThr").value) || 10)));
   FIRE_THRESHOLD = v; SETTINGS.fireThreshold = v;
@@ -1409,20 +1420,54 @@ document.getElementById("btnFireLog").addEventListener("click", openFireLog);
 const starOverlay = document.getElementById("starOverlay");
 function renderStarLog() {
   const body = document.getElementById("starLogBody");
-  const rows = STAR_LOG.slice().sort((a, b) => b.ts - a.ts);
-  if (!rows.length) { body.innerHTML = '<tr><td colspan="7" class="flog-empty">Пока пусто — сигналов * ещё не было</td></tr>'; return; }
-  body.innerHTML = rows.map(r => {
-    const tag = r.outcome === "green"
-      ? '<span class="flog-tag buy">🟩 сработал</span>'
-      : '<span class="flog-tag anl" style="background:var(--chip-dn);color:var(--red);">🟥 не дошёл</span>';
-    return '<tr class="' + (r.outcome === "green" ? "flog-buy" : "") + '"><td>' + tag + '</td><td>' + r.date + '</td><td>' + r.time +
-      '</td><td style="font-weight:600;">' + r.base + '</td><td>' + fmtPrice(r.entryPrice) +
-      '</td><td style="color:var(--muted);">' + (r.frames || "") + '</td><td>' + fmtPrice(r.closePrice) + '</td></tr>';
-  }).join("");
+  const active = Object.keys(STAR_OPEN).map(b => Object.assign({base: b}, STAR_OPEN[b])).sort((a, b) => b.ts - a.ts);
+  const closed = STAR_LOG.slice().sort((a, b) => b.ts - a.ts);
+  if (!active.length && !closed.length) { body.innerHTML = '<tr><td colspan="7" class="flog-empty">Пока пусто — сигналов * ещё не было</td></tr>'; return; }
+  const hd = cols => '<tr class="flog-subhd">' + cols.map(c => '<td>' + c + '</td>').join("") + '</tr>';
+  let html = "";
+  if (active.length) {
+    html += hd(["Итог", "Дата метки", "Время", "Монета", "Цена входа", "Осталось", "Цена текущая"]);
+    html += active.map(p => {
+      const cur = (COINS.find(x => x.base === p.base) || {}).price;
+      const end = Math.min(p.ts + STAR_WINDOW_D * 86400000, STAR_DEADLINE || Infinity);
+      const curCls = (cur != null && p.price) ? (cur >= p.price ? "pos" : "neg") : "";   // зелёный выше входа / красный ниже
+      return '<tr class="flog-buy"><td><span class="flog-tag" style="background:rgba(79,156,247,.22);color:var(--accent);">🟦 в процессе</span> <button class="star-del" data-del="' + p.base + '" title="Удалить мониторинг (без записи в лог)">✕</button></td><td>' +
+        p.date + '</td><td>' + p.time + '</td><td style="font-weight:600;">' + p.base + '</td><td>' + fmtPrice(p.price) +
+        '</td><td class="star-left" data-end="' + end + '">' + fmtLeft(end - Date.now()) + '</td><td class="' + curCls + '" style="font-weight:600;">' + fmtPrice(cur) + '</td></tr>';
+    }).join("");
+  }
+  if (closed.length) {
+    html += hd(["Итог", "Дата", "Время", "Монета", "Цена входа", "Фрейм", "Цена закрытия"]);
+    html += closed.map(r => {
+      const tag = r.outcome === "green"
+        ? '<span class="flog-tag buy">🟩 сработал</span>'
+        : '<span class="flog-tag anl" style="background:var(--chip-dn);color:var(--red);">🟥 не дошёл</span>';
+      return '<tr class="' + (r.outcome === "green" ? "flog-buy" : "") + '"><td>' + tag + '</td><td>' + r.date + '</td><td>' + r.time +
+        '</td><td style="font-weight:600;">' + r.base + '</td><td>' + fmtPrice(r.entryPrice) +
+        '</td><td style="color:var(--muted);">' + (r.frames || "") + '</td><td>' + fmtPrice(r.closePrice) + '</td></tr>';
+    }).join("");
+  }
+  body.innerHTML = html;
 }
-document.getElementById("btnStarLog").addEventListener("click", () => { renderStarLog(); starOverlay.style.display = "flex"; });
-document.getElementById("starLogClose").addEventListener("click", () => starOverlay.style.display = "none");
-starOverlay.addEventListener("click", e => { if (e.target === starOverlay) starOverlay.style.display = "none"; });
+let _starLogTimer = null;
+function starLogTick() {
+  document.querySelectorAll("#starLogBody .star-left").forEach(el => el.textContent = fmtLeft(+el.getAttribute("data-end") - Date.now()));
+}
+function closeStarLog() { starOverlay.style.display = "none"; if (_starLogTimer) { clearInterval(_starLogTimer); _starLogTimer = null; } }
+document.getElementById("btnStarLog").addEventListener("click", () => {
+  renderStarLog(); starOverlay.style.display = "flex";
+  if (_starLogTimer) clearInterval(_starLogTimer);
+  _starLogTimer = setInterval(starLogTick, 1000);   // live обратный отсчёт «Осталось»
+});
+document.getElementById("starLogClose").addEventListener("click", closeStarLog);
+backdropClose(starOverlay, closeStarLog);
+document.getElementById("starLogBody").addEventListener("click", e => {
+  const del = e.target.closest(".star-del"); if (!del) return;
+  const b = del.getAttribute("data-del");
+  delete STAR_OPEN[b]; STAR_STATE[b] = "dismissed"; saveStar();   // удалить без записи в лог; не переоткрывать, пока монета в зоне
+  if (selectedSym && selectedSym.replace(/USDT$/, "") === b) updateStarBlock(b);
+  render(); renderStarLog();
+});
 
 // окно «Портфель»: активные сверху (галочка), снятые — постоянный лог ниже
 const pfOverlay = document.getElementById("pfOverlay");
@@ -1452,7 +1497,7 @@ function renderPortfolio() {
 }
 document.getElementById("btnPortfolio").addEventListener("click", () => { renderPortfolio(); pfOverlay.style.display = "flex"; });
 document.getElementById("pfClose").addEventListener("click", () => pfOverlay.style.display = "none");
-pfOverlay.addEventListener("click", e => { if (e.target === pfOverlay) pfOverlay.style.display = "none"; });
+backdropClose(pfOverlay, () => pfOverlay.style.display = "none");
 document.getElementById("pfBody").addEventListener("change", e => {
   const chk = e.target.closest(".pf-chk"); if (!chk || chk.checked) return;   // снятие галочки = убрать из портфеля
   const b = chk.getAttribute("data-pf");
@@ -1537,7 +1582,7 @@ function buildIndPopup() {
 }
 document.getElementById("btnInd").addEventListener("click", () => { buildIndPopup(); indOverlay.style.display = "flex"; });
 document.getElementById("indClose").addEventListener("click", () => indOverlay.style.display = "none");
-indOverlay.addEventListener("click", e => { if (e.target === indOverlay) indOverlay.style.display = "none"; });
+backdropClose(indOverlay, () => indOverlay.style.display = "none");
 indOverlay.addEventListener("change", e => {
   const inp = e.target.closest("input[type=checkbox]"); if (!inp) return;
   const key = inp.getAttribute("data-key");
@@ -1547,7 +1592,7 @@ indOverlay.addEventListener("change", e => {
 // колёсико крутит только список, не сайт за попапом
 indOverlay.addEventListener("wheel", e => { if (!e.target.closest("#indList")) e.preventDefault(); }, {passive:false});
 document.getElementById("flogClose").addEventListener("click", closeFireLog);
-flogOverlay.addEventListener("click", e => { if (e.target === flogOverlay) closeFireLog(); });
+backdropClose(flogOverlay, closeFireLog);
 document.querySelectorAll(".flog-tbl th.srt").forEach(th => th.addEventListener("click", () => {
   const k = th.getAttribute("data-fs");
   if (FLOG_SORT.key === k) FLOG_SORT.dir = -FLOG_SORT.dir; else FLOG_SORT = {key: k, dir: k === "base" ? 1 : -1};
