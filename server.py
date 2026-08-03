@@ -53,12 +53,17 @@ _KLINE_HOSTS = ["data-api.binance.vision", "api.binance.com", "api-gcp.binance.c
 _kline_host = None
 
 
-def _binance_klines(symbol: str, interval: str, limit: int):
+def _binance_klines(symbol: str, interval: str, limit: int, start: int = 0, end: int = 0):
     global _kline_host
     hosts = ([_kline_host] if _kline_host else []) + [h for h in _KLINE_HOSTS if h != _kline_host]
     last = None
+    rng = ""
+    if start:
+        rng += f"&startTime={int(start)}"
+    if end:
+        rng += f"&endTime={int(end)}"
     for host in hosts:
-        url = f"https://{host}/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}"
+        url = f"https://{host}/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}{rng}"
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=15) as r:
@@ -735,7 +740,14 @@ def logout():
 
 @app.get("/")
 def index():
-    return FileResponse(BASE_DIR / "app.html")
+    # инжектим общее состояние (UI/«*») в страницу — фронт читает его как источник правды на загрузке
+    try:
+        html = (BASE_DIR / "app.html").read_text(encoding="utf-8")
+        inject = "<script>window.__RSI_STATE__=" + json.dumps(load_state(), ensure_ascii=False) + ";</script>"
+        html = html.replace("</head>", inject + "\n</head>", 1)
+        return HTMLResponse(html)
+    except Exception:
+        return FileResponse(BASE_DIR / "app.html")
 
 
 def _norm_base(sym: str) -> str:
@@ -863,6 +875,105 @@ def api_scan(force: int = 0):
     _cache["data"] = data
     _cache["ts"] = now
     return JSONResponse(data)
+
+
+# ---- общее состояние UI/«*» (файл на сервере: локально переживает перезапуск, пушем едет на Рендер) ----
+STATE_FILE = BASE_DIR / "state.json"                   # живое состояние (автосейв из браузера)
+STATE_DEFAULT_FILE = BASE_DIR / "state_default.json"   # снимок-дефолт (коммитим; первый запуск / Рендер)
+
+
+def _load_json_file(p) -> dict:
+    if p.exists():
+        try:
+            v = json.loads(p.read_text(encoding="utf-8"))
+            return v if isinstance(v, dict) else {}
+        except Exception:
+            pass
+    return {}
+
+
+def _save_json_file(p, data) -> bool:
+    try:
+        p.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        return True
+    except Exception:
+        return False
+
+
+def load_state() -> dict:
+    """Живое состояние приоритетно; если его нет — закоммиченный дефолт (первый запуск / Рендер)."""
+    live = _load_json_file(STATE_FILE)
+    return live if live else _load_json_file(STATE_DEFAULT_FILE)
+
+
+@app.get("/api/state")
+def api_state_get():
+    live = _load_json_file(STATE_FILE)
+    if live:
+        return JSONResponse({"state": live, "source": "live"})
+    return JSONResponse({"state": _load_json_file(STATE_DEFAULT_FILE), "source": "default"})
+
+
+@app.post("/api/state")
+async def api_state_post(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"ok": False, "error": "bad json"}, status_code=400)
+    patch = body.get("state") if isinstance(body, dict) else None
+    if not isinstance(patch, dict):
+        return JSONResponse({"ok": False, "error": "no state"}, status_code=400)
+    cur = _load_json_file(STATE_FILE)
+    for k, v in patch.items():
+        if v is None:
+            cur.pop(k, None)        # null = удалить ключ
+        else:
+            cur[k] = v              # мержим по ключам, не затирая весь файл
+    _save_json_file(STATE_FILE, cur)
+    return JSONResponse({"ok": True, "keys": len(cur)})
+
+
+@app.post("/api/state/promote")
+def api_state_promote():
+    """«Сохранить как дефолт»: текущее живое состояние -> дефолт (коммитим отдельно)."""
+    live = _load_json_file(STATE_FILE)
+    ok = _save_json_file(STATE_DEFAULT_FILE, live)
+    return JSONResponse({"ok": ok, "keys": len(live)})
+
+
+@app.get("/api/klhigh")
+def api_klhigh(symbol: str = "", since: int = 0, until: int = 0, target: float = 0.0):
+    """Максимум HIGH по свечам в интервале [since, until] мс — валидация выхода «*» по истории.
+       Ловит всплеск цены даже во время «сна» (свеча помнит свой максимум)."""
+    sym = (symbol or "").upper().strip()
+    if not sym:
+        return JSONResponse({"error": "symbol required"}, status_code=400)
+    if not sym.endswith("USDT"):
+        sym += "USDT"
+    if since <= 0:
+        return JSONResponse({"error": "since required"}, status_code=400)
+    until = until or int(time.time() * 1000)
+    span_h = (until - since) / 3600000.0
+    interval = "15m" if span_h <= 48 else "1h"      # хватает разрешения, укладывается в 1 запрос
+    try:
+        kl = _binance_klines(sym, interval, 1000, start=since, end=until)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=502)
+    hi = None
+    hit_ts = None
+    hit_price = None
+    for k in kl:
+        try:
+            h = float(k[2])          # high
+        except Exception:
+            continue
+        if hi is None or h > hi:
+            hi = h
+        if target and hit_ts is None and h >= target:
+            hit_ts = int(k[6])       # close time свечи, где цель уже достигнута
+            hit_price = h
+    return JSONResponse({"high": hi, "hit": hit_ts is not None,
+                         "hitTs": hit_ts, "hitPrice": hit_price, "interval": interval})
 
 
 if __name__ == "__main__":

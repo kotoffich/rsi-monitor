@@ -47,6 +47,9 @@
   .btn .ic { font-size:19px; line-height:1; }
   .btn.icon-only { padding:8px 11px; }
   .btn.on { border-color:var(--amberbar); color:var(--amber); }
+  .btn.btn-ghost { background:transparent; color:var(--muted); margin-right:auto; }
+  .btn.btn-ghost:hover { background:var(--bghov); color:var(--text); }
+  .btn:disabled { opacity:.6; cursor:default; }
   .btn.frbtn { padding:8px 13px; font-weight:700; }
   .btn.frbtn.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
   .seg { display:inline-flex; background:var(--bg2); border:1px solid var(--border2); border-radius:8px; overflow:hidden; margin-left:8px; }
@@ -64,12 +67,13 @@
 
   .cardswrap { display:flex; flex:1; align-items:stretch; min-height:0; }
   .leftcol { flex:1; min-width:0; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
-  /* тонкий скроллбар в тему */
-  .leftcol, .panel, .ind-list, .flog-scroll { scrollbar-width:thin; scrollbar-color:var(--border2) transparent; }
-  .leftcol::-webkit-scrollbar, .panel::-webkit-scrollbar, .ind-list::-webkit-scrollbar, .flog-scroll::-webkit-scrollbar { width:7px; height:7px; }
-  .leftcol::-webkit-scrollbar-thumb, .panel::-webkit-scrollbar-thumb, .ind-list::-webkit-scrollbar-thumb, .flog-scroll::-webkit-scrollbar-thumb { background:var(--border2); border-radius:6px; }
-  .leftcol::-webkit-scrollbar-thumb:hover, .panel::-webkit-scrollbar-thumb:hover, .ind-list::-webkit-scrollbar-thumb:hover, .flog-scroll::-webkit-scrollbar-thumb:hover { background:var(--muted); }
-  .leftcol::-webkit-scrollbar-track, .panel::-webkit-scrollbar-track, .ind-list::-webkit-scrollbar-track, .flog-scroll::-webkit-scrollbar-track { background:transparent; }
+  /* тонкий скроллбар в тему — единообразно по всему сайту (как в таблице монет, только тоньше) */
+  * { scrollbar-width:thin; scrollbar-color:var(--border2) transparent; }
+  *::-webkit-scrollbar { width:6px; height:6px; }
+  *::-webkit-scrollbar-thumb { background:var(--border2); border-radius:6px; }
+  *::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+  *::-webkit-scrollbar-track { background:transparent; }
+  *::-webkit-scrollbar-corner { background:transparent; }
   .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:4px 18px 12px; }
   .card { background:var(--bg2); border-radius:9px; padding:12px 16px; }
   .card .lbl { font-size:13px; margin-bottom:3px; }
@@ -197,6 +201,9 @@
   .pf-btn { margin-left:auto; background:var(--bg3); border:1px solid var(--border2); color:var(--text2); border-radius:8px; padding:6px 11px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
   .pf-btn:hover { background:var(--bghov); }
   .pf-btn.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
+  .pf-btn.pf-mini { margin-left:0; padding:4px 7px; font-size:17px; line-height:1; opacity:.5; }        /* иконка слева от монеты */
+  .pf-btn.pf-mini:hover { opacity:1; }
+  .pf-btn.pf-mini.on { opacity:1; background:var(--accent); }
   .p-hd .p-trgt { font-size:16px; color:var(--text2); }
   .p-hd .p-trgt .mono { font-weight:700; font-size:17px; }
   .p-hd .x { margin-left:auto; color:var(--muted); cursor:pointer; font-size:17px; }
@@ -241,6 +248,17 @@
   .flog-tbl td.star-left { width:120px; font-weight:600; color:var(--accent); font-variant-numeric:tabular-nums; white-space:nowrap; }
   .star-del { background:transparent; border:1px solid var(--border2); color:var(--muted); border-radius:5px; width:20px; height:18px; font-size:11px; line-height:1; padding:0; cursor:pointer; vertical-align:middle; margin-left:2px; }
   .star-del:hover { color:var(--red); border-color:var(--red); }
+  .star-edit { background:transparent; border:1px solid var(--border2); color:var(--accent); border-radius:5px; width:22px; height:18px; font-size:11px; line-height:1; padding:0; cursor:pointer; vertical-align:middle; margin-left:2px; }
+  .star-edit:hover { border-color:var(--accent); filter:brightness(1.2); }
+  .star-edit-row td { background:var(--bghead2); padding:9px 12px; border-top:1px solid var(--border); }
+  .star-edit-lbl { color:var(--muted); font-size:12px; margin-right:6px; }
+  .star-dl-in { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:5px 8px; font-size:12px; color-scheme:dark; }
+  body.light .star-dl-in { color-scheme:light; }
+  .btn-sm { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; margin-left:6px; }
+  .btn-sm:hover { background:var(--bghov); }
+  .btn-sm.star-apply { background:var(--accent); color:#0e1116; border-color:var(--accent); }
+  .btn-sm:disabled { opacity:.45; cursor:default; }
+  .star-dl-hint { color:var(--red); font-size:11px; margin-left:8px; }
   /* окно настроек */
   .set-box { width:min(540px,94vw); max-height:88vh; background:var(--bg2); border:1px solid var(--border2); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
   .set-tabs { display:flex; gap:6px; padding:10px 16px 0; flex:none; }
@@ -284,9 +302,27 @@
   .tf-btns button { background:var(--bg3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:6px 20px; font:600 13px "Inter",sans-serif; cursor:pointer; }
   .tf-btns button:hover { background:var(--bghov); }
   .tf-btns button.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
-  .ind-charts { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:10px; }
-  .chart-box .cap { font-size:15px; font-weight:600; color:var(--text2); margin:0 0 4px 2px; }
+  .tf-btns .tf-off { padding:6px 12px; color:var(--muted); margin-right:2px; }
+  .tf-btns .tf-off.on { background:var(--bghead2); color:var(--red); border-color:var(--red); }   /* все фреймы выключены */
+  .ind-charts { display:flex; flex-direction:column; gap:10px; }   /* колонка рядов; ряд = 1 (строки) или 2 графика (плитка) */
+  .tile-row { display:flex; align-items:stretch; min-width:0; }
+  .tile-row.single .chart-box { width:100%; }
+  .tile-cell { min-width:120px; overflow:hidden; flex-grow:0; flex-shrink:1; }   /* flex-basis задаётся инлайном (доля) */
+  .tile-cell .chart-box { width:100%; }
+  .tile-div { flex:0 0 6px; align-self:stretch; margin:18px 5px 0; background:var(--border2); border-radius:3px; cursor:col-resize; }
+  .tile-div:hover, .tile-div.drag { background:var(--accent); }
+  .chart-box { min-width:0; }
+  .chart-box .cap { font-size:15px; font-weight:600; color:var(--text2); margin:0 0 4px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .chart-host { height:246px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bghead2); }
+  /* секции боковой панели (Индикаторы / Графики) */
+  .pan-sec { display:flex; align-items:center; gap:10px; padding:8px 14px; margin-top:8px; background:var(--bghead2); border-top:1px solid var(--border2); border-bottom:1px solid var(--border); border-left:3px solid var(--accent); }
+  .pan-sec-t { font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text); }
+  .pan-collapse { margin-left:auto; cursor:pointer; color:var(--accent); font-size:22px; font-weight:800; line-height:.7; user-select:none; padding:0 6px; }
+  .pan-collapse:hover { filter:brightness(1.25); }
+  .chart-mode { margin-left:auto; display:flex; gap:5px; }
+  .chart-mode button { background:var(--bg3); border:1px solid var(--border2); color:var(--text2); border-radius:7px; padding:4px 12px; font:600 12px "Inter",sans-serif; cursor:pointer; }
+  .chart-mode button:hover { background:var(--bghov); }
+  .chart-mode button.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
   table.ind { width:100%; border-collapse:collapse; font-size:15px; }
   table.ind th { background:var(--bghead2); color:var(--text2); font-weight:600; padding:8px 10px; text-align:center; font-size:14px; }
   table.ind th.l { text-align:left; padding-left:14px; }
@@ -338,6 +374,7 @@
   <div class="filters">
     <input placeholder="Search coin…" id="q">
     <button class="btn" id="btnRefresh"><span class="ic" style="color:var(--green);">↻</span> Refresh</button>
+    <button class="btn" id="setPromote" title="Запомнить текущий вид / настройки / хронологию как состояние по умолчанию — поедет на Рендер при пуше"><span class="ic">📌</span> Дефолт</button>
     <button class="btn" id="btnFav" title="Show favorites"><span class="ic">⭐</span> Favorites</button>
     <button class="btn" id="btnInd"><span class="ic">📊</span> Indicators</button>
     <button class="btn" onclick="alert('Coins — coming soon')"><span class="ic">🪙</span> Coins</button>
@@ -370,18 +407,25 @@
         <div class="ai-body" id="aiBody" style="display:none;"></div>
       </div>
       <div class="p-hd">
+        <button class="pf-btn pf-mini" id="pPortfolio" title="Добавить в портфель — SELL-уведомления в Telegram">💼</button>
         <span class="sym" id="pSym">—</span>
         <span class="p-badge pb-neu" id="pBadge">—</span>
         <span class="p-price mono" id="pPrice">—</span>
         <span class="p-chg mono" id="pChg">—</span>
-        <button class="pf-btn" id="pPortfolio" title="В портфеле — получать SELL-уведомления в Telegram">💼 В портфель</button>
       </div>
       <div class="fire-block" id="fireBlock" style="display:none;"></div>
       <div class="star-block" id="starBlock" style="display:none;"></div>
+      <div class="pan-sec"><span class="pan-sec-t">Индикаторы</span><span class="pan-collapse" id="indCollapse" title="Свернуть блок индикаторов">−</span></div>
       <table class="ind" id="indTable">
         <thead><tr><th class="l">Indicator</th><th>1h</th><th>4h</th><th>12h</th></tr></thead>
         <tbody></tbody>
       </table>
+      <div class="pan-sec"><span class="pan-sec-t">Графики</span>
+        <div class="chart-mode" id="chartMode">
+          <button data-cm="rows">Строки</button>
+          <button data-cm="tiles">Плитка</button>
+        </div>
+      </div>
       <div id="charts"></div>
       <div class="p-foot">
         <a class="btn" id="pTv" href="#" target="_blank" rel="noopener">Open on TradingView ↗</a>
@@ -429,10 +473,6 @@
         <div class="set-row">
           <label>Окно слежения, дней<div class="set-hint">сколько дней ждём рост цены до красного</div></label>
           <input type="number" id="setStarWin" min="1" max="30" step="1">
-        </div>
-        <div class="set-row">
-          <label>Следить до (дата и время)<div class="set-hint">необязательно: кейс закроется по этому дедлайну ИЛИ по окну выше — что раньше</div></label>
-          <input type="datetime-local" id="setStarDeadline">
         </div>
         <div class="set-row">
           <label>Рост цены для 🟩, %<div class="set-hint">на сколько должна вырасти цена, чтобы сигнал засчитался зелёным</div></label>
@@ -529,10 +569,50 @@ let query = "";
 let selectedSym = null;
 let SORT = {key:"prob", dir:-1};
 
+// store: localStorage + серверная синхронизация. Ключи "rsi_*" общие (файл state.json на сервере):
+// одна память у меня и у тебя, переживает перезапуск, едет на Рендер при пуше. Остальные ключи — только локально.
 const store = {
-  get(k, dflt) { try { const v = localStorage.getItem(k); return v == null ? dflt : JSON.parse(v); } catch (e) { return dflt; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  _srv: (typeof window.__RSI_STATE__ === "object" && window.__RSI_STATE__) ? window.__RSI_STATE__ : {},
+  _pending: {}, _timer: null,
+  // геометрию окон (rsi_geo_*) НЕ шарим — она привязана к монитору; синхроним остальное (колонки, «*», настройки, хронология)
+  _synced(k) { return typeof k === "string" && k.indexOf("rsi_") === 0 && k.indexOf("rsi_geo_") !== 0; },
+  get(k, dflt) {
+    try {
+      if (this._synced(k) && Object.prototype.hasOwnProperty.call(this._srv, k)) {
+        const v = this._srv[k];
+        try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}   // зеркалим серверное в кэш
+        return v == null ? dflt : v;
+      }
+      const v = localStorage.getItem(k);
+      return v == null ? dflt : JSON.parse(v);
+    } catch (e) { return dflt; }
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
+    if (this._synced(k)) { this._srv[k] = v; this._pending[k] = v; this._flushSoon(); }
+  },
+  _flushSoon() { if (!this._timer) this._timer = setTimeout(() => this._flush(), 700); },  // дебаунс правок
+  _flush() {
+    this._timer = null;
+    const patch = this._pending; this._pending = {};
+    if (!Object.keys(patch).length) return;
+    try { fetch("/api/state", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({state: patch})}).catch(() => {}); } catch (e) {}
+  },
 };
+// одноразовая миграция: если сервер пуст — засеваем его текущим состоянием ЭТОГО браузера (ничего не теряем)
+if (!Object.keys(store._srv).length) {
+  try {
+    const patch = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf("rsi_") === 0) { try { patch[k] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }
+    }
+    if (Object.keys(patch).length) {
+      store._srv = Object.assign({}, patch);
+      fetch("/api/state", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({state: patch})}).catch(() => {});
+    }
+  } catch (e) {}
+}
 const FAVS = new Set(store.get("rsi_favs", []));
 const PINS = new Set(store.get("rsi_pins", []));
 // ---- Портфель: активные позиции (объект base→{вход}) + постоянный лог закрытых ----
@@ -646,8 +726,8 @@ let TRG_ATRW = !!SETTINGS.trgAtrWeight;            // вес по ATR (опци�
 let STAR_THRESHOLD = Number(SETTINGS.starThreshold) || 99;  // порог TSumm для фиксации, %
 let STAR_WINDOW_D  = Number(SETTINGS.starWindowDays) || 3;  // окно слежения, дней
 let STAR_GROWTH    = Number(SETTINGS.starGrowth) || 5;      // рост цены для 🟩, %
-let STAR_DEADLINE  = SETTINGS.starDeadline ? new Date(SETTINGS.starDeadline).getTime() : null;  // необяз. абсолютный дедлайн окна
-let STAR_OPEN  = store.get("rsi_star_open", {}) || {};   // base -> {ts,date,time,price,frames} — открытый кейс
+let _starEditBase = null;   // база, у которой сейчас открыт inline-редактор срока в логе «*»
+let STAR_OPEN  = store.get("rsi_star_open", {}) || {};   // base -> {ts,deadline,date,time,price,frames} — открытый кейс
 let STAR_STATE = store.get("rsi_star_state", {}) || {};  // base -> "open"|"green"|"red" (цвет ячейки)
 let STAR_PREV  = store.get("rsi_star_prev", {}) || {};   // base -> прошлый TSumm (дедуп: фиксируем только на пересечении вверх)
 let STAR_LOG   = store.get("rsi_star_log", []) || [];    // вечный журнал закрытых кейсов
@@ -663,18 +743,32 @@ function tsummOf(c) {
   return { prob, kind };
 }
 
-// трекер «*»: фиксация при TSumm≥порога (вниз) и проверка исхода по цене. Гоняется на свежих данных (refresh).
+// закрыть кейс «*» с исходом (green/red), записать в вечный журнал
+function closeStar(b, outcome, ts, closePrice) {
+  const open = STAR_OPEN[b]; if (!open) return;
+  STAR_LOG.push({ts: ts, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames, outcome: outcome, closePrice: closePrice});
+  delete STAR_OPEN[b]; STAR_STATE[b] = outcome;
+}
+// вмороженный дедлайн кейса (индивидуальный; для старых кейсов без него — вход + окно)
+function starDeadlineOf(open) {
+  return open.deadline || (open.ts + STAR_WINDOW_D * 86400000);
+}
+// timestamp -> строка для <input type="datetime-local"> в локальном времени браузера
+function toLocalDT(ms) {
+  const d = new Date(ms), p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+// трекер «*»: фиксация при TSumm≥порога (вниз) + быстрый green по текущей цене. Гоняется на свежих данных (refresh).
 function starCheck(coins) {
   const now = Date.now(), winMs = STAR_WINDOW_D * 86400000;
   coins.forEach(c => {
     const b = c.base, price = c.price, ts = tsummOf(c), open = STAR_OPEN[b];
     if (open) {
-      if (price != null && open.price && price >= open.price * (1 + STAR_GROWTH / 100)) {
-        STAR_LOG.push({ts: now, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames, outcome: "green", closePrice: price});
-        delete STAR_OPEN[b]; STAR_STATE[b] = "green";
-      } else if ((now - open.ts >= winMs) || (STAR_DEADLINE && now >= STAR_DEADLINE)) {
-        STAR_LOG.push({ts: now, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames, outcome: "red", closePrice: price});
-        delete STAR_OPEN[b]; STAR_STATE[b] = "red";
+      const target = open.price ? open.price * (1 + STAR_GROWTH / 100) : null;
+      // быстрый путь: текущая цена уже достигла цели в пределах окна → green сразу.
+      // «проспанный» green по истории свечей и red по дедлайну — в асинхронном свипе ниже.
+      if (price != null && target && price >= target && now <= starDeadlineOf(open)) {
+        closeStar(b, "green", now, price);
       }
     } else {
       const prev = STAR_PREV[b];
@@ -682,13 +776,58 @@ function starCheck(coins) {
       // либо монета уже в зоне и ещё ни разу не отслеживалась (подхватываем «зависших» в зоне)
       if (ts.prob >= STAR_THRESHOLD && ts.kind === "dn" &&
           (prev == null || prev < STAR_THRESHOLD || STAR_STATE[b] == null)) {
-        STAR_OPEN[b] = {ts: now, date: houstonDate(), time: houstonTime(), price: price, frames: [...FRAME_ON].join("·")};
+        // вмораживаем абсолютный дедлайн в кейс (вход + окно) — можно потом изменить индивидуально в логе «*»
+        STAR_OPEN[b] = {ts: now, deadline: now + winMs, date: houstonDate(), time: houstonTime(), price: price, frames: [...FRAME_ON].join("·")};
         STAR_STATE[b] = "open";
       }
     }
     STAR_PREV[b] = ts.prob;
   });
   saveStar();
+  starHistorySweep(coins);   // валидация исхода по истории свечей — ловит всплеск цены во «сне» сайта/сервера
+}
+
+// проверка открытых «*» по истории свечей: достигал ли HIGH цели `вход×(1+рост%)` в окне [вход, дедлайн]
+let _starSweepBusy = false;
+async function starHistorySweep(coins) {
+  if (_starSweepBusy) return;
+  const bases = Object.keys(STAR_OPEN);
+  if (!bases.length) return;
+  _starSweepBusy = true;
+  const now = Date.now();
+  let changed = false;
+  for (const b of bases) {
+    const open = STAR_OPEN[b];
+    if (!open || !open.price) continue;
+    const deadline = starDeadlineOf(open);
+    const until = Math.min(now, deadline);
+    const target = open.price * (1 + STAR_GROWTH / 100);
+    try {
+      const r = await fetch("/api/klhigh?symbol=" + encodeURIComponent(b) +
+        "&since=" + Math.round(open.ts) + "&until=" + Math.round(until) + "&target=" + target);
+      const j = await r.json();
+      if (j && j.hit) {
+        closeStar(b, "green", j.hitTs || now, j.hitPrice || target);   // цель достигалась в окне (даже во «сне») → green по факту
+        changed = true;
+      } else if (now >= deadline) {
+        const cur = (coins.find(x => x.base === b) || {}).price;
+        closeStar(b, "red", now, cur != null ? cur : open.price);      // за всё окно ни одна свеча не дотянулась → red
+        changed = true;
+      }
+    } catch (e) {
+      if (now >= deadline) {   // сеть/сервер недоступны — откат к старому поведению: red по дедлайну
+        const cur = (coins.find(x => x.base === b) || {}).price;
+        closeStar(b, "red", now, cur != null ? cur : open.price);
+        changed = true;
+      }
+    }
+  }
+  _starSweepBusy = false;
+  if (changed) {
+    saveStar(); render();
+    const ov = document.getElementById("starOverlay");
+    if (ov && ov.style.display !== "none" && typeof renderStarLog === "function") renderStarLog();
+  }
 }
 
 function houstonDate() {
@@ -789,7 +928,7 @@ function updateStarBlock(base) {
   const o = STAR_OPEN[base];
   if (!o) { el.style.display = "none"; el.innerHTML = ""; return; }
   el.style.display = "block";
-  const endTs = Math.min(o.ts + STAR_WINDOW_D * 86400000, STAR_DEADLINE || Infinity);
+  const endTs = starDeadlineOf(o);   // индивидуальный дедлайн кейса
   const draw = () => {
     el.innerHTML = '<div class="fb-head">🟦 * — сигнал в процессе</div>' +
       '<div class="fb-lines">Фиксация: ' + o.date + ' ' + o.time +
@@ -950,16 +1089,12 @@ const DEFAULT_W = {act:60, pf:30, num:30, coin:130, price:88, ch1:62, ch4:62, ch
   vltl:74, t1:60, trgt:60, t12:60, tsum:92, star:34};
 function colW(key) { return COL_W[key] || DEFAULT_W[key] || 0; }
 
-const COL_VER = 11;  // менять при изменении набора колонок — сбрасывает сохранённый порядок
-let COL_ORDER, COL_W;
-if (store.get("rsi_colv", 0) !== COL_VER) {
-  COL_ORDER = DEFAULT_ORDER.slice(); COL_W = {};
-  store.set("rsi_colorder", COL_ORDER); store.set("rsi_colw", COL_W); store.set("rsi_colv", COL_VER);
-} else {
-  COL_ORDER = (store.get("rsi_colorder", DEFAULT_ORDER.slice()) || []).filter(k => COLUMNS[k]);
-  DEFAULT_ORDER.forEach(k => { if (!COL_ORDER.includes(k)) COL_ORDER.push(k); });
-  COL_W = store.get("rsi_colw", {}) || {};
-}
+const COL_VER = 11;  // версия набора колонок; при изменении новые доезжают в конец, старые отсекаются — БЕЗ затирания сохранённого порядка
+// всегда мягко (иначе сброс затирал бы общий порядок в state.json): берём сохранённый, отсекаем несуществующие колонки, дописываем новые
+let COL_ORDER = (store.get("rsi_colorder", DEFAULT_ORDER.slice()) || []).filter(k => COLUMNS[k]);
+DEFAULT_ORDER.forEach(k => { if (!COL_ORDER.includes(k)) COL_ORDER.push(k); });
+let COL_W = store.get("rsi_colw", {}) || {};
+if (store.get("rsi_colv", 0) !== COL_VER) store.set("rsi_colv", COL_VER);   // только помечаем версию, порядок/ширины не трогаем
 let justResized = false;
 
 // ---- группы колонок: аббревиатура + карта колонка→метка-фрейма (шапка = 2 строки: аббрев / фрейм) ----
@@ -1058,26 +1193,39 @@ function buildHeads() {
     }
     dragKey = null;
   });
-  // изменение ширины за правый край заголовка
-  let rz = null, startX = 0, startW = 0, rzKey = null;
+  // ресайз колонки: замеряем СОБСТВЕННУЮ рендер-ширину ячейки в зависимости от заданной ширины (линейна, не зависит от спейсера),
+  // + левый край (фиксирован при ресайзе) → правый край держим ровно за курсором. Учитывает zoom/DPI/браузерный zoom/padding разом.
+  let rzKey = null, rzLeft = 0, rzScale = 0.75, rzPad = 0;
   heads.addEventListener("mousedown", e => {
     if (!e.target.classList.contains("colrz")) return;
     e.preventDefault(); e.stopPropagation();
-    const th = e.target.closest("th"); rzKey = th.getAttribute("data-col");
-    startX = e.clientX; startW = th.getBoundingClientRect().width / 0.75; rz = th;  // /0.75 из-за zoom .app
+    const th = e.target.closest("th");
+    rzKey = th.getAttribute("data-col");
+    rzLeft = th.getBoundingClientRect().left;                          // левый край (viewport-px, как e.clientX)
+    const base = COL_W[rzKey] || DEFAULT_W[rzKey] || th.offsetWidth;
+    const w0 = th.style.width;                                         // двухточечный замер без видимого скачка
+    th.style.width = base + "px";         const rw1 = th.getBoundingClientRect().width;
+    th.style.width = (base + 100) + "px"; const rw2 = th.getBoundingClientRect().width;
+    th.style.width = w0;
+    rzScale = (rw2 - rw1) / 100 || 0.75;                              // рендер-px ширины на 1 px заданной ширины
+    rzPad = rw1 - base * rzScale;                                     // постоянная (padding+border в рендере)
     th.setAttribute("draggable", "false"); document.body.style.userSelect = "none";
   });
   document.addEventListener("mousemove", e => {
-    if (!rz) return;
-    const w = Math.max(24, Math.round(startW + (e.clientX - startX) / 0.75));
+    if (!rzKey) return;
+    // хотим рендер-правый = курсор → рендер-ширина = курсор − левый край → заданная ширина = (рендер-ширина − pad) / scale
+    const w = Math.max(24, Math.round((e.clientX - rzLeft - rzPad) / rzScale));
     COL_W[rzKey] = w; justResized = true;
-    rz.style.width = w + "px";
+    const th = heads.querySelector('th[data-col="' + rzKey + '"]');       // перезахват — вдруг таблица перерисовалась автообновлением
+    if (th) th.style.width = w + "px";
     document.querySelectorAll('#rows td[data-col="' + rzKey + '"]').forEach(t => t.style.width = w + "px");
   });
   document.addEventListener("mouseup", () => {
-    if (!rz) return;
+    if (!rzKey) return;
     store.set("rsi_colw", COL_W);
-    rz.setAttribute("draggable", "true"); rz = null; document.body.style.userSelect = "";
+    const th = heads.querySelector('th[data-col="' + rzKey + '"]');
+    if (th) th.setAttribute("draggable", "true");
+    rzKey = null; document.body.style.userSelect = "";
   });
 })();
 
@@ -1184,6 +1332,9 @@ const CHART_INDS = [
 ];
 const CHART_TFS = [{tf:"60", lbl:"1h"}, {tf:"240", lbl:"4h"}, {tf:"720", lbl:"12h"}];
 let CHART_ON = new Set(store.get("rsi_charts", ["RSI|60", "RSI|240", "ATR|240", "Pifagor|240"]));
+let CHART_MODE = store.get("rsi_chartmode", "rows");          // "rows" (строки) | "tiles" (плитка 2×N)
+let CHART_SPLIT = Number(store.get("rsi_chartsplit", 50)) || 50;   // доля левого графика в ряду плитки, %
+let IND_COLLAPSED = !!store.get("rsi_indcollapsed", false);  // свёрнут ли блок индикаторов в панели
 let tvScript = null;
 let userClosedPanel = false;
 
@@ -1205,18 +1356,35 @@ async function buildCharts(sym) {
   const widgets = [];
   CHART_INDS.forEach(ind => {
     const short = ind.name.replace(" bottom", "");
+    const enabled = CHART_TFS.filter(t => CHART_ON.has(ind.name + "|" + t.tf));
+    const offBtn = '<button data-off="' + ind.name + '" class="tf-off' + (enabled.length ? "" : " on") +
+      '" title="Выключить все фреймы графика">OFF</button>';
     const btns = CHART_TFS.map(t => '<button data-ck="' + ind.name + '|' + t.tf + '" class="' +
       (CHART_ON.has(ind.name + "|" + t.tf) ? "on" : "") + '">' + t.lbl + '</button>').join("");
-    htm += '<div class="ind-block"><div class="ind-row"><span class="ind-name">' + short + '</span><div class="tf-btns">' + btns + '</div></div>';
-    const enabled = CHART_TFS.filter(t => CHART_ON.has(ind.name + "|" + t.tf));
+    htm += '<div class="ind-block"><div class="ind-row"><span class="ind-name">' + short + '</span><div class="tf-btns">' + offBtn + btns + '</div></div>';
     if (enabled.length) {
-      htm += '<div class="ind-charts">';
-      enabled.forEach(t => {
+      const chartHtml = (t) => {
         const id = "tvc" + (idx++);
         widgets.push({id: id, interval: t.tf, study: ind.study});
-        htm += '<div class="chart-box"><div class="cap">' + short + ' · ' + t.lbl + (ind.study ? "" : " — template") +
+        return '<div class="chart-box"><div class="cap">' + short + ' · ' + t.lbl + (ind.study ? "" : " — template") +
                '</div><div class="chart-host" id="' + id + '"></div></div>';
-      });
+      };
+      htm += '<div class="ind-charts">';
+      if (CHART_MODE === "tiles" && enabled.length > 1) {   // плитка: по 2 в ряд с разделителем; одиночный — на всю ширину
+        for (let i = 0; i < enabled.length; i += 2) {
+          if (i + 1 < enabled.length) {
+            htm += '<div class="tile-row pair">' +
+              '<div class="tile-cell" style="flex-basis:' + CHART_SPLIT + '%">' + chartHtml(enabled[i]) + '</div>' +
+              '<div class="tile-div" title="Потяните — задать долю графиков в ряду"></div>' +
+              '<div class="tile-cell" style="flex-basis:' + (100 - CHART_SPLIT) + '%">' + chartHtml(enabled[i + 1]) + '</div>' +
+              '</div>';
+          } else {
+            htm += '<div class="tile-row single">' + chartHtml(enabled[i]) + '</div>';
+          }
+        }
+      } else {                                              // строки: каждый график на всю ширину, один под другим
+        enabled.forEach(t => { htm += '<div class="tile-row single">' + chartHtml(t) + '</div>'; });
+      }
       htm += '</div>';
     }
     htm += '</div>';
@@ -1239,6 +1407,14 @@ async function buildCharts(sym) {
 }
 
 document.getElementById("charts").addEventListener("click", e => {
+  const off = e.target.closest("button[data-off]");
+  if (off) {   // OFF — выключить все фреймы графика этого индикатора
+    const nm = off.getAttribute("data-off");
+    CHART_TFS.forEach(t => CHART_ON.delete(nm + "|" + t.tf));
+    store.set("rsi_charts", [...CHART_ON]);
+    if (selectedSym) buildCharts(selectedSym);
+    return;
+  }
   const b = e.target.closest("button[data-ck]"); if (!b) return;
   const ck = b.getAttribute("data-ck");
   CHART_ON.has(ck) ? CHART_ON.delete(ck) : CHART_ON.add(ck);
@@ -1246,11 +1422,71 @@ document.getElementById("charts").addEventListener("click", e => {
   if (selectedSym) buildCharts(selectedSym);
 });
 
+// переключатель вида графиков (Строки / Плитка)
+function syncChartMode() {
+  document.querySelectorAll("#chartMode button").forEach(b =>
+    b.classList.toggle("on", b.getAttribute("data-cm") === CHART_MODE));
+}
+document.getElementById("chartMode").addEventListener("click", e => {
+  const b = e.target.closest("button[data-cm]"); if (!b) return;
+  CHART_MODE = b.getAttribute("data-cm"); store.set("rsi_chartmode", CHART_MODE);
+  syncChartMode();
+  if (selectedSym) buildCharts(selectedSym);
+});
+syncChartMode();
+
+// перетаскиваемый разделитель в ряду плитки — общая доля на все ряды (доля = дробь, от зума/DPI не зависит)
+(function initTileDivider() {
+  const charts = document.getElementById("charts");
+  let row = null;
+  charts.addEventListener("mousedown", e => {
+    const d = e.target.closest(".tile-div"); if (!d) return;
+    e.preventDefault();
+    row = d.closest(".tile-row"); d.classList.add("drag");
+    document.body.style.userSelect = "none";
+  });
+  document.addEventListener("mousemove", e => {
+    if (!row) return;
+    const r = row.getBoundingClientRect();
+    let pct = (e.clientX - r.left) / r.width * 100;
+    CHART_SPLIT = Math.round(Math.max(15, Math.min(85, pct)));
+    document.querySelectorAll("#charts .tile-row.pair").forEach(rw => {
+      const cells = rw.querySelectorAll(".tile-cell");
+      if (cells.length === 2) { cells[0].style.flexBasis = CHART_SPLIT + "%"; cells[1].style.flexBasis = (100 - CHART_SPLIT) + "%"; }
+    });
+  });
+  document.addEventListener("mouseup", () => {
+    if (!row) return;
+    document.querySelectorAll(".tile-div.drag").forEach(d => d.classList.remove("drag"));
+    row = null; document.body.style.userSelect = "";
+    store.set("rsi_chartsplit", CHART_SPLIT);
+    try { window.dispatchEvent(new Event("resize")); } catch (_) {}   // подтолкнуть TradingView-виджеты к перерисовке
+  });
+})();
+
+// сворачивание блока индикаторов в панели → графики поднимаются выше
+function applyIndCollapsed() {
+  const tbl = document.getElementById("indTable");
+  const ic = document.getElementById("indCollapse");
+  if (tbl) tbl.style.display = IND_COLLAPSED ? "none" : "";
+  if (ic) { ic.textContent = IND_COLLAPSED ? "+" : "−"; ic.title = IND_COLLAPSED ? "Развернуть блок индикаторов" : "Свернуть блок индикаторов"; }
+}
+document.getElementById("indCollapse").addEventListener("click", () => {
+  IND_COLLAPSED = !IND_COLLAPSED; store.set("rsi_indcollapsed", IND_COLLAPSED); applyIndCollapsed();
+});
+applyIndCollapsed();
+
 // ---- панельная матрица индикаторов: строки перетаскиваются (порядок под себя) ----
 const _cRsi = v => v == null ? '<span class="mut">—</span>' : v.toFixed(1) + ' <span class="' + (v<=LO?'m':v>=HI?'p':'mut') + '">' + (v<=LO?'−':v>=HI?'+':'·') + '</span>';
 const _cAtr = (pct,tf) => { if (pct==null) return '<span class="mut">—</span>'; const sc=atrScore(pct,tf); return '<span class="'+(sc>=60?'atr-hi':sc>=25?'atr-mid':'atr-lo')+'">'+sc+'</span>'; };
 const _cState = (v,bottom) => v==null ? '<span class="mut">—</span>' : v===1 ? '<span class="p-up">'+(bottom?'⊥':'▲')+'</span>' : v===-1 ? '<span class="p-dn">▼</span>' : '<span class="mut">·</span>';
-const _cTrg = rsi => { if (rsi==null) return '<span class="mut">—</span>'; const st=statusOf(rsi); return '<span class="p-'+(st.kind||'neu')+'">'+st.prob+'%'+st.dir+'</span>'; };
+// TRG в панели = тот же смешанный trgOf(c,frame), что и колонка TGT в таблице (RSI + голоса включённых индикаторов) — чтобы значения совпадали
+const _cTrgB = (c, frame) => {
+  const rsi = frame==="1h"?c.rsi1h:frame==="4h"?c.rsi4h:c.rsi12h;
+  if (rsi==null) return '<span class="mut">—</span>';
+  const t = trgOf(c, frame);
+  return '<span class="p-'+(t.kind||'neu')+'">'+t.prob+'%'+(t.dir||'')+'</span>';
+};
 const _cMut = () => '<span class="mut">—</span>';
 const PANEL_ROWS = {
   rsi:  { label:"RSI (14)", fill:c=>[_cRsi(c.rsi1h), _cRsi(c.rsi4h), _cRsi(c.rsi12h)] },
@@ -1260,7 +1496,7 @@ const PANEL_ROWS = {
   ce:   { label:"CE",       fill:c=>[_cState(c.ce1), _cState(c.ce4), _cState(c.ce12)] },
   div:  { label:"DIV",      fill:c=>[_cState(c.div1), _cState(c.div4), _cState(c.div12)] },
   atrb: { label:"ATR-дно",  fill:c=>[_cState(c.atrb1,true), _cState(c.atrb4,true), _cState(c.atrb12,true)] },
-  trg:  { label:"TRG",      fill:c=>[_cTrg(c.rsi1h), _cTrg(c.rsi4h), _cTrg(c.rsi12h)] },
+  trg:  { label:"TRG",      fill:c=>[_cTrgB(c,"1h"), _cTrgB(c,"4h"), _cTrgB(c,"12h")] },
 };
 const PANEL_DEFAULT = ["rsi","atr","pfg","ema","ce","div","atrb","trg"];
 let PANEL_ORDER = (store.get("rsi_panelrows", PANEL_DEFAULT.slice()) || []).filter(k => PANEL_ROWS[k]);
@@ -1348,7 +1584,8 @@ function updatePfBtn(base) {
   const b = document.getElementById("pPortfolio");
   const on = !!PORTFOLIO[base];
   b.classList.toggle("on", on);
-  b.textContent = on ? "💼 В портфеле" : "💼 В портфель";
+  b.textContent = "💼";   // только иконка (слева от названия монеты)
+  b.title = on ? "В портфеле — клик убрать (SELL-уведомления в Telegram)" : "Добавить в портфель — SELL-уведомления в Telegram";
 }
 document.getElementById("pPortfolio").addEventListener("click", () => {
   if (!selectedSym) return;
@@ -1385,7 +1622,6 @@ document.getElementById("btnSettings").addEventListener("click", () => {
   document.getElementById("setStarThr").value = STAR_THRESHOLD;
   document.getElementById("setStarWin").value = STAR_WINDOW_D;
   document.getElementById("setStarGr").value = STAR_GROWTH;
-  document.getElementById("setStarDeadline").value = SETTINGS.starDeadline || "";
   document.getElementById("setTrgStep").value = TRG_STEP;
   document.getElementById("setTrgAtrW").checked = TRG_ATRW;
   setOverlay.style.display = "flex";
@@ -1398,16 +1634,25 @@ document.getElementById("setSave").addEventListener("click", () => {
   STAR_THRESHOLD = Math.max(50, Math.min(99, Math.round(Number(document.getElementById("setStarThr").value) || 99)));
   STAR_WINDOW_D  = Math.max(1, Math.min(30, Math.round(Number(document.getElementById("setStarWin").value) || 3)));
   STAR_GROWTH    = Math.max(1, Math.min(100, Math.round(Number(document.getElementById("setStarGr").value) || 5)));
-  const dl = document.getElementById("setStarDeadline").value;   // "" или "2026-08-05T18:00"
-  STAR_DEADLINE = dl ? new Date(dl).getTime() : null;
   TRG_STEP = Math.max(1, Math.min(20, Math.round(Number(document.getElementById("setTrgStep").value) || 6)));
   TRG_ATRW = document.getElementById("setTrgAtrW").checked;
-  SETTINGS.starThreshold = STAR_THRESHOLD; SETTINGS.starWindowDays = STAR_WINDOW_D; SETTINGS.starGrowth = STAR_GROWTH; SETTINGS.starDeadline = dl || null;
+  SETTINGS.starThreshold = STAR_THRESHOLD; SETTINGS.starWindowDays = STAR_WINDOW_D; SETTINGS.starGrowth = STAR_GROWTH;
   SETTINGS.trgStep = TRG_STEP; SETTINGS.trgAtrWeight = TRG_ATRW;
   store.set("rsi_settings", SETTINGS);
   setOverlay.style.display = "none";
   render();
   if (selectedSym) updateStarBlock(selectedSym.replace(/USDT$/, ""));
+});
+// «Сохранить как дефолт»: текущее живое состояние -> снимок-дефолт (поедет на Рендер при пуше)
+document.getElementById("setPromote").addEventListener("click", () => {
+  const btn = document.getElementById("setPromote");
+  const old = btn.textContent; btn.disabled = true; btn.textContent = "Сохраняю…";
+  fetch("/api/state", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({state: store._srv})})
+    .then(() => fetch("/api/state/promote", {method: "POST"}))
+    .then(r => r.json())
+    .then(j => { btn.textContent = (j && j.ok) ? ("✓ дефолт сохранён (" + j.keys + ")") : "ошибка"; })
+    .catch(() => { btn.textContent = "ошибка сети"; })
+    .finally(() => setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 2400));
 });
 
 // окно хронологии
@@ -1429,11 +1674,22 @@ function renderStarLog() {
     html += hd(["Итог", "Дата метки", "Время", "Монета", "Цена входа", "Осталось", "Цена текущая"]);
     html += active.map(p => {
       const cur = (COINS.find(x => x.base === p.base) || {}).price;
-      const end = Math.min(p.ts + STAR_WINDOW_D * 86400000, STAR_DEADLINE || Infinity);
+      const end = starDeadlineOf(p);   // индивидуальный дедлайн кейса
       const curCls = (cur != null && p.price) ? (cur >= p.price ? "pos" : "neg") : "";   // зелёный выше входа / красный ниже
-      return '<tr class="flog-buy"><td><span class="flog-tag" style="background:rgba(79,156,247,.22);color:var(--accent);">🟦 в процессе</span> <button class="star-del" data-del="' + p.base + '" title="Удалить мониторинг (без записи в лог)">✕</button></td><td>' +
+      let row = '<tr class="flog-buy"><td><span class="flog-tag" style="background:rgba(79,156,247,.22);color:var(--accent);">🟦 в процессе</span> ' +
+        '<button class="star-edit" data-edit="' + p.base + '" title="Изменить срок мониторинга">✎</button> ' +
+        '<button class="star-del" data-del="' + p.base + '" title="Удалить мониторинг (без записи в лог)">✕</button></td><td>' +
         p.date + '</td><td>' + p.time + '</td><td style="font-weight:600;">' + p.base + '</td><td>' + fmtPrice(p.price) +
         '</td><td class="star-left" data-end="' + end + '">' + fmtLeft(end - Date.now()) + '</td><td class="' + curCls + '" style="font-weight:600;">' + fmtPrice(cur) + '</td></tr>';
+      if (p.base === _starEditBase) {   // inline-редактор индивидуального срока
+        row += '<tr class="star-edit-row"><td colspan="7">' +
+          '<span class="star-edit-lbl">Мониторить до:</span> ' +
+          '<input type="datetime-local" class="star-dl-in" value="' + toLocalDT(end) + '" min="' + toLocalDT(Date.now()) + '"> ' +
+          '<button class="btn-sm star-apply" data-apply="' + p.base + '">Применить</button> ' +
+          '<button class="btn-sm star-cancel">Отмена</button> ' +
+          '<span class="star-dl-hint"></span></td></tr>';
+      }
+      return row;
     }).join("");
   }
   if (closed.length) {
@@ -1453,7 +1709,7 @@ let _starLogTimer = null;
 function starLogTick() {
   document.querySelectorAll("#starLogBody .star-left").forEach(el => el.textContent = fmtLeft(+el.getAttribute("data-end") - Date.now()));
 }
-function closeStarLog() { starOverlay.style.display = "none"; if (_starLogTimer) { clearInterval(_starLogTimer); _starLogTimer = null; } }
+function closeStarLog() { starOverlay.style.display = "none"; _starEditBase = null; if (_starLogTimer) { clearInterval(_starLogTimer); _starLogTimer = null; } }
 document.getElementById("btnStarLog").addEventListener("click", () => {
   renderStarLog(); starOverlay.style.display = "flex";
   if (_starLogTimer) clearInterval(_starLogTimer);
@@ -1462,11 +1718,38 @@ document.getElementById("btnStarLog").addEventListener("click", () => {
 document.getElementById("starLogClose").addEventListener("click", closeStarLog);
 backdropClose(starOverlay, closeStarLog);
 document.getElementById("starLogBody").addEventListener("click", e => {
-  const del = e.target.closest(".star-del"); if (!del) return;
-  const b = del.getAttribute("data-del");
-  delete STAR_OPEN[b]; STAR_STATE[b] = "dismissed"; saveStar();   // удалить без записи в лог; не переоткрывать, пока монета в зоне
-  if (selectedSym && selectedSym.replace(/USDT$/, "") === b) updateStarBlock(b);
-  render(); renderStarLog();
+  const del = e.target.closest(".star-del");
+  if (del) {   // удалить мониторинг без записи в лог; не переоткрывать, пока монета в зоне
+    const b = del.getAttribute("data-del");
+    delete STAR_OPEN[b]; STAR_STATE[b] = "dismissed"; _starEditBase = null; saveStar();
+    if (selectedSym && selectedSym.replace(/USDT$/, "") === b) updateStarBlock(b);
+    render(); renderStarLog();
+    return;
+  }
+  const ed = e.target.closest(".star-edit");
+  if (ed) { _starEditBase = ed.getAttribute("data-edit"); renderStarLog(); return; }   // открыть редактор срока
+  if (e.target.closest(".star-cancel")) { _starEditBase = null; renderStarLog(); return; }
+  const apply = e.target.closest(".star-apply");
+  if (apply) {
+    const b = apply.getAttribute("data-apply");
+    const inp = document.querySelector("#starLogBody .star-dl-in");
+    const ms = inp && inp.value ? new Date(inp.value).getTime() : NaN;
+    if (!(ms > Date.now())) return;   // в прошлое нельзя
+    if (STAR_OPEN[b]) { STAR_OPEN[b].deadline = ms; saveStar(); }
+    _starEditBase = null;
+    if (selectedSym && selectedSym.replace(/USDT$/, "") === b) updateStarBlock(b);
+    render(); renderStarLog();
+    return;
+  }
+});
+// валидация инпута срока: «Применить» неактивна, если время в прошлом
+document.getElementById("starLogBody").addEventListener("input", e => {
+  const inp = e.target.closest(".star-dl-in"); if (!inp) return;
+  const applyBtn = document.querySelector("#starLogBody .star-apply");
+  const hint = document.querySelector("#starLogBody .star-dl-hint");
+  const ok = inp.value && new Date(inp.value).getTime() > Date.now();
+  if (applyBtn) applyBtn.disabled = !ok;
+  if (hint) hint.textContent = ok ? "" : "нельзя в прошлое";
 });
 
 // окно «Портфель»: активные сверху (галочка), снятые — постоянный лог ниже
@@ -1509,9 +1792,21 @@ document.getElementById("pfBody").addEventListener("change", e => {
 
 // ---- перетаскиваемые + растягиваемые окна (портфель / индикаторы / fire log / * log), запоминают место и размер ----
 function makeMovableWindow(box, header, key) {
-  box.style.maxHeight = "none"; box.style.maxWidth = "none";
   box.style.resize = "both"; box.style.overflow = "hidden";
   box.style.minWidth = "320px"; box.style.minHeight = "160px";
+  // ограничиваем окно вьюпортом: клампим позицию в экран + кап высоты/ширины — контент скроллится внутри, окно не вылезает
+  const fit = () => {
+    const posd = box.style.position === "fixed";
+    let top = posd ? (parseFloat(box.style.top) || 0) : 8;
+    let left = posd ? (parseFloat(box.style.left) || 0) : 8;
+    if (posd) {   // не даём окну уехать за край (в т.ч. если геометрия сохранена под больший экран)
+      top = Math.max(0, Math.min(top, Math.max(0, window.innerHeight - 60)));
+      left = Math.max(0, Math.min(left, Math.max(0, window.innerWidth - 100)));
+      box.style.top = top + "px"; box.style.left = left + "px";
+    }
+    box.style.maxHeight = Math.max(160, window.innerHeight - top - 8) + "px";
+    box.style.maxWidth  = Math.max(320, window.innerWidth  - left - 8) + "px";
+  };
   const g = store.get(key, null);
   if (g) {
     box.style.position = "fixed"; box.style.margin = "0";
@@ -1519,6 +1814,14 @@ function makeMovableWindow(box, header, key) {
     if (g.h) box.style.height = g.h + "px";
     if (g.left != null) { box.style.left = g.left + "px"; box.style.top = g.top + "px"; }
   }
+  fit();
+  window.addEventListener("resize", fit);
+  // пересчитываем при ОТКРЫТИИ окна (геометрия могла быть сохранена под другой вьюпорт)
+  try {
+    const ov = box.parentElement;
+    if (ov) new MutationObserver(() => { if (ov.style.display !== "none") fit(); })
+      .observe(ov, {attributes: true, attributeFilter: ["style"]});
+  } catch (_) {}
   const save = () => {
     const r = box.getBoundingClientRect();
     if (r.width < 60 || r.height < 60) return;   // не сохраняем закрытое (свёрнутое) окно
@@ -1539,6 +1842,7 @@ function makeMovableWindow(box, header, key) {
     if (!drag) return;
     box.style.left = Math.max(0, Math.min(window.innerWidth - 100, e.clientX - drag.dx)) + "px";
     box.style.top = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - drag.dy)) + "px";
+    fit();
   });
   document.addEventListener("mouseup", () => { if (drag) { drag = null; save(); } });
   try { const ro = new ResizeObserver(() => { if (box.offsetParent !== null) save(); }); ro.observe(box); } catch (_) {}
@@ -1601,8 +1905,12 @@ document.querySelectorAll(".flog-tbl th.srt").forEach(th => th.addEventListener(
 
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
+  // сначала закрываем ЛЮБОЕ открытое попап-окно; боковую панель — только если ни одного не открыто
   if (setOverlay.style.display === "flex") setOverlay.style.display = "none";
+  else if (indOverlay.style.display === "flex") indOverlay.style.display = "none";
+  else if (pfOverlay.style.display === "flex") pfOverlay.style.display = "none";
   else if (flogOverlay.style.display === "flex") closeFireLog();
+  else if (starOverlay.style.display === "flex") closeStarLog();
   else closePanel();
 });
 
