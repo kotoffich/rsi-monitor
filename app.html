@@ -314,6 +314,9 @@
   .chart-box { min-width:0; }
   .chart-box .cap { font-size:15px; font-weight:600; color:var(--text2); margin:0 0 4px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .chart-host { height:246px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bghead2); }
+  .chart-rz { height:7px; margin-top:3px; border-radius:3px; background:var(--border2); cursor:ns-resize; }
+  .chart-rz:hover, .chart-rz.drag { background:var(--accent); }
+  #charts.rz-active .chart-host { pointer-events:none; }   /* на время тяги iframe не перехватывает мышь */
   /* секции боковой панели (Индикаторы / Графики) */
   .pan-sec { display:flex; align-items:center; gap:10px; padding:8px 14px; margin-top:8px; background:var(--bghead2); border-top:1px solid var(--border2); border-bottom:1px solid var(--border); border-left:3px solid var(--accent); }
   .pan-sec-t { font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text); }
@@ -1367,7 +1370,7 @@ async function buildCharts(sym) {
         const id = "tvc" + (idx++);
         widgets.push({id: id, interval: t.tf, study: ind.study});
         return '<div class="chart-box"><div class="cap">' + short + ' · ' + t.lbl + (ind.study ? "" : " — template") +
-               '</div><div class="chart-host" id="' + id + '"></div></div>';
+               '</div><div class="chart-host" id="' + id + '"></div><div class="chart-rz" title="Потяните — высота графика (сброс при вкл/выкл)"></div></div>';
       };
       htm += '<div class="ind-charts">';
       if (CHART_MODE === "tiles" && enabled.length > 1) {   // плитка: по 2 в ряд с разделителем; одиночный — на всю ширину
@@ -1443,6 +1446,7 @@ syncChartMode();
     const d = e.target.closest(".tile-div"); if (!d) return;
     e.preventDefault();
     row = d.closest(".tile-row"); d.classList.add("drag");
+    charts.classList.add("rz-active");   // iframe не перехватывает мышь во время тяги
     document.body.style.userSelect = "none";
   });
   document.addEventListener("mousemove", e => {
@@ -1458,9 +1462,39 @@ syncChartMode();
   document.addEventListener("mouseup", () => {
     if (!row) return;
     document.querySelectorAll(".tile-div.drag").forEach(d => d.classList.remove("drag"));
+    charts.classList.remove("rz-active");
     row = null; document.body.style.userSelect = "";
     store.set("rsi_chartsplit", CHART_SPLIT);
     try { window.dispatchEvent(new Event("resize")); } catch (_) {}   // подтолкнуть TradingView-виджеты к перерисовке
+  });
+})();
+
+// тяга ВЫСОТЫ графика (не сохраняется → сброс к дефолту при любом ре-рендере: вкл/выкл фрейма, OFF, смена вида, переоткрытие)
+(function initChartHeight() {
+  const charts = document.getElementById("charts");
+  let host = null, scale = 0.75, top = 0;
+  charts.addEventListener("mousedown", e => {
+    const h = e.target.closest(".chart-rz"); if (!h) return;
+    e.preventDefault();
+    host = h.parentElement.querySelector(".chart-host"); if (!host) { host = null; return; }
+    const app = document.querySelector(".app");
+    const probe = document.createElement("div");   // реальный масштаб .app (учитывает zoom/DPI)
+    probe.style.cssText = "position:absolute;height:200px;width:0;visibility:hidden;pointer-events:none;";
+    app.appendChild(probe); scale = probe.getBoundingClientRect().height / 200 || 0.75; probe.remove();
+    top = host.getBoundingClientRect().top;
+    h.classList.add("drag"); charts.classList.add("rz-active");
+    document.body.style.userSelect = "none";
+  });
+  document.addEventListener("mousemove", e => {
+    if (!host) return;
+    host.style.height = Math.max(120, (e.clientY - top) / scale) + "px";   // нижний край графика — под курсором
+  });
+  document.addEventListener("mouseup", () => {
+    if (!host) return;
+    document.querySelectorAll(".chart-rz.drag").forEach(d => d.classList.remove("drag"));
+    charts.classList.remove("rz-active");
+    host = null; document.body.style.userSelect = "";
+    try { window.dispatchEvent(new Event("resize")); } catch (_) {}
   });
 })();
 
