@@ -976,6 +976,38 @@ def api_klhigh(symbol: str = "", since: int = 0, until: int = 0, target: float =
                          "hitTs": hit_ts, "hitPrice": hit_price, "interval": interval})
 
 
+@app.get("/api/klbase")
+def api_klbase(symbol: str = "", since: int = 0, until: int = 0, targetpct: float = 0.0):
+    """Контроль-база: для случайной монеты берём OPEN первой свечи окна как «вход»,
+       цель = вход*(1+targetpct%), и проверяем, достигал ли HIGH цели в [since, until].
+       Даёт базовую частоту роста +X% за окно (компаратор для green% сигнала «*»)."""
+    sym = (symbol or "").upper().strip()
+    if not sym:
+        return JSONResponse({"error": "symbol required"}, status_code=400)
+    if not sym.endswith("USDT"):
+        sym += "USDT"
+    if since <= 0:
+        return JSONResponse({"error": "since required"}, status_code=400)
+    until = until or int(time.time() * 1000)
+    span_h = (until - since) / 3600000.0
+    interval = "15m" if span_h <= 48 else "1h"
+    try:
+        kl = _binance_klines(sym, interval, 1000, start=since, end=until)
+    except Exception as e:
+        return JSONResponse({"valid": False, "error": str(e)})
+    if not kl:
+        return JSONResponse({"valid": False, "error": "no candles"})
+    try:
+        entry = float(kl[0][1])                       # open первой свечи окна = «вход»
+    except Exception:
+        return JSONResponse({"valid": False, "error": "bad entry"})
+    if entry <= 0:
+        return JSONResponse({"valid": False, "error": "entry<=0"})
+    target = entry * (1.0 + targetpct / 100.0)
+    hit = any(float(k[2]) >= target for k in kl)      # достигал ли HIGH цели за окно
+    return JSONResponse({"valid": True, "entry": entry, "target": target, "hit": hit})
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8080)

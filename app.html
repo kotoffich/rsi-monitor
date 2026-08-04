@@ -259,6 +259,19 @@
   .btn-sm.star-apply { background:var(--accent); color:#0e1116; border-color:var(--accent); }
   .btn-sm:disabled { opacity:.45; cursor:default; }
   .star-dl-hint { color:var(--red); font-size:11px; margin-left:8px; }
+  /* шапка-статистика измерительного слоя в логе «*» */
+  .star-stats-row td { background:var(--bg2); padding:12px 14px; border-bottom:2px solid var(--border2); }
+  .ss-top { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .ss-big { font-size:20px; } .ss-big b { color:var(--green); }
+  .ss-meta { color:var(--muted); font-size:12.5px; }
+  .ss-base-btn { margin-left:auto; }
+  .ss-base { margin-top:7px; font-size:13px; color:var(--text2); }
+  .ss-base b { color:var(--text); } .ss-base b.pos { color:var(--green); } .ss-base b.neg { color:var(--red); }
+  .ss-inds { margin-top:9px; display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; }
+  .ss-inds-t { color:var(--muted); font-size:12px; width:100%; margin-bottom:2px; }
+  .ss-ind { display:flex; align-items:center; gap:9px; background:var(--bghead2); border:1px solid var(--border); border-radius:7px; padding:5px 10px; font-size:12.5px; }
+  .ss-ind-n { font-weight:700; color:var(--text); min-width:54px; }
+  .ss-cell { color:var(--text2); } .ss-cell b { color:var(--accent); } .ss-cell i { color:var(--muted); font-style:normal; font-size:11px; }
   /* окно настроек */
   .set-box { width:min(540px,94vw); max-height:88vh; background:var(--bg2); border:1px solid var(--border2); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
   .set-tabs { display:flex; gap:6px; padding:10px 16px 0; flex:none; }
@@ -474,8 +487,12 @@
           <input type="number" id="setStarThr" min="50" max="99" step="1">
         </div>
         <div class="set-row">
-          <label>Окно слежения, дней<div class="set-hint">сколько дней ждём рост цены до красного</div></label>
-          <input type="number" id="setStarWin" min="1" max="30" step="1">
+          <label>Окно слежения, дней<div class="set-hint">сколько дней ждём рост цены до красного (0 = только часы)</div></label>
+          <input type="number" id="setStarWin" min="0" max="30" step="1">
+        </div>
+        <div class="set-row">
+          <label>+ часов<div class="set-hint">добавляется к дням; для тестов 1–12 ч ставь дни 0, часы N</div></label>
+          <input type="number" id="setStarWinH" min="0" max="23" step="1">
         </div>
         <div class="set-row">
           <label>Рост цены для 🟩, %<div class="set-hint">на сколько должна вырасти цена, чтобы сигнал засчитался зелёным</div></label>
@@ -727,7 +744,9 @@ let FIRE_LOG = store.get("rsi_firelog", []) || [];      // вечный журн
 let TRG_STEP = Number(SETTINGS.trgStep) || 6;      // шаг % на индикатор в TRG (настройка)
 let TRG_ATRW = !!SETTINGS.trgAtrWeight;            // вес по ATR (опция, по умолчанию выкл)
 let STAR_THRESHOLD = Number(SETTINGS.starThreshold) || 99;  // порог TSumm для фиксации, %
-let STAR_WINDOW_D  = Number(SETTINGS.starWindowDays) || 3;  // окно слежения, дней
+let STAR_WINDOW_D  = SETTINGS.starWindowDays != null ? Number(SETTINGS.starWindowDays) : 1;  // окно слежения, дней
+let STAR_WINDOW_H  = Number(SETTINGS.starWindowHours) || 0;  // + часы (для тестов 1–12ч)
+function starWindowMs() { return Math.max(3600000, STAR_WINDOW_D * 86400000 + STAR_WINDOW_H * 3600000); }  // общее окно, не меньше 1ч
 let STAR_GROWTH    = Number(SETTINGS.starGrowth) || 5;      // рост цены для 🟩, %
 let _starEditBase = null;   // база, у которой сейчас открыт inline-редактор срока в логе «*»
 let STAR_OPEN  = store.get("rsi_star_open", {}) || {};   // base -> {ts,deadline,date,time,price,frames} — открытый кейс
@@ -746,24 +765,106 @@ function tsummOf(c) {
   return { prob, kind };
 }
 
-// закрыть кейс «*» с исходом (green/red), записать в вечный журнал
+// ---- ИЗМЕРИТЕЛЬНЫЙ СЛОЙ: снимок индикаторов на входе → анализ green% по условиям ----
+// Инвариант: снимок пишется ОДИН раз при фиксации кейса и НЕ меняется; лог закрытых несёт его копию.
+function starSnap(c) {
+  return {
+    tsumm: tsummOf(c).prob, thr: STAR_THRESHOLD, target: STAR_GROWTH, winMs: starWindowMs(),
+    frames: [...FRAME_ON], indOn: [...IND_ON],
+    ema:  {1: c.ema1,  4: c.ema4,  12: c.ema12},   // 1/-1/0/null по фреймам на входе
+    ce:   {1: c.ce1,   4: c.ce4,   12: c.ce12},
+    div:  {1: c.div1,  4: c.div4,  12: c.div12},
+    atrb: {1: c.atrb1, 4: c.atrb4, 12: c.atrb12},
+    rsi:  {1: c.rsi1h, 4: c.rsi4h, 12: c.rsi12h},
+  };
+}
+// индикатор «подтверждал» отскок (dn→вверх), если net>0 по фреймам входа кейса
+function _snapConf(snap, indKey) {
+  if (!snap || !snap[indKey]) return false;
+  const fmap = {"1h": "1", "4h": "4", "12h": "12"};
+  let net = 0;
+  (snap.frames || []).forEach(f => { const v = snap[indKey][fmap[f]]; if (v === 1) net++; else if (v === -1) net--; });
+  return net > 0;
+}
+// закрыть кейс «*» с исходом (green/red), записать в вечный журнал (со снимком и мета для анализа)
 function closeStar(b, outcome, ts, closePrice) {
   const open = STAR_OPEN[b]; if (!open) return;
-  STAR_LOG.push({ts: ts, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames, outcome: outcome, closePrice: closePrice});
+  STAR_LOG.push({ts: ts, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames,
+    outcome: outcome, closePrice: closePrice, entryTs: open.ts, snap: open.snap || null,
+    target: open.snap ? open.snap.target : STAR_GROWTH,
+    winMs: open.snap ? open.snap.winMs : (open.deadline ? open.deadline - open.ts : starWindowMs())});
   delete STAR_OPEN[b]; STAR_STATE[b] = outcome;
 }
 // вмороженный дедлайн кейса (индивидуальный; для старых кейсов без него — вход + окно)
 function starDeadlineOf(open) {
-  return open.deadline || (open.ts + STAR_WINDOW_D * 86400000);
+  return open.deadline || (open.ts + starWindowMs());
 }
 // timestamp -> строка для <input type="datetime-local"> в локальном времени браузера
 function toLocalDT(ms) {
   const d = new Date(ms), p = n => String(n).padStart(2, "0");
   return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes());
 }
+// окно мониторинга (мс) -> "6ч" / "1д" / "1д 6ч"
+function fmtWin(ms) {
+  if (!ms) return "—";
+  const h = Math.round(ms / 3600000);
+  if (h < 24) return h + "ч";
+  const d = Math.floor(h / 24), rh = h % 24;
+  return d + "д" + (rh ? " " + rh + "ч" : "");
+}
+// дата+время закрытия (в тайм-зоне Хьюстона, как и метки входа)
+function fmtCloseDT(ms) {
+  if (!ms) return { date: "—", time: "" };
+  const d = new Date(ms);
+  return { date: d.toLocaleDateString("en-CA", {timeZone: "America/Chicago"}),
+           time: d.toLocaleTimeString("en-GB", {timeZone: "America/Chicago", hour12: false}) };
+}
+// статистика: green% всего + в разрезе каждого индикатора (подтверждал/нет на входе)
+function starStats() {
+  const closed = STAR_LOG.filter(r => r.outcome === "green" || r.outcome === "red");
+  const total = closed.length, green = closed.filter(r => r.outcome === "green").length;
+  const gp = arr => arr.length ? Math.round(arr.filter(r => r.outcome === "green").length / arr.length * 100) : null;
+  const times = closed.filter(r => r.outcome === "green" && r.entryTs && r.ts).map(r => r.ts - r.entryTs);
+  const avgHitMs = times.length ? times.reduce((a, b) => a + b, 0) / times.length : null;
+  const byInd = {};
+  ["ema", "ce", "div", "atrb"].forEach(k => {
+    const on = closed.filter(r => r.snap && _snapConf(r.snap, k)), off = closed.filter(r => r.snap && !_snapConf(r.snap, k));
+    byInd[k] = { onN: on.length, onGreen: gp(on), offN: off.length, offGreen: gp(off) };
+  });
+  return { total, green, red: total - green, greenPct: total ? Math.round(green / total * 100) : null, avgHitMs, byInd, withSnap: closed.filter(r => r.snap).length };
+}
+// контроль-база: базовая частота роста +target% за окно на СЛУЧАЙНЫХ монетах (тот же период/окно/цель) — компаратор для green% сигнала
+let BASELINE_STAT = store.get("rsi_baseline_stat", null);   // {total, green, greenPct, casesUsed, ts}
+let _baselineBusy = false;
+async function computeBaseline(onProgress) {
+  if (_baselineBusy) return null;
+  const closed = STAR_LOG.filter(r => (r.outcome === "green" || r.outcome === "red") && r.entryTs && r.winMs && r.target != null);
+  if (!closed.length) return null;
+  _baselineBusy = true;
+  const pool = COINS.map(c => c.base);
+  const K = 3;   // случайных контрольных монет на каждый сигнальный кейс
+  let total = 0, green = 0, done = 0;
+  for (const r of closed) {
+    const others = pool.filter(b => b !== r.base);
+    for (let i = 0; i < K && others.length; i++) {
+      const cb = others.splice(Math.floor(Math.random() * others.length), 1)[0];
+      try {
+        const res = await fetch("/api/klbase?symbol=" + encodeURIComponent(cb) +
+          "&since=" + Math.round(r.entryTs) + "&until=" + Math.round(r.entryTs + r.winMs) + "&targetpct=" + r.target);
+        const j = await res.json();
+        if (j && j.valid) { total++; if (j.hit) green++; }
+      } catch (e) {}
+    }
+    done++; if (onProgress) onProgress(done, closed.length);
+  }
+  _baselineBusy = false;
+  const stat = { total, green, greenPct: total ? Math.round(green / total * 100) : null, casesUsed: closed.length, ts: Date.now() };
+  BASELINE_STAT = stat; store.set("rsi_baseline_stat", stat);
+  return stat;
+}
 // трекер «*»: фиксация при TSumm≥порога (вниз) + быстрый green по текущей цене. Гоняется на свежих данных (refresh).
 function starCheck(coins) {
-  const now = Date.now(), winMs = STAR_WINDOW_D * 86400000;
+  const now = Date.now(), winMs = starWindowMs();
   coins.forEach(c => {
     const b = c.base, price = c.price, ts = tsummOf(c), open = STAR_OPEN[b];
     if (open) {
@@ -779,8 +880,9 @@ function starCheck(coins) {
       // либо монета уже в зоне и ещё ни разу не отслеживалась (подхватываем «зависших» в зоне)
       if (ts.prob >= STAR_THRESHOLD && ts.kind === "dn" &&
           (prev == null || prev < STAR_THRESHOLD || STAR_STATE[b] == null)) {
-        // вмораживаем абсолютный дедлайн в кейс (вход + окно) — можно потом изменить индивидуально в логе «*»
-        STAR_OPEN[b] = {ts: now, deadline: now + winMs, date: houstonDate(), time: houstonTime(), price: price, frames: [...FRAME_ON].join("·")};
+        // вмораживаем абсолютный дедлайн в кейс (вход + окно) + снимок индикаторов на входе (для анализа)
+        STAR_OPEN[b] = {ts: now, deadline: now + winMs, date: houstonDate(), time: houstonTime(), price: price,
+          frames: [...FRAME_ON].join("·"), snap: starSnap(c)};
         STAR_STATE[b] = "open";
       }
     }
@@ -1081,7 +1183,7 @@ const COLUMNS = {
   tsum: {th:'<span class="hi">Σ</span>TSumm', k:"tsum", thClass:"l",
          cell:(c)=>{ const t = tsummOf(c); return td("l", '<span class="probtxt p-'+t.kind+'">'+t.prob+"%</span>", "padding-left:8px"); }},
   star: {th:'<span class="star-hd">✳</span>', title:'Валидация сигнала: TSumm ≥ порога (пробитие вниз) → фиксируем цену и ждём рост. 🟦 в процессе / 🟩 сработал / 🟥 не дошёл',
-         cell:(c)=>{ const s = STAR_STATE[c.base]; return s ? td("star-"+s, "") : td("", ""); }},
+         cell:(c)=>{ return STAR_STATE[c.base] === "open" ? td("star-open", "") : td("", ""); }},   // красим только «в процессе» (синий); итоги смотрим в хронологии
   sp:   {th:'', cell:()=>td("", "")},
 };
 const DEFAULT_ORDER = ["act","pf","num","coin","price","ch1","ch4","ch12","vol","rsi1","rsi4","rsi12","atr1","atr4","atr12","pf1","pf4","pf12","ema1","ema4","ema12","ce1","ce4","ce12","div1","div4","div12","atrb1","atrb4","atrb12","vltl","t1","trgt","t12","tsum","star","sp"];
@@ -1655,6 +1757,7 @@ document.getElementById("btnSettings").addEventListener("click", () => {
   document.getElementById("setFireThr").value = FIRE_THRESHOLD;
   document.getElementById("setStarThr").value = STAR_THRESHOLD;
   document.getElementById("setStarWin").value = STAR_WINDOW_D;
+  document.getElementById("setStarWinH").value = STAR_WINDOW_H;
   document.getElementById("setStarGr").value = STAR_GROWTH;
   document.getElementById("setTrgStep").value = TRG_STEP;
   document.getElementById("setTrgAtrW").checked = TRG_ATRW;
@@ -1666,11 +1769,13 @@ document.getElementById("setSave").addEventListener("click", () => {
   const v = Math.max(1, Math.min(90, Math.round(Number(document.getElementById("setFireThr").value) || 10)));
   FIRE_THRESHOLD = v; SETTINGS.fireThreshold = v;
   STAR_THRESHOLD = Math.max(50, Math.min(99, Math.round(Number(document.getElementById("setStarThr").value) || 99)));
-  STAR_WINDOW_D  = Math.max(1, Math.min(30, Math.round(Number(document.getElementById("setStarWin").value) || 3)));
+  STAR_WINDOW_D  = Math.max(0, Math.min(30, Math.round(Number(document.getElementById("setStarWin").value) || 0)));
+  STAR_WINDOW_H  = Math.max(0, Math.min(23, Math.round(Number(document.getElementById("setStarWinH").value) || 0)));
+  if (STAR_WINDOW_D === 0 && STAR_WINDOW_H === 0) STAR_WINDOW_H = 1;   // не даём нулевое окно
   STAR_GROWTH    = Math.max(1, Math.min(100, Math.round(Number(document.getElementById("setStarGr").value) || 5)));
   TRG_STEP = Math.max(1, Math.min(20, Math.round(Number(document.getElementById("setTrgStep").value) || 6)));
   TRG_ATRW = document.getElementById("setTrgAtrW").checked;
-  SETTINGS.starThreshold = STAR_THRESHOLD; SETTINGS.starWindowDays = STAR_WINDOW_D; SETTINGS.starGrowth = STAR_GROWTH;
+  SETTINGS.starThreshold = STAR_THRESHOLD; SETTINGS.starWindowDays = STAR_WINDOW_D; SETTINGS.starWindowHours = STAR_WINDOW_H; SETTINGS.starGrowth = STAR_GROWTH;
   SETTINGS.trgStep = TRG_STEP; SETTINGS.trgAtrWeight = TRG_ATRW;
   store.set("rsi_settings", SETTINGS);
   setOverlay.style.display = "none";
@@ -1697,26 +1802,58 @@ document.getElementById("btnFireLog").addEventListener("click", openFireLog);
 
 // окно хронологии «*»
 const starOverlay = document.getElementById("starOverlay");
+// шапка-статистика измерительного слоя (сверху лога): green% всего, база, edge, разрез по индикаторам
+function starStatsHtml() {
+  const s = starStats();
+  if (!s.total) return '';
+  const b = BASELINE_STAT;
+  const edge = (b && b.greenPct != null && s.greenPct != null) ? (s.greenPct - b.greenPct) : null;
+  const P = v => v == null ? "—" : v + "%";
+  const indNames = {ema: "EMA", ce: "CE", div: "DIV", atrb: "ATR-дно"};
+  const indRows = Object.keys(s.byInd).map(k => {
+    const d = s.byInd[k];
+    return '<div class="ss-ind"><span class="ss-ind-n">' + indNames[k] + '</span>' +
+      '<span class="ss-cell">✓ <b>' + P(d.onGreen) + '</b> <i>(' + d.onN + ')</i></span>' +
+      '<span class="ss-cell">✗ <b>' + P(d.offGreen) + '</b> <i>(' + d.offN + ')</i></span></div>';
+  }).join("");
+  const baseLine = b
+    ? 'База (случайные): <b>' + P(b.greenPct) + '</b> <i>(' + b.total + ' пров.)</i>' +
+      (edge != null ? ' · edge: <b class="' + (edge > 0 ? 'pos' : 'neg') + '">' + (edge > 0 ? '+' : '') + edge + ' п.п.</b>' : '')
+    : '<span class="mut">база не посчитана — жми «Посчитать базу»</span>';
+  return '<tr class="star-stats-row"><td colspan="9">' +
+    '<div class="ss-top"><span class="ss-big">🟩 <b>' + P(s.greenPct) + '</b></span>' +
+    '<span class="ss-meta">green / всего: ' + s.green + ' / ' + s.total + ' · 🟥 ' + s.red +
+    (s.avgHitMs != null ? ' · ср. до цели: ' + fmtLeft(s.avgHitMs) : '') + '</span>' +
+    '<button class="btn-sm ss-base-btn">Посчитать базу</button></div>' +
+    '<div class="ss-base">' + baseLine + '</div>' +
+    '<div class="ss-inds"><span class="ss-inds-t">green% по индикаторам (✓ подтверждал на входе / ✗ нет):</span>' + indRows + '</div>' +
+    '</td></tr>';
+}
 function renderStarLog() {
   const body = document.getElementById("starLogBody");
   const active = Object.keys(STAR_OPEN).map(b => Object.assign({base: b}, STAR_OPEN[b])).sort((a, b) => b.ts - a.ts);
   const closed = STAR_LOG.slice().sort((a, b) => b.ts - a.ts);
-  if (!active.length && !closed.length) { body.innerHTML = '<tr><td colspan="7" class="flog-empty">Пока пусто — сигналов * ещё не было</td></tr>'; return; }
+  if (!active.length && !closed.length) { body.innerHTML = '<tr><td colspan="9" class="flog-empty">Пока пусто — сигналов * ещё не было</td></tr>'; return; }
   const hd = cols => '<tr class="flog-subhd">' + cols.map(c => '<td>' + c + '</td>').join("") + '</tr>';
-  let html = "";
+  let html = starStatsHtml();   // шапка-статистика (green% / база / edge / индикаторы) — сверху
   if (active.length) {
-    html += hd(["Итог", "Дата метки", "Время", "Монета", "Цена входа", "Осталось", "Цена текущая"]);
+    html += hd(["Итог", "Открытие", "Монета", "Цена входа", "Фрейм", "Окно", "Цена текущая", "Осталось", "Закрытие"]);
     html += active.map(p => {
       const cur = (COINS.find(x => x.base === p.base) || {}).price;
       const end = starDeadlineOf(p);   // индивидуальный дедлайн кейса
       const curCls = (cur != null && p.price) ? (cur >= p.price ? "pos" : "neg") : "";   // зелёный выше входа / красный ниже
       let row = '<tr class="flog-buy"><td><span class="flog-tag" style="background:rgba(79,156,247,.22);color:var(--accent);">🟦 в процессе</span> ' +
         '<button class="star-edit" data-edit="' + p.base + '" title="Изменить срок мониторинга">✎</button> ' +
-        '<button class="star-del" data-del="' + p.base + '" title="Удалить мониторинг (без записи в лог)">✕</button></td><td>' +
-        p.date + '</td><td>' + p.time + '</td><td style="font-weight:600;">' + p.base + '</td><td>' + fmtPrice(p.price) +
-        '</td><td class="star-left" data-end="' + end + '">' + fmtLeft(end - Date.now()) + '</td><td class="' + curCls + '" style="font-weight:600;">' + fmtPrice(cur) + '</td></tr>';
+        '<button class="star-del" data-del="' + p.base + '" title="Удалить мониторинг (без записи в лог)">✕</button></td>' +
+        '<td style="white-space:nowrap;">' + p.date + '<br><span style="color:var(--muted);font-size:11px;">' + p.time + '</span></td>' +
+        '<td style="font-weight:600;">' + p.base + '</td><td>' + fmtPrice(p.price) + '</td>' +
+        '<td style="color:var(--muted);">' + (p.frames || "") + '</td>' +
+        '<td style="color:var(--muted);">' + fmtWin(end - p.ts) + '</td>' +
+        '<td class="' + curCls + '" style="font-weight:600;">' + fmtPrice(cur) + '</td>' +
+        '<td class="star-left" data-end="' + end + '">' + fmtLeft(end - Date.now()) + '</td>' +
+        '<td style="color:var(--muted);">—</td></tr>';
       if (p.base === _starEditBase) {   // inline-редактор индивидуального срока
-        row += '<tr class="star-edit-row"><td colspan="7">' +
+        row += '<tr class="star-edit-row"><td colspan="9">' +
           '<span class="star-edit-lbl">Мониторить до:</span> ' +
           '<input type="datetime-local" class="star-dl-in" value="' + toLocalDT(end) + '" min="' + toLocalDT(Date.now()) + '"> ' +
           '<button class="btn-sm star-apply" data-apply="' + p.base + '">Применить</button> ' +
@@ -1727,14 +1864,22 @@ function renderStarLog() {
     }).join("");
   }
   if (closed.length) {
-    html += hd(["Итог", "Дата", "Время", "Монета", "Цена входа", "Фрейм", "Цена закрытия"]);
+    html += hd(["Итог", "Открытие", "Монета", "Цена входа", "Фрейм", "Окно", "Цена закрытия", "Закрылось за", "Закрытие"]);
     html += closed.map(r => {
       const tag = r.outcome === "green"
         ? '<span class="flog-tag buy">🟩 сработал</span>'
         : '<span class="flog-tag anl" style="background:var(--chip-dn);color:var(--red);">🟥 не дошёл</span>';
-      return '<tr class="' + (r.outcome === "green" ? "flog-buy" : "") + '"><td>' + tag + '</td><td>' + r.date + '</td><td>' + r.time +
-        '</td><td style="font-weight:600;">' + r.base + '</td><td>' + fmtPrice(r.entryPrice) +
-        '</td><td style="color:var(--muted);">' + (r.frames || "") + '</td><td>' + fmtPrice(r.closePrice) + '</td></tr>';
+      const clsClose = (r.closePrice != null && r.entryPrice != null) ? (r.closePrice >= r.entryPrice ? "pos" : "neg") : "";
+      const dur = (r.entryTs && r.ts) ? fmtLeft(r.ts - r.entryTs) : "—";   // за сколько закрылось (вход → закрытие)
+      const cd = fmtCloseDT(r.ts);
+      return '<tr class="' + (r.outcome === "green" ? "flog-buy" : "") + '"><td>' + tag + '</td>' +
+        '<td style="white-space:nowrap;">' + r.date + '<br><span style="color:var(--muted);font-size:11px;">' + r.time + '</span></td>' +
+        '<td style="font-weight:600;">' + r.base + '</td><td>' + fmtPrice(r.entryPrice) + '</td>' +
+        '<td style="color:var(--muted);">' + (r.frames || "") + '</td>' +
+        '<td style="color:var(--muted);">' + fmtWin(r.winMs) + '</td>' +
+        '<td class="' + clsClose + '" style="font-weight:600;">' + fmtPrice(r.closePrice) + '</td>' +
+        '<td style="color:var(--text2);">' + dur + '</td>' +
+        '<td style="color:var(--muted);font-size:11px;white-space:nowrap;">' + cd.date + '<br>' + cd.time + '</td></tr>';
     }).join("");
   }
   body.innerHTML = html;
@@ -1752,6 +1897,15 @@ document.getElementById("btnStarLog").addEventListener("click", () => {
 document.getElementById("starLogClose").addEventListener("click", closeStarLog);
 backdropClose(starOverlay, closeStarLog);
 document.getElementById("starLogBody").addEventListener("click", e => {
+  const baseBtn = e.target.closest(".ss-base-btn");
+  if (baseBtn) {   // посчитать контроль-базу по истории свечей (случайные монеты, те же окно/цель)
+    if (_baselineBusy) return;
+    baseBtn.disabled = true; baseBtn.textContent = "Считаю…";
+    computeBaseline((done, tot) => { baseBtn.textContent = "Считаю… " + done + "/" + tot; })
+      .then(() => renderStarLog())
+      .catch(() => { baseBtn.disabled = false; baseBtn.textContent = "Ошибка — повторить"; });
+    return;
+  }
   const del = e.target.closest(".star-del");
   if (del) {   // удалить мониторинг без записи в лог; не переоткрывать, пока монета в зоне
     const b = del.getAttribute("data-del");
