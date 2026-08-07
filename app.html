@@ -52,6 +52,7 @@
   .btn:disabled { opacity:.6; cursor:default; }
   .btn.frbtn { padding:8px 13px; font-weight:700; }
   .btn.frbtn.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
+  .fr-lbl { color:var(--muted); font-size:12px; font-weight:600; margin:0 2px 0 10px; align-self:center; white-space:nowrap; }
   .seg { display:inline-flex; background:var(--bg2); border:1px solid var(--border2); border-radius:8px; overflow:hidden; margin-left:8px; }
   .seg button { background:transparent; border:none; border-left:1px solid var(--border2); color:var(--text2); font:600 12.5px "Inter",sans-serif; padding:5px 11px; cursor:pointer; }
   .seg button:first-child { border-left:none; }
@@ -122,16 +123,9 @@
   table.coins td[data-col="num"] { color:#b8b8c0; }
   table.coins td[data-col="rsi1"], table.coins td[data-col="rsi4"], table.coins td[data-col="rsi12"],
   table.coins td[data-col="atr1"], table.coins td[data-col="atr4"], table.coins td[data-col="atr12"],
-  table.coins td[data-col="pf1"], table.coins td[data-col="pf4"], table.coins td[data-col="pf12"] { background:rgba(255,255,255,.03); font-size:18px; font-weight:600; }
-  body.light table.coins td[data-col="rsi1"], body.light table.coins td[data-col="rsi4"], body.light table.coins td[data-col="rsi12"],
-  body.light table.coins td[data-col="atr1"], body.light table.coins td[data-col="atr4"], body.light table.coins td[data-col="atr12"],
-  body.light table.coins td[data-col="pf1"], body.light table.coins td[data-col="pf4"], body.light table.coins td[data-col="pf12"] { background:rgba(0,0,0,.03); }
-  table.coins th[data-col="rsi1"], table.coins td[data-col="rsi1"],
-  table.coins th[data-col="atr1"], table.coins td[data-col="atr1"],
-  table.coins th[data-col="pf1"], table.coins td[data-col="pf1"] { border-left:1px solid var(--border2); }
-  table.coins th[data-col="rsi12"], table.coins td[data-col="rsi12"],
-  table.coins th[data-col="atr12"], table.coins td[data-col="atr12"],
-  table.coins th[data-col="pf12"], table.coins td[data-col="pf12"] { border-right:1px solid var(--border2); }
+  table.coins td[data-col="pf1"], table.coins td[data-col="pf4"], table.coins td[data-col="pf12"] { font-size:18px; font-weight:600; }
+  /* светло-серая граница слева у первой колонки каждой группы индикаторов — визуально отделяет группы фреймов друг от друга */
+  table.coins th.grp-start, table.coins td.grp-start { border-left:1px solid rgba(180,186,204,.30); }
   table.coins tr.row { cursor:pointer; }
   table.coins tr.row:hover { background:var(--bghov); }
   tr.sel { background:var(--sel) !important; box-shadow:inset 3px 0 0 var(--selbar); }
@@ -155,9 +149,9 @@
   .pfmic { cursor:pointer; opacity:.28; font-size:16px; user-select:none; }
   .pfmic:hover { opacity:.65; }
   .pfmic.on { opacity:1; }
-  td[data-col="star"].star-open  { background:rgba(79,156,247,.45); }
-  td[data-col="star"].star-green { background:rgba(95,174,99,.5); }
-  td[data-col="star"].star-red   { background:rgba(230,70,70,.5); }
+  td[data-col^="star"].star-open  { background:rgba(79,156,247,.45); }   /* ^=star → все слоты ✴/✴2/✴3/✴4, не только первый */
+  td[data-col^="star"].star-green { background:rgba(95,174,99,.5); }
+  td[data-col^="star"].star-red   { background:rgba(230,70,70,.5); }
   .star-block { margin:0 14px; padding:10px 0; border-bottom:1px solid var(--border); }
   .st { font-size:12px; display:block; margin-top:2px; }
   .st.dn { color:var(--red); } .st.up { color:var(--green); } .st.near { color:var(--amber); }
@@ -201,7 +195,8 @@
   .pf-btn { margin-left:auto; background:var(--bg3); border:1px solid var(--border2); color:var(--text2); border-radius:8px; padding:6px 11px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
   .pf-btn:hover { background:var(--bghov); }
   .pf-btn.on { background:var(--accent); color:#0e1116; border-color:var(--accent); }
-  .pf-btn.pf-mini { margin-left:0; padding:4px 7px; font-size:17px; line-height:1; opacity:.5; }        /* иконка слева от монеты */
+  .pf-btn.pf-mini { margin-left:0; padding:4px 8px; font-size:17px; line-height:1; opacity:.5; }   /* иконка слева от монеты */
+  .pf-ic { display:inline-block; transform:translateY(-2px); }   /* эмодзи 💼 сидит низковато — чуть приподнимаем */
   .pf-btn.pf-mini:hover { opacity:1; }
   .pf-btn.pf-mini.on { opacity:1; background:var(--accent); }
   .p-hd .p-trgt { font-size:16px; color:var(--text2); }
@@ -229,9 +224,15 @@
   .fb-lines { margin-top:6px; font-size:13px; color:var(--text2); line-height:1.6; }
   /* окно хронологии огоньков */
   .flog-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:50; }
-  .flog-box { width:min(640px,92vw); max-height:82vh; background:var(--bg2); border:1px solid var(--border-strong,var(--border2)); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
+  .flog-box { position:relative; width:min(640px,92vw); max-height:82vh; background:var(--bg2); border:1px solid var(--border-strong,var(--border2)); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
+  /* яркий оранжевый уголок ресайза (справа-снизу); pointer-events:none — нативный ресайз под ним работает */
+  .flog-box::after, .set-box::after { content:""; position:absolute; right:1px; bottom:1px; width:16px; height:16px; pointer-events:none; z-index:6; border-bottom-right-radius:11px; background:linear-gradient(135deg, transparent 46%, #ff8c1a 46%); }
   .flog-hd { display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); font-size:16px; font-weight:600; }
   .flog-hd .flog-x { margin-left:auto; cursor:pointer; color:var(--muted); font-size:18px; }
+  .flog-hd-r { margin-left:auto; display:flex; align-items:center; gap:12px; }
+  .flog-hd-r .flog-x { margin-left:0; }
+  .star-reset { background:rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.4); color:#f8a0a0; border-radius:7px; padding:4px 10px; font:600 12px "Inter",sans-serif; cursor:pointer; white-space:nowrap; }
+  .star-reset:hover { background:rgba(248,113,113,.22); color:#fff; border-color:rgba(248,113,113,.7); }
   .flog-scroll { overflow:auto; flex:1; min-height:0; }
   .flog-tbl { width:100%; border-collapse:collapse; font-size:13px; }
   .flog-tbl th { position:sticky; top:0; background:var(--bghead); color:var(--text); font-weight:600; padding:8px 10px; text-align:left; white-space:nowrap; }
@@ -241,11 +242,24 @@
   .flog-tag { font-size:11px; font-weight:600; padding:2px 8px; border-radius:9px; white-space:nowrap; }
   .flog-tag.buy { background:var(--chip-up); color:var(--green); }
   .flog-tag.anl { background:var(--bghead2); color:var(--muted); }
+  .pf-up-hd { font-weight:400; font-size:10px; color:var(--muted); }
+  .pf-up { font-family:Consolas,monospace; font-weight:600; letter-spacing:.5px; }
+  .pf-up span { margin:0 1px; }
   .flog-buy td { background:rgba(95,174,99,.06); }
   .flog-empty { padding:24px; text-align:center; color:var(--muted); }
   .flog-sep td { text-align:center; color:var(--muted); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; padding:5px 10px; background:var(--bghead2); border-top:2px solid var(--border2); }
   .flog-subhd td { background:var(--bghead); color:var(--muted); font-weight:600; font-size:12px; padding:8px 10px; text-align:left; border-top:2px solid var(--border2); border-bottom:1px solid var(--border); white-space:nowrap; }
   .flog-tbl td.star-left { width:120px; font-weight:600; color:var(--accent); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  /* звёздный лог: колонки в % (colgroup) — равномерно тянутся/сжимаются; min-width → при узком окне гориз. скролл */
+  .star-tbl { table-layout:fixed; width:100%; min-width:800px; }
+  .star-tbl td, .star-tbl th, .star-tbl .flog-subhd td { padding:3px 6px; overflow:hidden; text-overflow:ellipsis; border-left:1px solid rgba(180,186,204,.13); }
+  .star-tbl td:first-child, .star-tbl th:first-child, .star-tbl .flog-subhd td:first-child { border-left:none; }   /* вертикальные разделители колонок, светло-серые */
+  .star-tbl .flog-subhd td { font-size:11px; background:rgba(79,156,247,.18); color:var(--text2); }                /* голубой фон заголовков активных/отработанных — видно разделение */
+  .star-tbl td.star-left { width:auto; }                                                                            /* в fixed-раскладке ширину задаёт colgroup */
+  .star-tbl .stc-dt { line-height:1.15; }
+  .stc-cell { display:flex; align-items:center; justify-content:space-between; gap:6px; }                           /* монета слева, кнопки ✎/✕ прижаты к правому краю ячейки */
+  .stc-cell .star-coin { overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .stc-btns { flex:none; white-space:nowrap; }
   .star-del { background:transparent; border:1px solid var(--border2); color:var(--muted); border-radius:5px; width:20px; height:18px; font-size:11px; line-height:1; padding:0; cursor:pointer; vertical-align:middle; margin-left:2px; }
   .star-del:hover { color:var(--red); border-color:var(--red); }
   .star-edit { background:transparent; border:1px solid var(--border2); color:var(--accent); border-radius:5px; width:22px; height:18px; font-size:11px; line-height:1; padding:0; cursor:pointer; vertical-align:middle; margin-left:2px; }
@@ -259,6 +273,8 @@
   .btn-sm.star-apply { background:var(--accent); color:#0e1116; border-color:var(--accent); }
   .btn-sm:disabled { opacity:.45; cursor:default; }
   .star-dl-hint { color:var(--red); font-size:11px; margin-left:8px; }
+  .star-coin { font-weight:600; cursor:pointer; border-bottom:1px dashed transparent; }   /* клик → выбрать монету в таблице + панель */
+  .star-coin:hover { color:var(--accent); border-bottom-color:var(--accent); }
   /* шапка-статистика измерительного слоя в логе «*» */
   .star-stats-row td { background:var(--bg2); padding:12px 14px; border-bottom:2px solid var(--border2); }
   .ss-top { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
@@ -272,8 +288,89 @@
   .ss-ind { display:flex; align-items:center; gap:9px; background:var(--bghead2); border:1px solid var(--border); border-radius:7px; padding:5px 10px; font-size:12.5px; }
   .ss-ind-n { font-weight:700; color:var(--text); min-width:54px; }
   .ss-cell { color:var(--text2); } .ss-cell b { color:var(--accent); } .ss-cell i { color:var(--muted); font-style:normal; font-size:11px; }
+  .ss-tbl { border-collapse:collapse; font-size:12px; margin-top:7px; }
+  .ss-tbl thead td { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.3px; padding:1px 14px 3px 0; font-weight:700; }
+  .ss-tbl tbody td { padding:2px 14px 2px 0; white-space:nowrap; border-top:1px solid var(--border); }
+  .ss-tn { font-weight:700; color:var(--text); }
+  .ss-tc b { color:var(--accent); } .ss-tc i { color:var(--muted); font-size:10.5px; margin-left:1px; }
+  .ss-tc b.pos { color:var(--green); }
+  .ss-cap { color:var(--muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; margin-top:9px; }
+  .ss-sig thead td { line-height:1.15; }
+  /* таблица хронологии «*»: монета первой, фон-цвет итога в ячейке, фильтр 🟩/🟥 */
+  .stc { font-weight:600; white-space:nowrap; }
+  .stc .star-coin { font-weight:700; }
+  .stc-open { background:rgba(79,156,247,.15); }
+  .stc-green { background:rgba(74,222,128,.15); }
+  .stc-red { background:rgba(248,113,113,.15); }
+  .stc-dt { color:var(--muted); font-size:11px; white-space:nowrap; line-height:1.25; }
+  .stc-dt-hit { color:var(--green); font-weight:700; }   /* достиг цели +X% — время закрытия зелёным */
+  .stc-fr { display:block; font-size:10px; color:var(--muted); opacity:.85; }   /* фрейм(ы) 2-й строкой под ценой входа */
+  .stc-s { text-align:center; font-size:12px; font-weight:500; white-space:nowrap; color:var(--muted); }   /* компактные колонки настроек %P/WT/%E — единый приглушённый цвет */
+  .stlf { display:inline-flex; gap:3px; margin-left:5px; font-weight:400; vertical-align:middle; }
+  .stlf label { display:inline-flex; align-items:center; justify-content:center; width:18px; height:15px; border-radius:4px; cursor:pointer; border:1px solid transparent; font-size:9px; }
+  .stlf input { display:none; }                                                      /* компактные цветные чекбоксы-подложки вместо галок */
+  .stlf .stlf-g { background:rgba(74,222,128,.16); }
+  .stlf .stlf-g.on { background:rgba(74,222,128,.42); border-color:rgba(74,222,128,.7); }
+  .stlf .stlf-r { background:rgba(248,113,113,.16); }
+  .stlf .stlf-r.on { background:rgba(248,113,113,.42); border-color:rgba(248,113,113,.7); }
+  .stlf label:not(.on) { opacity:.45; }
+  .stc .star-edit, .stc .star-del, .stc .star-logdel { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:12px; padding:0 1px; margin-left:2px; opacity:.55; }
+  .stc .star-edit:hover, .stc .star-del:hover, .stc .star-logdel:hover { color:var(--text); opacity:1; }
+  /* «* log» шапка: два блока — слева статистика, справа конфиг входа «*» */
+  .star-top { display:flex; flex-direction:column; gap:9px; flex:none; padding:9px 14px; background:var(--bg2); border-bottom:2px solid var(--border2); }
+  .star-stats-box { width:100%; }
+  .star-cfg-box { width:100%; border-top:1px solid var(--border); padding-top:9px; }
+  .ss-bar { display:flex; align-items:center; gap:9px; flex-wrap:wrap; font-size:13px; }
+  .ss-toggle { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:0 2px; line-height:1; }
+  .ss-toggle:hover { color:var(--text); }
+  .ss-bar-t { font-weight:700; color:var(--text); }
+  .ss-bar-s { color:var(--text2); } .ss-bar-s b { color:var(--accent); } .ss-bar-s b.pos { color:var(--green); } .ss-bar-s b.neg { color:var(--red); } .ss-bar-s i { color:var(--muted); font-style:normal; font-size:11.5px; }
+  .ss-bar .ss-base-btn { margin-left:auto; }
+  .ss-empty { color:var(--muted); font-size:13px; }
+  .scfg-hd { display:flex; align-items:center; justify-content:flex-start; gap:6px; margin-bottom:10px; }
+  .scfg-collapse, .scfg-slot-tg { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:12px; padding:0 3px; line-height:1; }
+  .scfg-collapse:hover, .scfg-slot-tg:hover { color:var(--text); }
+  .scfg-slot-tgsp { display:inline-block; width:16px; flex:none; }
+  .scfg-di { display:contents; }                                                       /* окно/порог/цель/фреймы — участвуют во flex-строке; прячутся при сворачивании */
+  .scfg-slot.collapsed .scfg-di, .scfg-slot.collapsed .scfg-inds { display:none; }
+  .scfg-min-sum { display:none; color:var(--muted); font-size:11px; }
+  .scfg-slot.collapsed .scfg-min-sum { display:inline; }
+  .star-cfg-box.scfg-box-collapsed .scfg-slots, .star-cfg-box.scfg-box-collapsed .scfg-apply-row { display:none; }
+  .scfg-t { font-size:13px; font-weight:700; color:var(--text); }
+  .scfg-note { font-weight:400; color:var(--muted); font-size:11px; }
+  .scfg-blocks { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
+  .scfg-b { background:var(--bg3); border:1px solid var(--border2); border-radius:9px; padding:7px 10px; }
+  .scfg-b-t { color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; margin-bottom:5px; display:flex; align-items:center; gap:6px; }
+  .scfg-b-c { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+  .scfg-b-ind { flex:1 1 220px; }
+  .scfg-in { color-scheme:dark; width:52px; background:var(--bg2); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:4px 6px; font:600 13px "Inter",sans-serif; }
+  .scfg-u { color:var(--muted); font-size:12px; margin-left:-2px; }
+  .scfg-fr, .scfg-ind { display:inline-flex; align-items:center; gap:5px; background:var(--bg2); border:1px solid var(--border2); border-radius:7px; padding:4px 8px; font-size:12.5px; color:var(--text2); cursor:pointer; user-select:none; }
+  .scfg-fr input, .scfg-ind input { accent-color:var(--accent); color-scheme:dark; cursor:pointer; margin:0; }
+  .scfg-ind-grid { display:flex; flex-wrap:wrap; gap:5px; }
+  .scfg-ind-grid .scfg-ind { width:62px; padding:4px 5px; justify-content:center; box-sizing:border-box; }
+  .reldot { font-size:11px; }
+  .scfg-reco { font-size:11px; padding:2px 8px; }
+  .scfg-apply-main { background:var(--green); color:#0b1a10; border:1px solid var(--green); border-radius:7px; padding:5px 12px; font:700 12.5px "Inter",sans-serif; cursor:pointer; white-space:nowrap; box-shadow:0 0 0 2px rgba(74,222,128,.20); }
+  .scfg-apply-main:hover { filter:brightness(1.08); }
+  .scfg-apply-main .scfg-ok { display:none; }
+  .scfg-apply-main.clean { box-shadow:none; opacity:.92; }
+  .scfg-apply-main.clean .scfg-ok { display:inline; }
+  .scfg-apply-row { display:flex; justify-content:flex-end; margin-top:9px; }
+  /* мульти-окна «*»: 4 компактные строки-режима, индикаторы под каждой */
+  .scfg-slots { display:flex; flex-direction:column; gap:7px; }
+  .scfg-slot { background:var(--bg3); border:1px solid var(--border2); border-radius:9px; padding:7px 9px; opacity:.5; transition:opacity .15s, border-color .15s; }
+  .scfg-slot.on { opacity:1; border-color:rgba(74,222,128,.45); }
+  .scfg-row { display:flex; align-items:center; gap:9px 12px; flex-wrap:wrap; }
+  .scfg-onl { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--text); cursor:pointer; user-select:none; }
+  .scfg-onl input { accent-color:var(--green); color-scheme:dark; cursor:pointer; margin:0; width:15px; height:15px; }
+  .scfg-f { display:inline-flex; align-items:center; gap:4px; }
+  .scfg-fl { color:var(--muted); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+  .scfg-slot .scfg-in { width:42px; padding:3px 5px; }
+  .scfg-inds { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:6px; padding-top:6px; border-top:1px dashed var(--border); }
+  .scfg-inds .scfg-ind { padding:3px 6px; font-size:11.5px; }
   /* окно настроек */
-  .set-box { width:min(540px,94vw); max-height:88vh; background:var(--bg2); border:1px solid var(--border2); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  .set-box { position:relative; width:min(540px,94vw); max-height:88vh; background:var(--bg2); border:1px solid var(--border2); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
   .set-tabs { display:flex; gap:6px; padding:10px 16px 0; flex:none; }
   .set-tab { flex:1; background:var(--bg3); border:1px solid var(--border2); color:var(--text2); border-radius:8px 8px 0 0; padding:8px 6px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; }
   .set-tab:hover { background:var(--bghov); }
@@ -377,9 +474,10 @@
       <button data-sec="1800">30M</button>
       <button data-sec="3600">1H</button>
     </div>
-    <span class="mini"><span class="lbl" style="color:var(--green);">Break up</span><span class="val" id="cUp">0</span></span>
-    <span class="mini"><span class="lbl" style="color:var(--amber);">Near</span><span class="val" id="cNear">0</span></span>
-    <span class="mini"><span class="lbl" style="color:var(--red);">Break down</span><span class="val" id="cDn">0</span></span>
+    <span class="fr-lbl" title="Фреймы таблицы (обзор). На вход «*» НЕ влияют — у «*» свои фреймы по окну (в «* log»).">Фреймы</span>
+    <button class="btn frbtn on" data-fr="1h"  title="Фрейм 1h в таблице (клик — выключить)">1H</button>
+    <button class="btn frbtn on" data-fr="4h"  title="Фрейм 4h в таблице (клик — выключить)">4H</button>
+    <button class="btn frbtn on" data-fr="12h" title="Фрейм 12h в таблице (клик — выключить)">12H</button>
     <span class="sp"></span>
     <button class="btn icon-only" id="btnSettings" title="Настройки"><span class="ic">⚙️</span></button>
     <button class="btn icon-only" id="btnTheme" title="Light / dark theme"><span class="ic">🌙</span></button>
@@ -396,11 +494,7 @@
     <button class="btn" onclick="alert('Coins — coming soon')"><span class="ic">🪙</span> Coins</button>
     <button class="btn" id="btnPortfolio" title="Портфель — активные позиции и лог"><span class="ic">💼</span> Портфель</button>
     <button class="btn" id="btnFireLog" title="Хронология огоньков"><span class="ic">🔥</span> Fire log</button>
-    <button class="btn" id="btnStarLog" title="Хронология * (валидация сигнала)"><span class="ic" style="color:#e0a23c;">✳</span> * log</button>
-    <span class="divider"></span>
-    <button class="btn frbtn on" data-fr="1h"  title="Фрейм 1h в анализе (клик — выключить)">1H</button>
-    <button class="btn frbtn on" data-fr="4h"  title="Фрейм 4h в анализе (клик — выключить)">4H</button>
-    <button class="btn frbtn on" data-fr="12h" title="Фрейм 12h в анализе (клик — выключить)">12H</button>
+    <button class="btn" id="btnStarLog" title="Хронология * (валидация сигнала)"><span class="ic star-hd">✴</span> log</button>
   </div>
 
   <div class="cardswrap">
@@ -423,7 +517,7 @@
         <div class="ai-body" id="aiBody" style="display:none;"></div>
       </div>
       <div class="p-hd">
-        <button class="pf-btn pf-mini" id="pPortfolio" title="Добавить в портфель — SELL-уведомления в Telegram">💼</button>
+        <button class="pf-btn pf-mini" id="pPortfolio" title="Добавить в портфель — SELL-уведомления в Telegram"><span class="pf-ic">💼</span></button>
         <span class="sym" id="pSym">—</span>
         <span class="p-badge pb-neu" id="pBadge">—</span>
         <span class="p-price mono" id="pPrice">—</span>
@@ -469,7 +563,6 @@
     <div class="set-hd"><span>⚙️ Настройки</span><span class="set-x" id="setClose">✕</span></div>
     <div class="set-tabs">
       <button class="set-tab on" data-tab="fire"><span class="ic">🔥</span> Огонёк</button>
-      <button class="set-tab" data-tab="star"><span class="star-hd">✳</span> Валидация *</button>
       <button class="set-tab" data-tab="trg"><span style="color:#e0a23c;">🎯</span> Таргет</button>
     </div>
     <div class="set-body">
@@ -478,25 +571,6 @@
         <div class="set-row">
           <label>Порог, %<div class="set-hint">на сколько должна прибавить вероятность (TRGT), чтобы загорелся огонёк</div></label>
           <input type="number" id="setFireThr" min="1" max="90" step="1">
-        </div>
-      </div>
-      <div class="set-block" data-tabc="star" style="display:none;">
-        <div class="set-block-t"><span class="star-hd">✳</span> Валидация «*»</div>
-        <div class="set-row">
-          <label>Порог фиксации TSumm, %<div class="set-hint">при каком TSumm (пробитие вниз) «*» фиксирует точку входа</div></label>
-          <input type="number" id="setStarThr" min="50" max="99" step="1">
-        </div>
-        <div class="set-row">
-          <label>Окно слежения, дней<div class="set-hint">сколько дней ждём рост цены до красного (0 = только часы)</div></label>
-          <input type="number" id="setStarWin" min="0" max="30" step="1">
-        </div>
-        <div class="set-row">
-          <label>+ часов<div class="set-hint">добавляется к дням; для тестов 1–12 ч ставь дни 0, часы N</div></label>
-          <input type="number" id="setStarWinH" min="0" max="23" step="1">
-        </div>
-        <div class="set-row">
-          <label>Рост цены для 🟩, %<div class="set-hint">на сколько должна вырасти цена, чтобы сигнал засчитался зелёным</div></label>
-          <input type="number" id="setStarGr" min="1" max="100" step="1">
         </div>
       </div>
       <div class="set-block" data-tabc="trg" style="display:none;">
@@ -536,9 +610,18 @@
 
 <div class="flog-overlay" id="starOverlay" style="display:none;">
   <div class="flog-box">
-    <div class="flog-hd"><span>✳ Хронология * — валидация сигнала TSumm</span><span class="flog-x" id="starLogClose">✕</span></div>
+    <div class="flog-hd"><span><span class="star-hd">✴</span> Хронология <span class="star-hd">✴</span> — валидация сигнала TSumm</span><span class="flog-hd-r"><button class="star-reset" id="starReset" title="Сбросить измерение для чистого нового теста: история + активные мониторинги + дедуп + база. Настройки режимов и колонки не трогаются.">🗑 Сбросить тест</button><span class="flog-x" id="starLogClose">✕</span></span></div>
+    <div class="star-top">
+      <div class="star-stats-box" id="starStatsBox"></div>
+      <div class="star-cfg-box" id="starCfgBox"></div>
+    </div>
     <div class="flog-scroll">
-      <table class="flog-tbl">
+      <table class="flog-tbl star-tbl">
+        <colgroup>
+          <col style="width:15%"><col style="width:11%"><col style="width:15%">
+          <col style="width:5%"><col style="width:6%"><col style="width:5%">
+          <col style="width:15%"><col style="width:14%"><col style="width:14%">
+        </colgroup>
         <tbody id="starLogBody"></tbody>
       </table>
     </div>
@@ -558,6 +641,7 @@
           <th>Цена входа</th>
           <th>Сейчас / выход</th>
           <th>Δ%</th>
+          <th>↑ пробой<br><span class="pf-up-hd">1h·4h·12h</span></th>
           <th>Статус</th>
         </tr></thead>
         <tbody id="pfBody"></tbody>
@@ -587,7 +671,7 @@ let filterMode = "all";
 let favOnly = false;
 let query = "";
 let selectedSym = null;
-let SORT = {key:"prob", dir:-1};
+let SORT = {key:"star", dir:-1};   // дефолт: по колонке «*» (сила входа, dn-приоритет). Клик по TSumm — по её значению
 
 // store: localStorage + серверная синхронизация. Ключи "rsi_*" общие (файл state.json на сервере):
 // одна память у меня и у тебя, переживает перезапуск, едет на Рендер при пуше. Остальные ключи — только локально.
@@ -657,7 +741,8 @@ function pfRemove(base, price) {
 const SORT_NAMES = {fav:"favorites", fire:"fire", base:"coin", price:"price",
   change1h:"Δ 1h", change4h:"Δ 4h", change12h:"Δ 12h",
   volUsd:"VOL", volat:"VLTL",
-  rsi1h:"RSI 1h", rsi4h:"RSI 4h", rsi12h:"RSI 12h", t1:"T1", prob:"T4", t12:"T12", tsum:"TSumm"};
+  rsi1h:"RSI 1h", rsi4h:"RSI 4h", rsi12h:"RSI 12h", t1:"T1", prob:"T4", t12:"T12", tsum:"TSumm",
+  star:"✴ вход №1", star2:"✴ вход №2", star3:"✴ вход №3", star4:"✴ вход №4"};
 
 function statusOf(rsi) {
   if (rsi == null) return {kind:"", label:"", prob:0, dir:""};
@@ -671,20 +756,24 @@ function statusOf(rsi) {
   return {kind:"", label:"", prob:Math.max(4, Math.round(40 - 2 * d)), dir:""};
 }
 
-// ---- TRG с подмешиванием индикаторов (EMA/CE/DIV/ATR-дно), вход рулится галочками IND_ON ----
+// ---- TRG с подмешиванием индикаторов (EMA/CE/DIV/ATR-дно/Cipher-B/Hist-div), вход рулится галочками IND_ON ----
 // TRG_STEP / TRG_ATRW объявлены ниже (после SETTINGS), тут только функция
 const _FN = { "1h":"1", "4h":"4", "12h":"12" };    // суффиксы полей индикаторов
-function trgOf(c, frame) {
+// indSet — набор включённых индикаторов; по умолчанию таблица (IND_ON), «*» передаёт свой STAR_IND
+function trgOf(c, frame, indSet) {
+  indSet = indSet || IND_ON;
   const rsi = frame === "1h" ? c.rsi1h : frame === "4h" ? c.rsi4h : c.rsi12h;
   const base = statusOf(rsi);
   if (rsi == null || (base.kind !== "up" && base.kind !== "dn")) return base;   // блендим только чёткие пробои
   const n = _FN[frame], dir = base.kind === "dn" ? 1 : -1;   // dn→бычье подтверждение (bounce), up→медвежье
   const vote = v => (v == null || v === 0) ? 0 : (v === dir ? 1 : -1);
   let net = 0;
-  if (IND_ON.has("ema")) net += vote(c["ema" + n]);
-  if (IND_ON.has("ce"))  net += vote(c["ce" + n]);
-  if (IND_ON.has("div")) net += vote(c["div" + n]);
-  if (IND_ON.has("atrb") && base.kind === "dn" && c["atrb" + n] === 1) net += 1;   // дно подтверждает только bounce
+  if (indSet.has("ema")) net += vote(c["ema" + n]);
+  if (indSet.has("ce"))  net += vote(c["ce" + n]);
+  if (indSet.has("div")) net += vote(c["div" + n]);
+  if (indSet.has("cph")) net += vote(c["cph" + n]);   // Cipher B — дивергенция WaveTrend (как div)
+  if (indSet.has("hgd")) net += vote(c["hgd" + n]);   // MACD-гистограмма — дивергенция (как div)
+  if (indSet.has("atrb") && base.kind === "dn" && c["atrb" + n] === 1) net += 1;   // дно подтверждает только bounce
   let step = TRG_STEP;
   if (TRG_ATRW) { const pct = frame === "1h" ? c.atr1 : frame === "4h" ? c.atr4 : c.atr12;
     if (pct != null) step *= Math.max(0.5, Math.min(2, atrScore(pct, frame) / 40)); }
@@ -744,37 +833,112 @@ let FIRE_LOG = store.get("rsi_firelog", []) || [];      // вечный журн
 let TRG_STEP = Number(SETTINGS.trgStep) || 6;      // шаг % на индикатор в TRG (настройка)
 let TRG_ATRW = !!SETTINGS.trgAtrWeight;            // вес по ATR (опция, по умолчанию выкл)
 let STAR_THRESHOLD = Number(SETTINGS.starThreshold) || 99;  // порог TSumm для фиксации, %
-let STAR_WINDOW_D  = SETTINGS.starWindowDays != null ? Number(SETTINGS.starWindowDays) : 1;  // окно слежения, дней
+let STAR_WINDOW_D  = SETTINGS.starWindowDays != null ? Number(SETTINGS.starWindowDays) : 3;  // окно слежения, дней (дефолт — 3д: ловим дно)
 let STAR_WINDOW_H  = Number(SETTINGS.starWindowHours) || 0;  // + часы (для тестов 1–12ч)
 function starWindowMs() { return Math.max(3600000, STAR_WINDOW_D * 86400000 + STAR_WINDOW_H * 3600000); }  // общее окно, не меньше 1ч
 let STAR_GROWTH    = Number(SETTINGS.starGrowth) || 5;      // рост цены для 🟩, %
 let _starEditBase = null;   // база, у которой сейчас открыт inline-редактор срока в логе «*»
-let STAR_OPEN  = store.get("rsi_star_open", {}) || {};   // base -> {ts,deadline,date,time,price,frames} — открытый кейс
-let STAR_STATE = store.get("rsi_star_state", {}) || {};  // base -> "open"|"green"|"red" (цвет ячейки)
-let STAR_PREV  = store.get("rsi_star_prev", {}) || {};   // base -> прошлый TSumm (дедуп: фиксируем только на пересечении вверх)
-let STAR_LOG   = store.get("rsi_star_log", []) || [];    // вечный журнал закрытых кейсов
+// состояние «*» — ПО СЛОТУ (4 режима мониторинга): массив из 4 карт base→…; старый плоский объект мигрирует в слот 0
+function _mig4(v) { if (Array.isArray(v) && v.length === 4) return v.map(x => (x && typeof x === "object") ? x : {});
+  if (v && typeof v === "object") return [v, {}, {}, {}]; return [{}, {}, {}, {}]; }
+let STAR_OPEN  = _mig4(store.get("rsi_star_open"));   // [slot] → base → {ts,deadline,date,time,price,frames,snap} — открытый кейс
+let STAR_STATE = _mig4(store.get("rsi_star_state"));  // [slot] → base → "open"|"green"|"red"|"dismissed" (цвет ячейки)
+let STAR_PREV  = _mig4(store.get("rsi_star_prev"));   // [slot] → base → прошлый TSumm (дедуп: фиксируем только на пересечении вверх)
+let STAR_LOG   = store.get("rsi_star_log", []) || [];    // вечный журнал закрытых кейсов (плоский; запись несёт slot + снимок настроек)
 function saveStar() { store.set("rsi_star_open", STAR_OPEN); store.set("rsi_star_state", STAR_STATE); store.set("rsi_star_prev", STAR_PREV); store.set("rsi_star_log", STAR_LOG); }
+// легаси-зеркала слота 0 (STAR_IND/STAR_FRAMES/STAR_WINDOW_*/THRESHOLD/GROWTH) — чтобы не трогать starWindowMs()/фолбэки; источник правды = STAR_CFGS
+let STAR_IND = new Set(store.get("rsi_star_ind", ["chg","rsi","atr","pfg","trg","ema","ce","div","atrb","cph","hgd"]));
+function saveStarCfg() { store.set("rsi_star_cfgs", STAR_CFGS); store.set("rsi_star_ind", [...STAR_IND]); store.set("rsi_star_frames", [...STAR_FRAMES]); }
 
-// TSumm одного коина (среднее по видимым фреймам + направление) — общий хелпер
-function tsummOf(c) {
-  const probs = [], kinds = [];
+// горизонт каждого фрейма в часах — для взвешивания TSumm под окно мониторинга «*»
+const _FRAME_H = { "1h": 1, "4h": 4, "12h": 12 };
+// вес фрейма = близость его горизонта к «единице окна» (окно/6 свечей) по лог-шкале:
+// длинное окно → вес на старший фрейм (3 дня → 12ч), короткое → на младший (6ч → 1ч).
+// Так вход «умный»: 12ч (крепкое дно под многодневку) весит больше, чем 1ч (шум).
+function frameWeight(frame, winMs) {
+  const unitH = Math.max(0.5, (winMs || starWindowMs()) / 3600000 / 6);   // целевой горизонт, ч (3 дня → 12ч)
+  return 1 / (1 + Math.abs(Math.log2(_FRAME_H[frame]) - Math.log2(unitH)));
+}
+// фреймы ВХОДА «*» — авто по окну (winMs опц., иначе текущее): фреймы с нормированным весом ≥ 20% (шум отбрасываем)
+function starFramesAuto(winMs) {
+  const all = ["1h", "4h", "12h"], w = {}; let sum = 0;
+  all.forEach(f => { w[f] = frameWeight(f, winMs); sum += w[f]; });
+  const on = new Set(all.filter(f => w[f] / sum >= 0.20));
+  return on.size ? on : new Set(["12h"]);
+}
+// STAR_FRAMES — фреймы входа «*» (ручной набор; «Применить рекомендованные» ставит авто по окну)
+let STAR_FRAMES = new Set(store.get("rsi_star_frames", [...starFramesAuto()]));
+// ---- МУЛЬТИ-ОКНА «*»: 4 независимых слота-режима (каждый со своим окном/порогом/целью/фреймами/индикаторами). Источник правды ----
+const STAR_VOTE_IND = ["ema","ce","div","cph","hgd","atrb"];   // голосующие индикаторы — дефолтный набор для новых слотов
+function _defSlot(i) { return { on: i === 0, winD: 3, winH: 0, thr: 75, growth: 5, frames: ["4h","12h"], ind: [...STAR_VOTE_IND] }; }
+let STAR_CFGS = store.get("rsi_star_cfgs", null);
+if (!Array.isArray(STAR_CFGS) || STAR_CFGS.length !== 4) {   // миграция: слот 0 = текущие одиночные настройки, слоты 1-3 — выключенные дефолты
+  STAR_CFGS = [{ on: true, winD: STAR_WINDOW_D, winH: STAR_WINDOW_H, thr: STAR_THRESHOLD, growth: STAR_GROWTH,
+    frames: [...STAR_FRAMES], ind: [...STAR_IND] }, _defSlot(1), _defSlot(2), _defSlot(3)];
+}
+STAR_CFGS = STAR_CFGS.map((s, i) => Object.assign(_defSlot(i), s || {}));   // добить недостающие поля у сохранённых слотов
+function slotOn(i) { return !!(STAR_CFGS[i] && STAR_CFGS[i].on); }
+function activeSlots() { return [0,1,2,3].filter(slotOn); }                 // включённые слоты (новые входы + колонки таблицы)
+function slotWinMs(i) { const s = STAR_CFGS[i]; return Math.max(3600000, (s.winD||0)*86400000 + (s.winH||0)*3600000); }
+function slotCfg(i) { const s = STAR_CFGS[i]; return { frames: new Set(s.frames), ind: new Set(s.ind), winMs: slotWinMs(i) }; }
+function syncLegacyFromSlot0() { const s = STAR_CFGS[0]; STAR_WINDOW_D = s.winD; STAR_WINDOW_H = s.winH; STAR_THRESHOLD = s.thr; STAR_GROWTH = s.growth; STAR_FRAMES = new Set(s.frames); STAR_IND = new Set(s.ind); }
+syncLegacyFromSlot0();
+// конфиг «*» для tsummOf/trgOf по слоту 0 (легаси-совместимость; таблица на «*» не влияет)
+function starCfg() { return slotCfg(0); }
+// индикаторы входа «*» для панели «* log» (голосующие): аббревиатура + полное имя
+const STAR_IND_LIST = [
+  {k:"ema", ab:"EMA", name:"EMA-тренд (9/21)"},
+  {k:"ce",  ab:"CE",  name:"Chandelier Exit — ATR-трейлинг-стоп"},
+  {k:"div", ab:"DIV", name:"Дивергенция (RSI против цены)"},
+  {k:"cph", ab:"CPH", name:"Cipher B — дивергенция WaveTrend"},
+  {k:"hgd", ab:"HGD", name:"MACD-гистограмма — дивергенция"},
+  {k:"atrb",ab:"ДНО", name:"ATR-дно (цена ниже нормы EMA20−2·ATR)"},
+];
+// релевантность фреймов для текущего окна (нормир. вес): осн./вспом./шум + значок
+function frameReled(winH) {
+  const winMs = winH != null ? winH * 3600000 : null;
+  const all = ["1h","4h","12h"], w = {}; let sum = 0;
+  all.forEach(f => { w[f] = frameWeight(f, winMs); sum += w[f]; });
+  const r = {}; all.forEach(f => { const p = Math.round(100 * w[f] / sum);
+    r[f] = { pct: p, dot: p >= 50 ? "🟢" : p >= 20 ? "🟡" : "⚪", tier: p >= 50 ? "осн." : p >= 20 ? "вспом." : "шум" }; });
+  return r;
+}
+let _starCfgDirty = false;   // есть несохранённые правки конфига «*» (галочка ✓ гаснет)
+let STAR_LOG_F = { green: true, red: true };   // фильтр хронологии «*»: показывать 🟩/🟥
+let _starStatsCollapsed = true;   // левый блок статистики «*» свёрнут по умолчанию (горизонтальная полоса)
+let _starCfgCollapsed = false;    // весь блок «Режимы мониторинга *» свёрнут (чтобы смотреть таблицу максимально)
+let _slotCollapsed = [false, true, true, true];   // сворачивание отдельных слотов 2/3/4 (по умолчанию свёрнуты — слот 1 всегда развёрнут)
+// TSumm коина = ВЗВЕШЕННОЕ по окну среднее таргетов (cfg: по умолч. таблица FRAME_ON/IND_ON, «*» — свой starCfg) + направление
+function tsummOf(c, cfg) {
+  const frames = cfg ? cfg.frames : FRAME_ON, ind = cfg ? cfg.ind : IND_ON;
+  let psum = 0, wsum = 0, dnW = 0, upW = 0;
   [["1h", c.rsi1h], ["4h", c.rsi4h], ["12h", c.rsi12h]].forEach(([f, v]) => {
-    if (FRAME_ON.has(f) && v != null) { const t = trgOf(c, f); probs.push(t.prob); kinds.push(t.kind); } });
-  const prob = probs.length ? Math.round(probs.reduce((a, b) => a + b, 0) / probs.length) : 0;
-  const kind = (kinds.length && kinds[0] && kinds.every(k => k === kinds[0])) ? kinds[0] : "neu";
+    if (frames.has(f) && v != null) {
+      const t = trgOf(c, f, ind), w = frameWeight(f, cfg && cfg.winMs);   // вес по окну СЛОТА (иначе — глобальное, для таблицы)
+      psum += t.prob * w; wsum += w;
+      // уклон фрейма: dn/up явно, либо near по своему направлению (↓/↑); нейтральные-далёкие не считаем
+      const lean = t.kind === "dn" ? "dn" : t.kind === "up" ? "up" : (t.dir === "↓" ? "dn" : t.dir === "↑" ? "up" : "");
+      if (lean === "dn") dnW += w; else if (lean === "up") upW += w;
+    } });
+  const prob = wsum ? Math.round(psum / wsum) : 0;
+  // направление = взвешенное преобладание уклона фреймов (не строгое согласие всех — иначе почти всегда neu)
+  const kind = (dnW > upW && dnW > 0) ? "dn" : (upW > dnW && upW > 0) ? "up" : "neu";
   return { prob, kind };
 }
 
 // ---- ИЗМЕРИТЕЛЬНЫЙ СЛОЙ: снимок индикаторов на входе → анализ green% по условиям ----
 // Инвариант: снимок пишется ОДИН раз при фиксации кейса и НЕ меняется; лог закрытых несёт его копию.
-function starSnap(c) {
+function starSnap(c, i) {
+  const s = STAR_CFGS[i || 0];
   return {
-    tsumm: tsummOf(c).prob, thr: STAR_THRESHOLD, target: STAR_GROWTH, winMs: starWindowMs(),
-    frames: [...FRAME_ON], indOn: [...IND_ON],
+    slot: i || 0, tsumm: tsummOf(c, slotCfg(i || 0)).prob, thr: s.thr, target: s.growth, winMs: slotWinMs(i || 0),
+    frames: [...s.frames], indOn: [...s.ind],
     ema:  {1: c.ema1,  4: c.ema4,  12: c.ema12},   // 1/-1/0/null по фреймам на входе
     ce:   {1: c.ce1,   4: c.ce4,   12: c.ce12},
     div:  {1: c.div1,  4: c.div4,  12: c.div12},
     atrb: {1: c.atrb1, 4: c.atrb4, 12: c.atrb12},
+    cph:  {1: c.cph1,  4: c.cph4,  12: c.cph12},
+    hgd:  {1: c.hgd1,  4: c.hgd4,  12: c.hgd12},
     rsi:  {1: c.rsi1h, 4: c.rsi4h, 12: c.rsi12h},
   };
 }
@@ -787,13 +951,15 @@ function _snapConf(snap, indKey) {
   return net > 0;
 }
 // закрыть кейс «*» с исходом (green/red), записать в вечный журнал (со снимком и мета для анализа)
-function closeStar(b, outcome, ts, closePrice) {
-  const open = STAR_OPEN[b]; if (!open) return;
-  STAR_LOG.push({ts: ts, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames,
+function closeStar(si, b, outcome, ts, closePrice) {
+  const open = STAR_OPEN[si][b]; if (!open) return;
+  const s = STAR_CFGS[si] || {};
+  STAR_LOG.push({slot: si, ts: ts, base: b, date: open.date, time: open.time, entryPrice: open.price, frames: open.frames,
     outcome: outcome, closePrice: closePrice, entryTs: open.ts, snap: open.snap || null,
-    target: open.snap ? open.snap.target : STAR_GROWTH,
-    winMs: open.snap ? open.snap.winMs : (open.deadline ? open.deadline - open.ts : starWindowMs())});
-  delete STAR_OPEN[b]; STAR_STATE[b] = outcome;
+    target: open.snap ? open.snap.target : s.growth,
+    thr: open.snap && open.snap.thr != null ? open.snap.thr : s.thr,
+    winMs: open.snap ? open.snap.winMs : (open.deadline ? open.deadline - open.ts : slotWinMs(si))});
+  delete STAR_OPEN[si][b]; STAR_STATE[si][b] = outcome;
 }
 // вмороженный дедлайн кейса (индивидуальный; для старых кейсов без него — вход + окно)
 function starDeadlineOf(open) {
@@ -820,18 +986,41 @@ function fmtCloseDT(ms) {
            time: d.toLocaleTimeString("en-GB", {timeZone: "America/Chicago", hour12: false}) };
 }
 // статистика: green% всего + в разрезе каждого индикатора (подтверждал/нет на входе)
+// итог кейса «*» по ЦЕНЕ закрытия: цена ≥ входа → green (профит/цель), иначе red (после окна ушёл в минус)
+function starOutcome(r) {
+  if (r.closePrice != null && r.entryPrice != null) return r.closePrice >= r.entryPrice ? "green" : "red";
+  return r.outcome || "red";
+}
+// достиг ли кейс цели +target% (для зелёной подсветки времени закрытия — «досрочно с +X%»)
+function starHitTarget(r) {
+  return r.closePrice != null && r.entryPrice != null && r.target != null && r.closePrice >= r.entryPrice * (1 + r.target / 100);
+}
 function starStats() {
   const closed = STAR_LOG.filter(r => r.outcome === "green" || r.outcome === "red");
-  const total = closed.length, green = closed.filter(r => r.outcome === "green").length;
-  const gp = arr => arr.length ? Math.round(arr.filter(r => r.outcome === "green").length / arr.length * 100) : null;
-  const times = closed.filter(r => r.outcome === "green" && r.entryTs && r.ts).map(r => r.ts - r.entryTs);
+  const total = closed.length, green = closed.filter(r => starOutcome(r) === "green").length;
+  const gp = arr => arr.length ? Math.round(arr.filter(r => starOutcome(r) === "green").length / arr.length * 100) : null;
+  const times = closed.filter(r => starHitTarget(r) && r.entryTs && r.ts).map(r => r.ts - r.entryTs);
   const avgHitMs = times.length ? times.reduce((a, b) => a + b, 0) / times.length : null;
   const byInd = {};
-  ["ema", "ce", "div", "atrb"].forEach(k => {
+  ["ema", "ce", "div", "atrb", "cph", "hgd"].forEach(k => {
     const on = closed.filter(r => r.snap && _snapConf(r.snap, k)), off = closed.filter(r => r.snap && !_snapConf(r.snap, k));
     byInd[k] = { onN: on.length, onGreen: gp(on), offN: off.length, offGreen: gp(off) };
   });
-  return { total, green, red: total - green, greenPct: total ? Math.round(green / total * 100) : null, avgHitMs, byInd, withSnap: closed.filter(r => r.snap).length };
+  // разбивка по СИГНАТУРЕ настроек входа (порог|окно|цель|фреймы) — сверить, какой порог/окно даёт лучший green% (не по номеру слота: слоты юзер меняет)
+  const sig = {};
+  closed.forEach(r => {
+    const thr = r.thr != null ? r.thr : (r.snap && r.snap.thr != null ? r.snap.thr : null);
+    const win = r.winMs != null ? r.winMs : (r.snap && r.snap.winMs != null ? r.snap.winMs : null);
+    const tgt = r.target != null ? r.target : (r.snap && r.snap.target != null ? r.snap.target : null);
+    const frm = r.frames || (r.snap && r.snap.frames ? r.snap.frames.join("·") : "");
+    const key = thr + "|" + win + "|" + tgt + "|" + frm;
+    (sig[key] = sig[key] || { thr, win, tgt, frm, list: [] }).list.push(r);
+  });
+  const bySig = Object.keys(sig).map(k => { const g = sig[k];
+    return { thr: g.thr, win: g.win, tgt: g.tgt, frm: g.frm, n: g.list.length,
+      green: g.list.filter(r => starOutcome(r) === "green").length, greenPct: gp(g.list) };
+  }).sort((a, b) => (a.thr || 0) - (b.thr || 0) || (a.win || 0) - (b.win || 0));
+  return { total, green, red: total - green, greenPct: total ? Math.round(green / total * 100) : null, avgHitMs, byInd, bySig, withSnap: closed.filter(r => r.snap).length };
 }
 // контроль-база: базовая частота роста +target% за окно на СЛУЧАЙНЫХ монетах (тот же период/окно/цель) — компаратор для green% сигнала
 let BASELINE_STAT = store.get("rsi_baseline_stat", null);   // {total, green, greenPct, casesUsed, ts}
@@ -852,7 +1041,7 @@ async function computeBaseline(onProgress) {
         const res = await fetch("/api/klbase?symbol=" + encodeURIComponent(cb) +
           "&since=" + Math.round(r.entryTs) + "&until=" + Math.round(r.entryTs + r.winMs) + "&targetpct=" + r.target);
         const j = await res.json();
-        if (j && j.valid) { total++; if (j.hit) green++; }
+        if (j && j.valid) { total++; if (j.green != null ? j.green : j.hit) green++; }   // «в плюсе к концу окна ИЛИ достиг цели» (совместимо со старым hit)
       } catch (e) {}
     }
     done++; if (onProgress) onProgress(done, closed.length);
@@ -864,29 +1053,31 @@ async function computeBaseline(onProgress) {
 }
 // трекер «*»: фиксация при TSumm≥порога (вниз) + быстрый green по текущей цене. Гоняется на свежих данных (refresh).
 function starCheck(coins) {
-  const now = Date.now(), winMs = starWindowMs();
-  coins.forEach(c => {
-    const b = c.base, price = c.price, ts = tsummOf(c), open = STAR_OPEN[b];
-    if (open) {
-      const target = open.price ? open.price * (1 + STAR_GROWTH / 100) : null;
-      // быстрый путь: текущая цена уже достигла цели в пределах окна → green сразу.
-      // «проспанный» green по истории свечей и red по дедлайну — в асинхронном свипе ниже.
-      if (price != null && target && price >= target && now <= starDeadlineOf(open)) {
-        closeStar(b, "green", now, price);
+  const now = Date.now();
+  // проходим ВСЕ 4 слота: открытые кейсы мониторим всегда (даже если слот выключили), НОВЫЕ входы — только по включённым слотам
+  [0,1,2,3].forEach(si => {
+    const s = STAR_CFGS[si], OPEN = STAR_OPEN[si], STATE = STAR_STATE[si], PREV = STAR_PREV[si], on = slotOn(si), winMs = slotWinMs(si);
+    let cfg = null;
+    coins.forEach(c => {
+      const b = c.base, price = c.price, open = OPEN[b];
+      if (open) {
+        const gr = open.snap && open.snap.target != null ? open.snap.target : s.growth;   // кейс вошёл со своей целью
+        const target = open.price ? open.price * (1 + gr / 100) : null;
+        // быстрый путь: текущая цена уже достигла цели в пределах окна → green сразу. «Проспанный» green/red — в свипе ниже.
+        if (price != null && target && price >= target && now <= starDeadlineOf(open)) closeStar(si, b, "green", now, price);
+        return;
       }
-    } else {
-      const prev = STAR_PREV[b];
-      // вход в мониторинг: направление ВНИЗ + TSumm ≥ порога, и либо свежее пересечение вверх,
-      // либо монета уже в зоне и ещё ни разу не отслеживалась (подхватываем «зависших» в зоне)
-      if (ts.prob >= STAR_THRESHOLD && ts.kind === "dn" &&
-          (prev == null || prev < STAR_THRESHOLD || STAR_STATE[b] == null)) {
-        // вмораживаем абсолютный дедлайн в кейс (вход + окно) + снимок индикаторов на входе (для анализа)
-        STAR_OPEN[b] = {ts: now, deadline: now + winMs, date: houstonDate(), time: houstonTime(), price: price,
-          frames: [...FRAME_ON].join("·"), snap: starSnap(c)};
-        STAR_STATE[b] = "open";
+      if (!on) return;                                   // выключенный слот новых кейсов не открывает
+      if (!cfg) cfg = slotCfg(si);
+      const ts = tsummOf(c, cfg);
+      // вход: направление ВНИЗ + TSumm ≥ порога слота, и либо свежее пересечение вверх, либо монета в зоне и ещё не отслеживалась
+      if (ts.prob >= s.thr && ts.kind === "dn" && (PREV[b] == null || PREV[b] < s.thr || STATE[b] == null)) {
+        OPEN[b] = {ts: now, deadline: now + winMs, date: houstonDate(), time: houstonTime(), price: price,
+          frames: [...s.frames].join("·"), snap: starSnap(c, si)};
+        STATE[b] = "open";
       }
-    }
-    STAR_PREV[b] = ts.prob;
+      PREV[b] = ts.prob;
+    });
   });
   saveStar();
   starHistorySweep(coins);   // валидация исхода по истории свечей — ловит всплеск цены во «сне» сайта/сервера
@@ -896,33 +1087,36 @@ function starCheck(coins) {
 let _starSweepBusy = false;
 async function starHistorySweep(coins) {
   if (_starSweepBusy) return;
-  const bases = Object.keys(STAR_OPEN);
-  if (!bases.length) return;
+  // пары (слот, база) по всем 4 слотам — открытые кейсы досчитываем независимо от того, включён слот или нет
+  const pairs = [];
+  [0,1,2,3].forEach(si => Object.keys(STAR_OPEN[si]).forEach(b => pairs.push([si, b])));
+  if (!pairs.length) return;
   _starSweepBusy = true;
   const now = Date.now();
   let changed = false;
-  for (const b of bases) {
-    const open = STAR_OPEN[b];
+  for (const [si, b] of pairs) {
+    const open = STAR_OPEN[si][b];
     if (!open || !open.price) continue;
     const deadline = starDeadlineOf(open);
     const until = Math.min(now, deadline);
-    const target = open.price * (1 + STAR_GROWTH / 100);
+    const gr = open.snap && open.snap.target != null ? open.snap.target : (STAR_CFGS[si] ? STAR_CFGS[si].growth : STAR_GROWTH);
+    const target = open.price * (1 + gr / 100);
     try {
       const r = await fetch("/api/klhigh?symbol=" + encodeURIComponent(b) +
         "&since=" + Math.round(open.ts) + "&until=" + Math.round(until) + "&target=" + target);
       const j = await r.json();
       if (j && j.hit) {
-        closeStar(b, "green", j.hitTs || now, j.hitPrice || target);   // цель достигалась в окне (даже во «сне») → green по факту
+        closeStar(si, b, "green", j.hitTs || now, j.hitPrice || target);   // цель достигалась в окне (даже во «сне») → green по факту
         changed = true;
       } else if (now >= deadline) {
         const cur = (coins.find(x => x.base === b) || {}).price;
-        closeStar(b, "red", now, cur != null ? cur : open.price);      // за всё окно ни одна свеча не дотянулась → red
+        closeStar(si, b, "red", now, cur != null ? cur : open.price);      // за всё окно ни одна свеча не дотянулась → red
         changed = true;
       }
     } catch (e) {
       if (now >= deadline) {   // сеть/сервер недоступны — откат к старому поведению: red по дедлайну
         const cur = (coins.find(x => x.base === b) || {}).price;
-        closeStar(b, "red", now, cur != null ? cur : open.price);
+        closeStar(si, b, "red", now, cur != null ? cur : open.price);
         changed = true;
       }
     }
@@ -1030,15 +1224,20 @@ function updateStarBlock(base) {
   const el = document.getElementById("starBlock");
   if (!el) return;
   if (_starTimer) { clearInterval(_starTimer); _starTimer = null; }
-  const o = STAR_OPEN[base];
-  if (!o) { el.style.display = "none"; el.innerHTML = ""; return; }
+  const opens = [];   // открытые кейсы монеты по всем слотам (может быть в нескольких режимах)
+  [0,1,2,3].forEach(si => { const o = STAR_OPEN[si][base]; if (o) opens.push({ slot: si, o: o }); });
+  if (!opens.length) { el.style.display = "none"; el.innerHTML = ""; return; }
   el.style.display = "block";
-  const endTs = starDeadlineOf(o);   // индивидуальный дедлайн кейса
   const draw = () => {
-    el.innerHTML = '<div class="fb-head">🟦 * — сигнал в процессе</div>' +
-      '<div class="fb-lines">Фиксация: ' + o.date + ' ' + o.time +
-      '<br>Цена входа: ' + fmtPrice(o.price) +
-      '<br>Цель: +' + STAR_GROWTH + '% · осталось: <b>' + fmtLeft(endTs - Date.now()) + '</b></div>';
+    el.innerHTML = '<div class="fb-head">🟦 * — сигнал' + (opens.length > 1 ? 'ы (' + opens.length + ' режима)' : ' в процессе') + '</div>' +
+      opens.map(({ slot, o }) => {
+        const endTs = starDeadlineOf(o);   // индивидуальный дедлайн кейса
+        const gr = o.snap && o.snap.target != null ? o.snap.target : (STAR_CFGS[slot] ? STAR_CFGS[slot].growth : STAR_GROWTH);
+        return '<div class="fb-lines">' + (opens.length > 1 ? '<b>Режим №' + (slot + 1) + '</b> · ' : '') +
+          'Фиксация: ' + o.date + ' ' + o.time +
+          '<br>Цена входа: ' + fmtPrice(o.price) +
+          '<br>Цель: +' + gr + '% · осталось: <b>' + fmtLeft(endTs - Date.now()) + '</b></div>';
+      }).join("");
   };
   draw();
   _starTimer = setInterval(draw, 1000);
@@ -1076,6 +1275,18 @@ function renderFireLog() {
   body.innerHTML = html;
 }
 function probGroup(s) { return s.kind === "up" ? 0 : s.kind === "dn" ? 1 : s.kind === "near" ? 2 : 3; }
+// сорт списка по TSumm с приоритетом пробоя ВНИЗ: dn → TSumm%, остальные → низ списка (стабильно по исходному рангу)
+function dnScore(c, i) { const t = tsummOf(c, slotCfg(i || 0)); return t.kind === "dn" ? t.prob : -1; }
+// вероятность пробоя ВВЕРХ (для портфеля — держим монету, ждём пик/выход): перекуплен → trgOf up% (с индикаторами), иначе — близость к верхней границе
+function upProbOf(c, frame) {
+  const rsi = frame === "1h" ? c.rsi1h : frame === "4h" ? c.rsi4h : c.rsi12h;
+  if (rsi == null) return null;
+  const t = trgOf(c, frame);
+  if (t.kind === "up") return t.prob;
+  const d = HI - rsi;
+  if (d <= ZONE) return Math.round(50 + (ZONE - d) * 6);
+  return Math.max(4, Math.round(40 - 2 * d));
+}
 function fmtVol(v) {
   if (v == null) return "—";
   if (v >= 1e9) return (v / 1e9).toFixed(1) + "B";
@@ -1087,7 +1298,11 @@ function sortVal(x, key) {
   if (key === "prob") return trgOf(x.c, "4h").prob;
   if (key === "t1") return trgOf(x.c, "1h").prob;
   if (key === "t12") return x.c.rsi12h == null ? null : trgOf(x.c, "12h").prob;
-  if (key === "tsum") return tsummOf(x.c).prob;
+  if (key === "tsum") return tsummOf(x.c).prob;   // TSumm-сорт = по видимому значению (табличный конфиг)
+  if (key === "star")  return dnScore(x.c, 0);    // колонка «*» = сила входа слота (dn → входной TSumm%, остальные вниз)
+  if (key === "star2") return dnScore(x.c, 1);
+  if (key === "star3") return dnScore(x.c, 2);
+  if (key === "star4") return dnScore(x.c, 3);
   if (key === "fav") return FAVS.has(x.c.base) ? 1 : 0;
   if (key === "fire") return isFired(x.c.base) ? 1 : 0;
   const v = x.c[key];
@@ -1132,6 +1347,16 @@ function atrTd(pct, tf) {
   return td(cls, '<span title="' + tip + '">' + sc + '</span>');
 }
 
+// колонка слота «*» i (0..3): входной TSumm% по конфигу слота для ВСЕХ монет; цвет по направлению; синий фон = кейс открыт в этом слоте
+function starCol(i) {
+  const lbl = i === 0 ? '✴' : '✴' + (i + 1), key = "star" + (i ? i + 1 : "");
+  return { th: '<span class="star-hd">' + lbl + '</span>', k: key,
+    title: 'Вход «*» режим №' + (i + 1) + ' (свой конфиг окна/порога/цели/индикаторов в «* log»). Входной TSumm% по монете для ВСЕХ. Клик — сортировка по силе входа (dn сверху). 🟦 = кейс в процессе',
+    cell: (c) => { const t = tsummOf(c, slotCfg(i)), open = STAR_STATE[i][c.base] === "open";
+      const cls = t.kind === "dn" ? "p-dn" : t.kind === "up" ? "p-up" : "p-neu";
+      return td(open ? "star-open" : "", '<span class="probtxt ' + cls + '">' + (t.prob ? t.prob + "%" : "—") + '</span>'); } };
+}
+
 const COLUMNS = {
   act:  {th:'<button class="clrbtn" id="btnClear" title="Clear all pins / favorites / fires">CLEAR</button>',
          cell:c=>{
@@ -1172,6 +1397,12 @@ const COLUMNS = {
   atrb1:{th:'ДНО 1h',  k:"atrb1", cell:c=>stateTd(c.atrb1, true)},
   atrb4:{th:'ДНО 4h',  k:"atrb4", cell:c=>stateTd(c.atrb4, true)},
   atrb12:{th:'ДНО 12h',k:"atrb12",cell:c=>stateTd(c.atrb12, true)},
+  cph1: {th:'CPH 1h',  k:"cph1",  cell:c=>stateTd(c.cph1)},
+  cph4: {th:'CPH 4h',  k:"cph4",  cell:c=>stateTd(c.cph4)},
+  cph12:{th:'CPH 12h', k:"cph12", cell:c=>stateTd(c.cph12)},
+  hgd1: {th:'HGD 1h',  k:"hgd1",  cell:c=>stateTd(c.hgd1)},
+  hgd4: {th:'HGD 4h',  k:"hgd4",  cell:c=>stateTd(c.hgd4)},
+  hgd12:{th:'HGD 12h', k:"hgd12", cell:c=>stateTd(c.hgd12)},
   vltl: {th:'<span class="hi">🌊</span>VLTL', k:"volat", cell:c=>td("mono mut", c.volat!=null?c.volat+"%":"—")},
   t1:   {th:'<span class="hi">🎯</span>T1', k:"t1", thClass:"l",
          cell:(c)=>{ const s1 = trgOf(c, "1h"); return td("l", '<span class="probtxt p-'+(s1.kind||"neu")+'">'+s1.prob+'%<span class="pdir">'+s1.dir+'</span></span>', "padding-left:8px"); }},
@@ -1182,22 +1413,26 @@ const COLUMNS = {
            const s12 = trgOf(c, "12h"); return td("l", '<span class="probtxt p-'+(s12.kind||"neu")+'">'+s12.prob+'%<span class="pdir">'+s12.dir+'</span></span>', "padding-left:8px"); }},
   tsum: {th:'<span class="hi">Σ</span>TSumm', k:"tsum", thClass:"l",
          cell:(c)=>{ const t = tsummOf(c); return td("l", '<span class="probtxt p-'+t.kind+'">'+t.prob+"%</span>", "padding-left:8px"); }},
-  star: {th:'<span class="star-hd">✳</span>', title:'Валидация сигнала: TSumm ≥ порога (пробитие вниз) → фиксируем цену и ждём рост. 🟦 в процессе / 🟩 сработал / 🟥 не дошёл',
-         cell:(c)=>{ return STAR_STATE[c.base] === "open" ? td("star-open", "") : td("", ""); }},   // красим только «в процессе» (синий); итоги смотрим в хронологии
+  star:  starCol(0),   // режим «*» №1 (слот 0)
+  star2: starCol(1),   // режим «*» №2 — колонка появляется при включении слота 1
+  star3: starCol(2),   // режим «*» №3
+  star4: starCol(3),   // режим «*» №4
   sp:   {th:'', cell:()=>td("", "")},
 };
-const DEFAULT_ORDER = ["act","pf","num","coin","price","ch1","ch4","ch12","vol","rsi1","rsi4","rsi12","atr1","atr4","atr12","pf1","pf4","pf12","ema1","ema4","ema12","ce1","ce4","ce12","div1","div4","div12","atrb1","atrb4","atrb12","vltl","t1","trgt","t12","tsum","star","sp"];
+const DEFAULT_ORDER = ["act","pf","num","coin","price","ch1","ch4","ch12","vol","rsi1","rsi4","rsi12","atr1","atr4","atr12","pf1","pf4","pf12","ema1","ema4","ema12","ce1","ce4","ce12","div1","div4","div12","atrb1","atrb4","atrb12","cph1","cph4","cph12","hgd1","hgd4","hgd12","vltl","t1","trgt","t12","tsum","star","star2","star3","star4","sp"];
 // дефолтные ширины колонок (px, в координатах таблицы); спейсер (sp) забирает остаток
 const DEFAULT_W = {act:60, pf:30, num:30, coin:130, price:88, ch1:62, ch4:62, ch12:62,
   vol:64, rsi1:58, rsi4:58, rsi12:60, atr1:58, atr4:58, atr12:60, pf1:58, pf4:58, pf12:60,
   ema1:48, ema4:48, ema12:50, ce1:48, ce4:48, ce12:50, div1:48, div4:48, div12:50, atrb1:48, atrb4:48, atrb12:52,
-  vltl:74, t1:60, trgt:60, t12:60, tsum:92, star:34};
+  cph1:48, cph4:48, cph12:50, hgd1:48, hgd4:48, hgd12:52,
+  vltl:74, t1:60, trgt:60, t12:60, tsum:92, star:54, star2:54, star3:54, star4:54};
 function colW(key) { return COL_W[key] || DEFAULT_W[key] || 0; }
 
-const COL_VER = 11;  // версия набора колонок; при изменении новые доезжают в конец, старые отсекаются — БЕЗ затирания сохранённого порядка
+const COL_VER = 13;  // версия набора колонок; при изменении новые доезжают в конец, старые отсекаются — БЕЗ затирания сохранённого порядка (13: колонки *2/*3/*4 мульти-окон)
 // всегда мягко (иначе сброс затирал бы общий порядок в state.json): берём сохранённый, отсекаем несуществующие колонки, дописываем новые
 let COL_ORDER = (store.get("rsi_colorder", DEFAULT_ORDER.slice()) || []).filter(k => COLUMNS[k]);
 DEFAULT_ORDER.forEach(k => { if (!COL_ORDER.includes(k)) COL_ORDER.push(k); });
+{ const _spi = COL_ORDER.indexOf("sp"); if (_spi >= 0 && _spi !== COL_ORDER.length - 1) { COL_ORDER.splice(_spi, 1); COL_ORDER.push("sp"); } }   // спейсер всегда последний (иначе новые колонки *2/*3/*4 доезжают ЗА него)
 let COL_W = store.get("rsi_colw", {}) || {};
 if (store.get("rsi_colv", 0) !== COL_VER) store.set("rsi_colv", COL_VER);   // только помечаем версию, порядок/ширины не трогаем
 let justResized = false;
@@ -1212,6 +1447,8 @@ const GROUPS = {
   ce:  { ab:"CE",  cols:{ ce1:"1h", ce4:"4h", ce12:"12h" } },
   div: { ab:"DIV", cols:{ div1:"1h", div4:"4h", div12:"12h" } },
   atrb:{ ab:"ДНО", cols:{ atrb1:"1h", atrb4:"4h", atrb12:"12h" } },
+  cph: { ab:"CPH", cols:{ cph1:"1h", cph4:"4h", cph12:"12h" } },
+  hgd: { ab:"HGD", cols:{ hgd1:"1h", hgd4:"4h", hgd12:"12h" } },
   t:   { ab:"TGT", cols:{ t1:"1h", trgt:"4h", t12:"12h", tsum:"Σ" } },
 };
 const GROUP_OF = {};
@@ -1220,12 +1457,13 @@ Object.keys(GROUPS).forEach(g => Object.keys(GROUPS[g].cols).forEach(k => GROUP_
 const HEAD2 = { vol:{ ab:"VOL", ic:"💰" }, vltl:{ ab:"VLTL", ic:"🌊" } };
 // полные имена для подсказок на заголовках (аббревиатура в колонке → полное имя при наведении)
 const GROUP_NAME = { chg:"Рост цены (Δ%)", rsi:"RSI — индекс относительной силы", atr:"ATR — средний истинный диапазон", pfg:"PFG — Пифагор",
-  ema:"EMA-тренд (EMA 9/21)", ce:"Chandelier Exit — ATR-трейлинг-стоп", div:"Дивергенция (RSI против цены)", atrb:"ATR-дно (свежий разворот снизу)",
+  ema:"EMA-тренд (EMA 9/21)", ce:"Chandelier Exit — ATR-трейлинг-стоп", div:"Дивергенция (RSI против цены)", atrb:"ATR-дно (цена ниже нормы EMA20−2·ATR)",
+  cph:"Cipher B — дивергенция WaveTrend (VuManChu)", hgd:"Дивергенция гистограммы MACD",
   t:"TRG — вероятность пробоя (таргет)" };
 const HEAD2_NAME = { vol:"Объём торгов, $", vltl:"Волатильность (Volatility.D)" };
 // колонка → фрейм (1h/4h/12h у chg/rsi/atr/pfg/t; tsum(Σ) исключён)
 const COL_FRAME = {};
-["chg","rsi","atr","pfg","ema","ce","div","atrb","t"].forEach(g => Object.entries(GROUPS[g].cols).forEach(([k,f]) => { if (f !== "Σ") COL_FRAME[k] = f; }));
+["chg","rsi","atr","pfg","ema","ce","div","atrb","cph","hgd","t"].forEach(g => Object.entries(GROUPS[g].cols).forEach(([k,f]) => { if (f !== "Σ") COL_FRAME[k] = f; }));
 const indOfGroup = g => g === "t" ? "trg" : g;   // группа → индикатор (chg/rsi/atr/pfg/trg)
 
 // ---- видимость колонок: попап Indicators (вкл/выкл индикатор) + кнопки 1H/4H/12H в шапке (фреймы) ----
@@ -1237,6 +1475,8 @@ function syncFrameButtons() { document.querySelectorAll(".frbtn").forEach(b => b
 function colHidden(key) {
   const g = GROUP_OF[key];
   if (key === "tsum") return !IND_ON.has("trg");                                          // сумма таргета — с индикатором TRG
+  if (key === "star" || key === "star2" || key === "star3" || key === "star4")            // колонка слота «*» видна только когда слот включён
+    return !slotOn(key === "star" ? 0 : +key.slice(4) - 1);
   if (g)              return !IND_ON.has(indOfGroup(g)) || !FRAME_ON.has(COL_FRAME[key]);  // все индикаторы: chg/rsi/atr/pfg/t
   return false;
 }
@@ -1257,11 +1497,18 @@ function headInner(key, col) {
   return '<div class="hd1">' + col.th + arrow + '</div>';   // остальные: 1 строка, центр по высоте и ширине
 }
 
+// первая ВИДИМАЯ колонка каждой группы индикаторов — для светло-серой границы между группами
+function groupStartSet() {
+  const set = new Set(); let prevG = null;
+  COL_ORDER.filter(k => !colHidden(k)).forEach(k => { const g = GROUP_OF[k]; if (g && g !== prevG) set.add(k); prevG = g; });
+  return set;
+}
 function buildHeads() {
   const tr = document.getElementById("heads");
+  const gStart = groupStartSet();
   tr.innerHTML = COL_ORDER.filter(key => !colHidden(key)).map(key => {
     const col = COLUMNS[key];
-    const cls = ((col.k ? "sortable " : "") + (col.thClass || "") + (key === SORT.key ? " act" : "")).trim();
+    const cls = ((col.k ? "sortable " : "") + (col.thClass || "") + (gStart.has(key) ? " grp-start" : "") + (key === SORT.key ? " act" : "")).trim();
     const w = colW(key) ? ("width:" + colW(key) + "px;") : "";
     const full = col.title || GROUP_NAME[GROUP_OF[key]] || HEAD2_NAME[key] || "";   // полное имя — в подсказку при наведении
     return '<th data-col="' + key + '"' + (col.k ? ' data-k="' + col.k + '"' : "") +
@@ -1289,10 +1536,15 @@ function buildHeads() {
   heads.addEventListener("drop", e => {
     e.preventDefault(); const th = e.target.closest("th"); if (!th || !dragKey) return;
     const targetKey = th.getAttribute("data-col");
-    if (targetKey !== dragKey) {
-      const from = COL_ORDER.indexOf(dragKey);
-      COL_ORDER.splice(from, 1);
-      COL_ORDER.splice(COL_ORDER.indexOf(targetKey) + 1, 0, dragKey);
+    const dg = GROUP_OF[dragKey], tg = GROUP_OF[targetKey];
+    // перетаскиваем ВСЮ группу индикатора (все фреймы 1/4/12, независимо от того, какие видны), иначе — одиночную колонку
+    const moveKeys = dg ? Object.keys(GROUPS[dg].cols).filter(k => COL_ORDER.includes(k)) : [dragKey];
+    if (!moveKeys.includes(targetKey)) {
+      const rest = COL_ORDER.filter(k => !moveKeys.includes(k));
+      let after = targetKey;   // вставляем ПОСЛЕ целевой группы целиком (или после целевой колонки, если она вне группы)
+      if (tg) { const tc = Object.keys(GROUPS[tg].cols).filter(k => rest.includes(k)); if (tc.length) after = tc[tc.length - 1]; }
+      rest.splice(rest.indexOf(after) + 1, 0, ...moveKeys);
+      COL_ORDER = rest;
       store.set("rsi_colorder", COL_ORDER);
       render();
     }
@@ -1339,12 +1591,6 @@ function render() {
   const q = query.trim().toUpperCase();
   const list = COINS.map(c => ({c, s: statusOf(c.rsi4h)}));
 
-  let dn = 0, up = 0, near = 0;
-  list.forEach(x => { if (x.s.kind === "dn") dn++; else if (x.s.kind === "up") up++; else if (x.s.kind === "near") near++; });
-  document.getElementById("cDn").textContent = dn;
-  document.getElementById("cUp").textContent = up;
-  document.getElementById("cNear").textContent = near;
-
   list.sort((a, b) => {
     if (SORT.key === "prob") {
       const ga = probGroup(a.s), gb = probGroup(b.s);
@@ -1371,6 +1617,7 @@ function render() {
   const fired = notPin.filter(x => isFired(x.c.base));
   const rest = notPin.filter(x => !isFired(x.c.base));
   const ordered = pinned.concat(fired, rest);
+  const _gStart = groupStartSet();   // границы групп индикаторов (считаем 1 раз на рендер)
 
   let html = "";
   ordered.forEach((x, i) => {
@@ -1382,7 +1629,7 @@ function render() {
       const col = COLUMNS[key];
       const r = col.cell(c, s, i);
       const w = colW(key) ? ("width:" + colW(key) + "px;") : "";
-      cells += '<td data-col="' + key + '" class="' + (r.c || "") + '" style="' + w + (r.s || "") + '">' + r.h + '</td>';
+      cells += '<td data-col="' + key + '" class="' + ((r.c || "") + (_gStart.has(key) ? " grp-start" : "")).trim() + '" style="' + w + (r.s || "") + '">' + r.h + '</td>';
     });
     html += '<tr class="row' + (c.sym === selectedSym ? ' sel' : '') + (isPin ? ' pinned' : '') + '" data-sym="' + c.sym + '">' + cells + '</tr>';
   });
@@ -1433,6 +1680,8 @@ const CHART_INDS = [
   {name:"CE",      study:null},
   {name:"DIV",     study:null},
   {name:"ATR-дно", study:null},
+  {name:"CPH",     study:null},                    // Cipher B — свой WaveTrend-график позже (lightweight-charts)
+  {name:"HGD",     study:"MACD@tv-basicstudies"},  // гистограмма MACD — основа дивергенции HGD
   {name:"Pifagor", study:null},
 ];
 const CHART_TFS = [{tf:"60", lbl:"1h"}, {tf:"240", lbl:"4h"}, {tf:"720", lbl:"12h"}];
@@ -1632,9 +1881,11 @@ const PANEL_ROWS = {
   ce:   { label:"CE",       fill:c=>[_cState(c.ce1), _cState(c.ce4), _cState(c.ce12)] },
   div:  { label:"DIV",      fill:c=>[_cState(c.div1), _cState(c.div4), _cState(c.div12)] },
   atrb: { label:"ATR-дно",  fill:c=>[_cState(c.atrb1,true), _cState(c.atrb4,true), _cState(c.atrb12,true)] },
+  cph:  { label:"Cipher",   fill:c=>[_cState(c.cph1), _cState(c.cph4), _cState(c.cph12)] },
+  hgd:  { label:"Hist-div", fill:c=>[_cState(c.hgd1), _cState(c.hgd4), _cState(c.hgd12)] },
   trg:  { label:"TRG",      fill:c=>[_cTrgB(c,"1h"), _cTrgB(c,"4h"), _cTrgB(c,"12h")] },
 };
-const PANEL_DEFAULT = ["rsi","atr","pfg","ema","ce","div","atrb","trg"];
+const PANEL_DEFAULT = ["rsi","atr","pfg","ema","ce","div","atrb","cph","hgd","trg"];
 let PANEL_ORDER = (store.get("rsi_panelrows", PANEL_DEFAULT.slice()) || []).filter(k => PANEL_ROWS[k]);
 PANEL_DEFAULT.forEach(k => { if (!PANEL_ORDER.includes(k)) PANEL_ORDER.push(k); });
 
@@ -1720,7 +1971,7 @@ function updatePfBtn(base) {
   const b = document.getElementById("pPortfolio");
   const on = !!PORTFOLIO[base];
   b.classList.toggle("on", on);
-  b.textContent = "💼";   // только иконка (слева от названия монеты)
+  b.innerHTML = '<span class="pf-ic">💼</span>';   // только иконка (слева от названия монеты), чуть приподнята
   b.title = on ? "В портфеле — клик убрать (SELL-уведомления в Telegram)" : "Добавить в портфель — SELL-уведомления в Telegram";
 }
 document.getElementById("pPortfolio").addEventListener("click", () => {
@@ -1755,10 +2006,6 @@ document.querySelectorAll("#setOverlay .set-tab").forEach(t => t.addEventListene
 document.getElementById("btnSettings").addEventListener("click", () => {
   setTab("fire");
   document.getElementById("setFireThr").value = FIRE_THRESHOLD;
-  document.getElementById("setStarThr").value = STAR_THRESHOLD;
-  document.getElementById("setStarWin").value = STAR_WINDOW_D;
-  document.getElementById("setStarWinH").value = STAR_WINDOW_H;
-  document.getElementById("setStarGr").value = STAR_GROWTH;
   document.getElementById("setTrgStep").value = TRG_STEP;
   document.getElementById("setTrgAtrW").checked = TRG_ATRW;
   setOverlay.style.display = "flex";
@@ -1768,14 +2015,8 @@ backdropClose(setOverlay, () => setOverlay.style.display = "none");
 document.getElementById("setSave").addEventListener("click", () => {
   const v = Math.max(1, Math.min(90, Math.round(Number(document.getElementById("setFireThr").value) || 10)));
   FIRE_THRESHOLD = v; SETTINGS.fireThreshold = v;
-  STAR_THRESHOLD = Math.max(50, Math.min(99, Math.round(Number(document.getElementById("setStarThr").value) || 99)));
-  STAR_WINDOW_D  = Math.max(0, Math.min(30, Math.round(Number(document.getElementById("setStarWin").value) || 0)));
-  STAR_WINDOW_H  = Math.max(0, Math.min(23, Math.round(Number(document.getElementById("setStarWinH").value) || 0)));
-  if (STAR_WINDOW_D === 0 && STAR_WINDOW_H === 0) STAR_WINDOW_H = 1;   // не даём нулевое окно
-  STAR_GROWTH    = Math.max(1, Math.min(100, Math.round(Number(document.getElementById("setStarGr").value) || 5)));
   TRG_STEP = Math.max(1, Math.min(20, Math.round(Number(document.getElementById("setTrgStep").value) || 6)));
   TRG_ATRW = document.getElementById("setTrgAtrW").checked;
-  SETTINGS.starThreshold = STAR_THRESHOLD; SETTINGS.starWindowDays = STAR_WINDOW_D; SETTINGS.starWindowHours = STAR_WINDOW_H; SETTINGS.starGrowth = STAR_GROWTH;
   SETTINGS.trgStep = TRG_STEP; SETTINGS.trgAtrWeight = TRG_ATRW;
   store.set("rsi_settings", SETTINGS);
   setOverlay.style.display = "none";
@@ -1805,58 +2046,117 @@ const starOverlay = document.getElementById("starOverlay");
 // шапка-статистика измерительного слоя (сверху лога): green% всего, база, edge, разрез по индикаторам
 function starStatsHtml() {
   const s = starStats();
-  if (!s.total) return '';
+  const P = v => v == null ? "—" : v + "%";
+  if (!s.total) return '<div class="ss-bar"><button class="ss-toggle" title="статистика измерения">▸</button><span class="ss-bar-t">📊 Измерение</span><span class="ss-bar-s mut">появится после закрытия кейсов «*»</span></div>';
   const b = BASELINE_STAT;
   const edge = (b && b.greenPct != null && s.greenPct != null) ? (s.greenPct - b.greenPct) : null;
-  const P = v => v == null ? "—" : v + "%";
-  const indNames = {ema: "EMA", ce: "CE", div: "DIV", atrb: "ATR-дно"};
+  const indNames = {ema: "EMA", ce: "CE", div: "DIV", atrb: "ATR-дно", cph: "Cipher", hgd: "Hist-div"};
+  const summary = '🟩 <b>' + P(s.greenPct) + '</b> <i>' + s.green + '/' + s.total + '</i> · 🟥 ' + s.red +
+    (s.avgHitMs != null ? ' · ⌀ ' + fmtLeft(s.avgHitMs) : '') +
+    (b ? ' · база <b>' + P(b.greenPct) + '</b>' + (edge != null ? ' · edge <b class="' + (edge > 0 ? 'pos' : 'neg') + '">' + (edge > 0 ? '+' : '') + edge + ' п.п.</b>' : '') : ' · <span class="mut">база не посчитана</span>');
+  const bar = '<div class="ss-bar"><button class="ss-toggle" title="Свернуть/развернуть статистику по индикаторам">' + (_starStatsCollapsed ? '▸' : '▾') + '</button>' +
+    '<span class="ss-bar-t">📊 Измерение</span><span class="ss-bar-s">' + summary + '</span>' +
+    '<button class="btn-sm ss-base-btn">Посчитать базу</button></div>';
+  if (_starStatsCollapsed) return bar;
+  // разбивка по настройкам входа — сверить, какой порог/окно даёт лучший green% (%E порог · WT окно · %P цель · фреймы · green%)
+  const sigRows = (s.bySig || []).map(g =>
+    '<tr><td class="ss-tc" style="color:#8ab0f0;font-weight:600;">≥' + (g.thr != null ? g.thr : "—") + '%</td>' +
+    '<td class="ss-tc">' + fmtWin(g.win) + '</td>' +
+    '<td class="ss-tc" style="color:var(--green);">+' + (g.tgt != null ? g.tgt : "—") + '%</td>' +
+    '<td class="ss-tn" style="font-size:10px;">' + (g.frm || "—") + '</td>' +
+    '<td class="ss-tc">🟩 <b class="' + (g.greenPct != null && g.greenPct >= 50 ? "pos" : "") + '">' + P(g.greenPct) + '</b> <i>' + g.green + '/' + g.n + '</i></td></tr>').join("");
+  const sigTbl = (s.bySig && s.bySig.length)
+    ? '<div class="ss-cap">по настройкам входа (сверить пороги)</div><table class="ss-tbl ss-sig"><thead><tr><td>%E<br>порог</td><td>WT<br>окно</td><td>%P<br>цель</td><td>фреймы</td><td>🟩 green</td></tr></thead><tbody>' + sigRows + '</tbody></table>'
+    : '';
   const indRows = Object.keys(s.byInd).map(k => {
     const d = s.byInd[k];
-    return '<div class="ss-ind"><span class="ss-ind-n">' + indNames[k] + '</span>' +
-      '<span class="ss-cell">✓ <b>' + P(d.onGreen) + '</b> <i>(' + d.onN + ')</i></span>' +
-      '<span class="ss-cell">✗ <b>' + P(d.offGreen) + '</b> <i>(' + d.offN + ')</i></span></div>';
+    return '<tr><td class="ss-tn">' + indNames[k] + '</td>' +
+      '<td class="ss-tc">✓ <b>' + P(d.onGreen) + '</b> <i>' + d.onN + '</i></td>' +
+      '<td class="ss-tc">✗ <b>' + P(d.offGreen) + '</b> <i>' + d.offN + '</i></td></tr>';
   }).join("");
-  const baseLine = b
-    ? 'База (случайные): <b>' + P(b.greenPct) + '</b> <i>(' + b.total + ' пров.)</i>' +
-      (edge != null ? ' · edge: <b class="' + (edge > 0 ? 'pos' : 'neg') + '">' + (edge > 0 ? '+' : '') + edge + ' п.п.</b>' : '')
-    : '<span class="mut">база не посчитана — жми «Посчитать базу»</span>';
-  return '<tr class="star-stats-row"><td colspan="9">' +
-    '<div class="ss-top"><span class="ss-big">🟩 <b>' + P(s.greenPct) + '</b></span>' +
-    '<span class="ss-meta">green / всего: ' + s.green + ' / ' + s.total + ' · 🟥 ' + s.red +
-    (s.avgHitMs != null ? ' · ср. до цели: ' + fmtLeft(s.avgHitMs) : '') + '</span>' +
-    '<button class="btn-sm ss-base-btn">Посчитать базу</button></div>' +
-    '<div class="ss-base">' + baseLine + '</div>' +
-    '<div class="ss-inds"><span class="ss-inds-t">green% по индикаторам (✓ подтверждал на входе / ✗ нет):</span>' + indRows + '</div>' +
-    '</td></tr>';
+  return bar + sigTbl + '<div class="ss-cap">по индикаторам</div><table class="ss-tbl"><thead><tr><td>инд.</td><td>✓ подтв.</td><td>✗ нет</td></tr></thead><tbody>' + indRows + '</tbody></table>';
+}
+// панель конфига «*» (правый блок шапки «* log»): 4 компактные строки-режима, у каждой своё окно/порог/цель/фреймы + строка индикаторов под ней
+function slotRowHtml(i) {
+  const s = STAR_CFGS[i], rel = frameReled(slotWinMs(i) / 3600000);
+  const frChk = ["1h","4h","12h"].map(f => { const r = rel[f];
+    return '<label class="scfg-fr" title="' + r.tier + ' — вес ' + r.pct + '% для окна">' +
+      '<input type="checkbox" data-slot="' + i + '" data-sfr="' + f + '"' + (s.frames.indexOf(f) >= 0 ? ' checked' : '') + '> ' + f.toUpperCase() + '</label>';
+  }).join("");
+  const indChk = STAR_IND_LIST.map(o =>
+    '<label class="scfg-ind" title="' + o.name + '"><input type="checkbox" data-slot="' + i + '" data-sind="' + o.k + '"' + (s.ind.indexOf(o.k) >= 0 ? ' checked' : '') + '> ' + o.ab + '</label>').join("");
+  const num = (f, v, lo, hi, u) => '<input type="number" class="scfg-in" data-slot="' + i + '" data-f="' + f + '" min="' + lo + '" max="' + hi + '" value="' + v + '"><span class="scfg-u">' + u + '</span>';
+  const collapsible = i >= 1;                                   // слоты 2/3/4 можно сворачивать (слот 1 всегда развёрнут)
+  const collapsed = collapsible && _slotCollapsed[i];
+  const toggle = collapsible ? '<button class="scfg-slot-tg" data-slottg="' + i + '" title="Свернуть/развернуть режим">' + (collapsed ? '▸' : '▾') + '</button>' : '<span class="scfg-slot-tgsp"></span>';
+  // краткая сводка (видна только в свёрнутом виде); полные поля — в .scfg-di (прячутся при сворачивании, но остаются в DOM для «Применить»)
+  const summary = '<span class="scfg-min-sum">окно ' + fmtWin(slotWinMs(i)) + ' · порог ' + s.thr + '% · цель +' + s.growth + '% · ' + (s.frames.join("·") || "—") + '</span>';
+  return '<div class="scfg-slot' + (s.on ? ' on' : '') + (collapsed ? ' collapsed' : '') + '" data-slot="' + i + '">' +
+      '<div class="scfg-row">' + toggle +
+        '<label class="scfg-onl" title="Включить режим №' + (i + 1) + ' — появится колонка ✴' + (i ? i + 1 : '') + ' в таблице, режим начнёт ловить входы"><input type="checkbox" class="scfg-on" data-slot="' + i + '"' + (s.on ? ' checked' : '') + '> <b>№' + (i + 1) + '</b></label>' +
+        summary +
+        '<span class="scfg-di">' +
+          '<span class="scfg-f"><span class="scfg-fl">Окно</span>' + num("winD", s.winD, 0, 30, "д") + num("winH", s.winH, 0, 23, "ч") + '</span>' +
+          '<span class="scfg-f"><span class="scfg-fl">Порог</span>' + num("thr", s.thr, 50, 99, "%") + '</span>' +
+          '<span class="scfg-f"><span class="scfg-fl">Цель</span>' + num("gr", s.growth, 1, 100, "%") + '</span>' +
+          '<span class="scfg-f scfg-frm"><span class="scfg-fl">Фреймы</span>' + frChk + '</span>' +
+        '</span>' +
+      '</div>' +
+      '<div class="scfg-inds"><span class="scfg-fl">Индик.</span>' + indChk + '</div>' +
+    '</div>';
+}
+function starCfgHtml() {
+  const tg = '<button class="scfg-collapse" title="Свернуть/развернуть блок настроек — чтобы смотреть таблицу максимально">' + (_starCfgCollapsed ? '▸' : '▾') + '</button>';
+  return '<div class="scfg-hd">' + tg + '<span class="scfg-t"><span class="star-hd">✴</span> Режимы мониторинга «*» <span class="scfg-note">до 4 окон одновременно · свой конфиг, таблица не влияет</span></span></div>' +
+    '<div class="scfg-slots">' + [0,1,2,3].map(slotRowHtml).join("") + '</div>' +
+    '<div class="scfg-apply-row"><button class="scfg-apply-main clean" id="scfgApply">Применить<span class="scfg-ok"> ✓</span></button></div>';
 }
 function renderStarLog() {
   const body = document.getElementById("starLogBody");
-  const active = Object.keys(STAR_OPEN).map(b => Object.assign({base: b}, STAR_OPEN[b])).sort((a, b) => b.ts - a.ts);
+  document.getElementById("starStatsBox").innerHTML = starStatsHtml();   // слева — статистика измерения
+  if (!_starCfgDirty) document.getElementById("starCfgBox").innerHTML = starCfgHtml();   // справа — конфиг (не перерисовываем поверх несохранённого черновика)
+  document.getElementById("starCfgBox").classList.toggle("scfg-box-collapsed", _starCfgCollapsed);   // общее сворачивание блока настроек
+  // активные кейсы по ВСЕМ 4 слотам (монета может быть открыта в нескольких режимах — по строке на режим, различаются колонкой «Настройки»)
+  const active = [];
+  [0,1,2,3].forEach(si => Object.keys(STAR_OPEN[si]).forEach(b => active.push(Object.assign({slot: si, base: b}, STAR_OPEN[si][b]))));
+  active.sort((a, b) => b.ts - a.ts);
   const closed = STAR_LOG.slice().sort((a, b) => b.ts - a.ts);
   if (!active.length && !closed.length) { body.innerHTML = '<tr><td colspan="9" class="flog-empty">Пока пусто — сигналов * ещё не было</td></tr>'; return; }
   const hd = cols => '<tr class="flog-subhd">' + cols.map(c => '<td>' + c + '</td>').join("") + '</tr>';
-  let html = starStatsHtml();   // шапка-статистика (green% / база / edge / индикаторы) — сверху
+  const shD = d => (d || "").replace(/^20/, "");                                          // 2026-08-06 → 26-08-06
+  const openDT = (date, time) => '<td class="stc-dt">' + shD(date) + '<br>' + (time || "") + '</td>';   // «Открытие»: дата / время (2 строки)
+  const entryCell = (price, fr) => '<td>' + fmtPrice(price) + (fr ? '<br><span class="stc-fr">' + fr + '</span>' : '') + '</td>';   // «Цена входа»: цена / фрейм(ы) 2-й строкой
+  // настройки кейса — 3 компактные колонки: %P цель роста · WT окно слежения · %E порог входа TSumm (снимок, по которому вошли — для анализа)
+  const setCells = (winMs, target, thr) =>
+    '<td class="stc-s ss-tg" title="цель роста к цене, %">' + (target != null ? target : STAR_GROWTH) + '</td>' +
+    '<td class="stc-s ss-wn" title="окно слежения">' + fmtWin(winMs) + '</td>' +
+    '<td class="stc-s ss-th" title="порог входа мониторинга (TSumm), %">' + (thr != null ? thr : STAR_THRESHOLD) + '</td>';
+  const setHds = ['<span title="цель роста к цене, %">%P</span>', '<span title="окно слежения">WT</span>', '<span title="порог входа мониторинга (TSumm), %">%E</span>'];
+  let html = "";   // статистика теперь в шапке-боксе, не в таблице
   if (active.length) {
-    html += hd(["Итог", "Открытие", "Монета", "Цена входа", "Фрейм", "Окно", "Цена текущая", "Осталось", "Закрытие"]);
+    html += hd(["Монета", "Открытие", "Цена входа"].concat(setHds).concat(["Цена текущая", "Осталось", "Закрытие"]));
     html += active.map(p => {
       const cur = (COINS.find(x => x.base === p.base) || {}).price;
       const end = starDeadlineOf(p);   // индивидуальный дедлайн кейса
       const curCls = (cur != null && p.price) ? (cur >= p.price ? "pos" : "neg") : "";   // зелёный выше входа / красный ниже
-      let row = '<tr class="flog-buy"><td><span class="flog-tag" style="background:rgba(79,156,247,.22);color:var(--accent);">🟦 в процессе</span> ' +
-        '<button class="star-edit" data-edit="' + p.base + '" title="Изменить срок мониторинга">✎</button> ' +
-        '<button class="star-del" data-del="' + p.base + '" title="Удалить мониторинг (без записи в лог)">✕</button></td>' +
-        '<td style="white-space:nowrap;">' + p.date + '<br><span style="color:var(--muted);font-size:11px;">' + p.time + '</span></td>' +
-        '<td style="font-weight:600;">' + p.base + '</td><td>' + fmtPrice(p.price) + '</td>' +
-        '<td style="color:var(--muted);">' + (p.frames || "") + '</td>' +
-        '<td style="color:var(--muted);">' + fmtWin(end - p.ts) + '</td>' +
+      const sTgt = p.snap && p.snap.target != null ? p.snap.target : STAR_GROWTH;   // настройки, по которым вошли (снимок)
+      const sWin = p.snap && p.snap.winMs != null ? p.snap.winMs : (end - p.ts);
+      const sThr = p.snap && p.snap.thr != null ? p.snap.thr : STAR_THRESHOLD;
+      const eid = p.slot + "|" + p.base;   // идентичность кейса = слот|монета (одна монета может быть в неск. слотах)
+      let row = '<tr><td class="stc stc-open"><div class="stc-cell"><span class="star-coin" data-coin="' + p.base + '" title="Показать монету в таблице и панели">' + p.base + '</span>' +
+        '<span class="stc-btns"><button class="star-edit" data-edit="' + eid + '" title="Изменить срок мониторинга">✎</button>' +
+        '<button class="star-del" data-del="' + eid + '" title="Удалить мониторинг (без записи в лог)">✕</button></span></div></td>' +
+        openDT(p.date, p.time) +
+        entryCell(p.price, p.frames) +
+        setCells(sWin, sTgt, sThr) +
         '<td class="' + curCls + '" style="font-weight:600;">' + fmtPrice(cur) + '</td>' +
         '<td class="star-left" data-end="' + end + '">' + fmtLeft(end - Date.now()) + '</td>' +
         '<td style="color:var(--muted);">—</td></tr>';
-      if (p.base === _starEditBase) {   // inline-редактор индивидуального срока
+      if (eid === _starEditBase) {   // inline-редактор индивидуального срока
         row += '<tr class="star-edit-row"><td colspan="9">' +
           '<span class="star-edit-lbl">Мониторить до:</span> ' +
           '<input type="datetime-local" class="star-dl-in" value="' + toLocalDT(end) + '" min="' + toLocalDT(Date.now()) + '"> ' +
-          '<button class="btn-sm star-apply" data-apply="' + p.base + '">Применить</button> ' +
+          '<button class="btn-sm star-apply" data-apply="' + eid + '">Применить</button> ' +
           '<button class="btn-sm star-cancel">Отмена</button> ' +
           '<span class="star-dl-hint"></span></td></tr>';
       }
@@ -1864,22 +2164,23 @@ function renderStarLog() {
     }).join("");
   }
   if (closed.length) {
-    html += hd(["Итог", "Открытие", "Монета", "Цена входа", "Фрейм", "Окно", "Цена закрытия", "Закрылось за", "Закрытие"]);
-    html += closed.map(r => {
-      const tag = r.outcome === "green"
-        ? '<span class="flog-tag buy">🟩 сработал</span>'
-        : '<span class="flog-tag anl" style="background:var(--chip-dn);color:var(--red);">🟥 не дошёл</span>';
+    const flt = '<span class="stlf">' +
+      '<label class="stlf-g' + (STAR_LOG_F.green ? ' on' : '') + '" title="показывать 🟩 сработавшие (в плюсе)"><input type="checkbox" class="stlf-cb" data-lf="green"' + (STAR_LOG_F.green ? ' checked' : '') + '>🟩</label>' +
+      '<label class="stlf-r' + (STAR_LOG_F.red ? ' on' : '') + '" title="показывать 🟥 не дошедшие (в минусе)"><input type="checkbox" class="stlf-cb" data-lf="red"' + (STAR_LOG_F.red ? ' checked' : '') + '>🟥</label></span>';
+    html += hd(["Монета " + flt, "Открытие", "Цена входа"].concat(setHds).concat(["Цена закрытия", "Закрылось за", "Закрытие"]));
+    html += closed.filter(r => STAR_LOG_F[starOutcome(r)]).map(r => {
       const clsClose = (r.closePrice != null && r.entryPrice != null) ? (r.closePrice >= r.entryPrice ? "pos" : "neg") : "";
       const dur = (r.entryTs && r.ts) ? fmtLeft(r.ts - r.entryTs) : "—";   // за сколько закрылось (вход → закрытие)
       const cd = fmtCloseDT(r.ts);
-      return '<tr class="' + (r.outcome === "green" ? "flog-buy" : "") + '"><td>' + tag + '</td>' +
-        '<td style="white-space:nowrap;">' + r.date + '<br><span style="color:var(--muted);font-size:11px;">' + r.time + '</span></td>' +
-        '<td style="font-weight:600;">' + r.base + '</td><td>' + fmtPrice(r.entryPrice) + '</td>' +
-        '<td style="color:var(--muted);">' + (r.frames || "") + '</td>' +
-        '<td style="color:var(--muted);">' + fmtWin(r.winMs) + '</td>' +
+      const rThr = r.thr != null ? r.thr : (r.snap && r.snap.thr != null ? r.snap.thr : STAR_THRESHOLD);   // порог входа (снимок; фолбэк для старых записей)
+      return '<tr><td class="stc stc-' + starOutcome(r) + '"><div class="stc-cell"><span class="star-coin" data-coin="' + r.base + '" title="Показать монету в таблице и панели">' + r.base + '</span>' +
+        '<span class="stc-btns"><button class="star-logdel" data-logdel="' + STAR_LOG.indexOf(r) + '" title="Удалить запись из хронологии">✕</button></span></div></td>' +
+        openDT(r.date, r.time) +
+        entryCell(r.entryPrice, r.frames) +
+        setCells(r.winMs, r.target, rThr) +
         '<td class="' + clsClose + '" style="font-weight:600;">' + fmtPrice(r.closePrice) + '</td>' +
         '<td style="color:var(--text2);">' + dur + '</td>' +
-        '<td style="color:var(--muted);font-size:11px;white-space:nowrap;">' + cd.date + '<br>' + cd.time + '</td></tr>';
+        '<td class="stc-dt' + (starHitTarget(r) ? ' stc-dt-hit' : '') + '">' + shD(cd.date) + '<br>' + cd.time + '</td></tr>';
     }).join("");
   }
   body.innerHTML = html;
@@ -1896,7 +2197,81 @@ document.getElementById("btnStarLog").addEventListener("click", () => {
 });
 document.getElementById("starLogClose").addEventListener("click", closeStarLog);
 backdropClose(starOverlay, closeStarLog);
+// 🗑 сброс для чистого нового теста: история + активные + дедуп + база (настройки режимов и колонки не трогаем)
+document.getElementById("starReset").addEventListener("click", () => {
+  const nOpen = STAR_OPEN.reduce((a, m) => a + Object.keys(m).length, 0), nLog = STAR_LOG.length;
+  if (!confirm("Сбросить измерение для нового теста?\n\nУдалить безвозвратно:\n• история закрытых кейсов: " + nLog + "\n• активные мониторинги: " + nOpen + "\n• состояние дедупа по монетам\n• посчитанная база\n\nНастройки режимов «*» и колонки НЕ трогаются.")) return;
+  STAR_LOG = [];
+  STAR_OPEN  = [{}, {}, {}, {}];
+  STAR_STATE = [{}, {}, {}, {}];
+  STAR_PREV  = [{}, {}, {}, {}];
+  saveStar();
+  BASELINE_STAT = null; store.set("rsi_baseline_stat", null);   // null = удалить ключ базы
+  if (selectedSym) updateStarBlock(selectedSym.replace(/USDT$/, ""));
+  render(); renderStarLog();
+});
+// конфиг входа «*» (правый блок) + «Посчитать базу» (левый блок) — живое применение
+(function initStarCfg() {
+  const box = document.getElementById("starCfgBox"), sbox = document.getElementById("starStatsBox");
+  const q  = (i, sel) => box.querySelector('[data-slot="' + i + '"]' + sel);
+  const qa = (i, sel) => [...box.querySelectorAll('[data-slot="' + i + '"]' + sel)];
+  const draftWinMsSlot = i => { const wd = Math.max(0, Math.round(Number(q(i, '[data-f="winD"]').value) || 0)), wh = Math.max(0, Math.round(Number(q(i, '[data-f="winH"]').value) || 0)); return Math.max(3600000, wd * 86400000 + wh * 3600000); };
+  const setFrameChecksSlot = (i, set) => qa(i, '[data-sfr]').forEach(c => c.checked = set.has(c.getAttribute("data-sfr")));
+  const updateRelDotsSlot = i => { const rel = frameReled(draftWinMsSlot(i) / 3600000); qa(i, '[data-sfr]').forEach(cb => { const r = rel[cb.getAttribute("data-sfr")]; const lb = cb.closest(".scfg-fr"); if (lb) lb.title = r.tier + " — вес " + r.pct + "% для окна"; }); };
+  const markDirty = () => { _starCfgDirty = true; const b = document.getElementById("scfgApply"); if (b) b.classList.remove("clean"); };
+  if (box) {
+    box.addEventListener("change", e => {
+      const t = e.target, sl = t.getAttribute("data-slot"), f = t.getAttribute("data-f");
+      if (sl != null && (f === "winD" || f === "winH")) { setFrameChecksSlot(sl, starFramesAuto(draftWinMsSlot(sl))); updateRelDotsSlot(sl); }   // окно слота → авто-фреймы (в черновике)
+      if (t.classList.contains("scfg-on")) { const slot = t.closest(".scfg-slot"); if (slot) slot.classList.toggle("on", t.checked); }
+      markDirty();
+    });
+    box.addEventListener("click", e => {
+      const bt = e.target.closest(".scfg-collapse");   // общее сворачивание блока настроек (без ре-рендера — черновик сохраняется)
+      if (bt) { _starCfgCollapsed = !_starCfgCollapsed; box.classList.toggle("scfg-box-collapsed", _starCfgCollapsed); bt.textContent = _starCfgCollapsed ? "▸" : "▾"; return; }
+      const st = e.target.closest(".scfg-slot-tg");   // сворачивание отдельного слота 2/3/4
+      if (st) { const i = +st.getAttribute("data-slottg"); _slotCollapsed[i] = !_slotCollapsed[i]; const slot = st.closest(".scfg-slot"); if (slot) slot.classList.toggle("collapsed", _slotCollapsed[i]); st.textContent = _slotCollapsed[i] ? "▸" : "▾"; return; }
+      if (!e.target.closest(".scfg-apply-main")) return;
+      // ПРИМЕНИТЬ — коммитим черновик всех 4 слотов из полей в живой конфиг STAR_CFGS
+      const numOf = (i, f, def, lo, hi) => { const el = q(i, '[data-f="' + f + '"]'); const v = Math.round(Number(el && el.value)); return isNaN(v) ? def : Math.max(lo, Math.min(hi, v)); };
+      STAR_CFGS = [0,1,2,3].map(i => {
+        const on = !!q(i, ".scfg-on").checked;
+        let winD = numOf(i, "winD", 0, 0, 30), winH = numOf(i, "winH", 0, 0, 23);
+        if (winD === 0 && winH === 0) winH = 1;
+        const thr = numOf(i, "thr", 75, 50, 99), growth = numOf(i, "gr", 5, 1, 100);
+        let frames = qa(i, '[data-sfr]:checked').map(c => c.getAttribute("data-sfr"));
+        if (!frames.length) frames = [...starFramesAuto(Math.max(3600000, winD * 86400000 + winH * 3600000))];
+        const ind = qa(i, '[data-sind]:checked').map(c => c.getAttribute("data-sind"));
+        return { on, winD, winH, thr, growth, frames, ind };
+      });
+      syncLegacyFromSlot0();
+      SETTINGS.starWindowDays = STAR_WINDOW_D; SETTINGS.starWindowHours = STAR_WINDOW_H; SETTINGS.starThreshold = STAR_THRESHOLD; SETTINGS.starGrowth = STAR_GROWTH;
+      store.set("rsi_settings", SETTINGS); saveStarCfg();
+      _starCfgDirty = false;
+      renderStarLog(); render();   // конфиг перерисуется чистым (кнопка снова с ✓), таблица — с новыми колонками слотов
+    });
+  }
+  if (sbox) sbox.addEventListener("click", e => {
+    if (e.target.closest(".ss-toggle")) { _starStatsCollapsed = !_starStatsCollapsed; renderStarLog(); return; }
+    const baseBtn = e.target.closest(".ss-base-btn");
+    if (!baseBtn || _baselineBusy) return;
+    baseBtn.disabled = true; baseBtn.textContent = "Считаю…";
+    computeBaseline((done, tot) => { baseBtn.textContent = "Считаю… " + done + "/" + tot; })
+      .then(() => renderStarLog())
+      .catch(() => { baseBtn.disabled = false; baseBtn.textContent = "Ошибка — повторить"; });
+  });
+})();
+document.getElementById("starLogBody").addEventListener("change", e => {   // фильтр 🟩/🟥 в заголовке «Монета»
+  const cb = e.target.closest(".stlf-cb");
+  if (cb) { STAR_LOG_F[cb.getAttribute("data-lf")] = cb.checked; renderStarLog(); }
+});
 document.getElementById("starLogBody").addEventListener("click", e => {
+  const coinLink = e.target.closest(".star-coin");
+  if (coinLink) {   // клик по монете → закрыть лог и открыть её в таблице+панели
+    const coin = COINS.find(x => x.base === coinLink.getAttribute("data-coin"));
+    if (coin) { closeStarLog(); openPanel(coin.sym); }
+    return;
+  }
   const baseBtn = e.target.closest(".ss-base-btn");
   if (baseBtn) {   // посчитать контроль-базу по истории свечей (случайные монеты, те же окно/цель)
     if (_baselineBusy) return;
@@ -1908,10 +2283,16 @@ document.getElementById("starLogBody").addEventListener("click", e => {
   }
   const del = e.target.closest(".star-del");
   if (del) {   // удалить мониторинг без записи в лог; не переоткрывать, пока монета в зоне
-    const b = del.getAttribute("data-del");
-    delete STAR_OPEN[b]; STAR_STATE[b] = "dismissed"; _starEditBase = null; saveStar();
+    const [si, b] = del.getAttribute("data-del").split("|");
+    delete STAR_OPEN[+si][b]; STAR_STATE[+si][b] = "dismissed"; _starEditBase = null; saveStar();
     if (selectedSym && selectedSym.replace(/USDT$/, "") === b) updateStarBlock(b);
     render(); renderStarLog();
+    return;
+  }
+  const logdel = e.target.closest(".star-logdel");
+  if (logdel) {   // удалить ОТРАБОТАННУЮ запись из хронологии
+    const i = +logdel.getAttribute("data-logdel");
+    if (i >= 0 && i < STAR_LOG.length) { STAR_LOG.splice(i, 1); saveStar(); renderStarLog(); }
     return;
   }
   const ed = e.target.closest(".star-edit");
@@ -1919,11 +2300,11 @@ document.getElementById("starLogBody").addEventListener("click", e => {
   if (e.target.closest(".star-cancel")) { _starEditBase = null; renderStarLog(); return; }
   const apply = e.target.closest(".star-apply");
   if (apply) {
-    const b = apply.getAttribute("data-apply");
+    const [si, b] = apply.getAttribute("data-apply").split("|");
     const inp = document.querySelector("#starLogBody .star-dl-in");
     const ms = inp && inp.value ? new Date(inp.value).getTime() : NaN;
     if (!(ms > Date.now())) return;   // в прошлое нельзя
-    if (STAR_OPEN[b]) { STAR_OPEN[b].deadline = ms; saveStar(); }
+    if (STAR_OPEN[+si][b]) { STAR_OPEN[+si][b].deadline = ms; saveStar(); }
     _starEditBase = null;
     if (selectedSym && selectedSym.replace(/USDT$/, "") === b) updateStarBlock(b);
     render(); renderStarLog();
@@ -1947,21 +2328,30 @@ function renderPortfolio() {
   const active = Object.keys(PORTFOLIO).map(b => Object.assign({base: b}, PORTFOLIO[b])).sort((a, b) => b.ts - a.ts);
   const closed = PORTFOLIO_LOG.slice().sort((a, b) => b.exitTs - a.exitTs);
   if (!active.length && !closed.length) {
-    body.innerHTML = '<tr><td colspan="8" class="flog-empty">Портфель пуст — отметь монету кнопкой «В портфель» в боковой панели</td></tr>';
+    body.innerHTML = '<tr><td colspan="9" class="flog-empty">Портфель пуст — отметь монету кнопкой «В портфель» в боковой панели</td></tr>';
     return;
   }
   const pct = (entry, cur) => { if (entry == null || cur == null) return "—"; const d = (cur / entry - 1) * 100; return '<span class="' + (d >= 0 ? "pos" : "neg") + '">' + (d >= 0 ? "+" : "") + d.toFixed(1) + '%</span>'; };
+  // ячейка «вероятность пробоя вверх» по 3 фреймам (сигнал к выходу): чем выше — тем ближе пик
+  const upCell = (co) => {
+    const one = (f) => { const pr = upProbOf(co, f); if (pr == null) return '<span class="mut">—</span>';
+      const cls = pr >= 75 ? 'atr-hi' : pr >= 40 ? 'atr-mid' : 'atr-lo'; return '<span class="' + cls + '">' + pr + '</span>'; };
+    return '<span class="pf-up">' + one('1h') + ' ' + one('4h') + ' ' + one('12h') + '</span>';
+  };
   let html = active.map(p => {
-    const cur = (COINS.find(x => x.base === p.base) || {}).price;
+    const co = COINS.find(x => x.base === p.base) || {};
+    const cur = co.price;
     return '<tr class="flog-buy"><td><input type="checkbox" class="pf-chk" data-pf="' + p.base + '" checked title="снять из портфеля"></td>' +
       '<td>' + p.date + '</td><td>' + p.time + '</td><td style="font-weight:600;">' + p.base + '</td>' +
       '<td>' + fmtPrice(p.price) + '</td><td>' + fmtPrice(cur) + '</td><td>' + pct(p.price, cur) + '</td>' +
+      '<td>' + upCell(co) + '</td>' +
       '<td><span class="flog-tag buy">🟢 в портфеле</span></td></tr>';
   }).join("");
   html += closed.map(p =>
     '<tr><td style="color:var(--faint);">—</td><td>' + p.entryDate + '</td><td>' + p.entryTime + '</td>' +
     '<td style="font-weight:600;color:var(--muted);">' + p.base + '</td><td>' + fmtPrice(p.entryPrice) + '</td>' +
     '<td>' + fmtPrice(p.exitPrice) + '</td><td>' + pct(p.entryPrice, p.exitPrice) + '</td>' +
+    '<td class="mut">—</td>' +
     '<td style="color:var(--muted);font-size:11px;">закрыто ' + p.exitDate + ' ' + p.exitTime + '</td></tr>'
   ).join("");
   body.innerHTML = html;
@@ -2042,6 +2432,19 @@ function makeMovableWindow(box, header, key) {
   const header = box && box.querySelector(".flog-hd, .set-hd");
   if (box && header) makeMovableWindow(box, header, key);
 });
+// фикс скролла попапов: пока любое попап-окно открыто, колёсико всегда крутит его скролл-контейнер
+// (иначе первый wheel сразу после открытия не работал — браузер держал «наведение» на фоне до клика/ресайза)
+window.addEventListener("wheel", e => {
+  const specs = [["starOverlay", ".flog-scroll"], ["flogOverlay", ".flog-scroll"], ["pfOverlay", ".flog-scroll"], ["indOverlay", "#indList"], ["setOverlay", ".set-body"]];
+  for (const [id, sel] of specs) {
+    const ov = document.getElementById(id);
+    if (ov && ov.style.display === "flex") {
+      const sc = ov.querySelector(sel);
+      if (sc && sc.scrollHeight > sc.clientHeight + 1) { sc.scrollTop += e.deltaY; e.preventDefault(); }
+      return;
+    }
+  }
+}, {passive: false});
 
 // кнопки фрейм-фильтра 1H/4H/12H в шапке (синхронны с попапом Indicators)
 syncFrameButtons();
@@ -2064,7 +2467,9 @@ const IND_LIST = [
   {key:"ema",  name:"EMA-тренд (EMA 9/21)"},
   {key:"ce",   name:"Chandelier Exit — ATR-трейлинг-стоп"},
   {key:"div",  name:"Дивергенция (RSI против цены)"},
-  {key:"atrb", name:"ATR-дно (свежий разворот снизу)"},
+  {key:"atrb", name:"ATR-дно (цена ниже нормы EMA20−2·ATR)"},
+  {key:"cph",  name:"Cipher B — дивергенция WaveTrend"},
+  {key:"hgd",  name:"Гистограмма MACD — дивергенция"},
 ];
 function buildIndPopup() {
   document.getElementById("indList").innerHTML = IND_LIST.map(o =>
@@ -2082,7 +2487,7 @@ indOverlay.addEventListener("change", e => {
   saveCols(); buildIndPopup(); render();
 });
 // колёсико крутит только список, не сайт за попапом
-indOverlay.addEventListener("wheel", e => { if (!e.target.closest("#indList")) e.preventDefault(); }, {passive:false});
+// (скролл попапа колёсиком — теперь глобальным обработчиком выше)
 document.getElementById("flogClose").addEventListener("click", closeFireLog);
 backdropClose(flogOverlay, closeFireLog);
 document.querySelectorAll(".flog-tbl th.srt").forEach(th => th.addEventListener("click", () => {

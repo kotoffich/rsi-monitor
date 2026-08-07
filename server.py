@@ -250,34 +250,114 @@ def _divergence(closes, rsis):
     return 0
 
 
-def _atr_bottom(kl, atrs, look=20, recent=6, k=1.2):
-    """Приближение 'Дно по ATR': СВЕЖИЙ минимум (в последних `recent` барах) + отскок на k·ATR. 1 дно / 0 нет."""
-    if atrs is None or len(kl) < look + 2:
+def _atr_bottom(kl, atrs, ma_period=20, k=2.0):
+    """'Дно по ATR' (Pifagor): цена «оторвана вниз от нормы».
+    Норма = EMA(ma_period), нижняя ATR-полоса = норма - k·ATR.
+    По автору индикатора: всё, что НИЖЕ линии — зона покупки (девиация от нормы,
+    из которой актив обычно возвращается к норме). 1 = свеча закрылась на/ниже полосы, иначе 0.
+    Множитель/период — дефолтные приближения (исходник закрыт); интервал данных задаёт вызывающий фрейм."""
+    if atrs is None or len(kl) < ma_period + 1:
         return 0
-    lows = [float(x[3]) for x in kl]
     closes = [float(x[4]) for x in kl]
     a = atrs[-1]
     if a is None or a == 0:
         return 0
-    seg = lows[-look:]
-    recent_low = min(seg)
-    low_idx = len(lows) - look + seg.index(recent_low)
-    # дно = минимум последних `look` баров пришёлся на последние `recent` баров, но не на текущий, и цена отскочила на k·ATR
-    if len(lows) - recent <= low_idx <= len(lows) - 2 and (closes[-1] - recent_low) >= k * a:
-        return 1
+    norm = _ema_last(closes, ma_period)
+    if norm is None or norm == 0:
+        return 0
+    band = norm - k * a
+    return 1 if closes[-1] <= band else 0
+
+
+def _ema_series(values, period):
+    """EMA всего ряда (индексы совпадают с values). Ведущие None пропускаются до накопления `period` чисел."""
+    out = [None] * len(values)
+    buf, e = [], None
+    k = 2.0 / (period + 1)
+    for i, v in enumerate(values):
+        if v is None:
+            continue
+        if e is None:
+            buf.append(v)
+            if len(buf) == period:
+                e = sum(buf) / period
+                out[i] = e
+        else:
+            e = v * k + e * (1 - k)
+            out[i] = e
+    return out
+
+
+def _div_from_series(closes, osc, left=3, right=3, min_gap=3):
+    """Обобщённая дивергенция: два последних свинг-лоу/хай цены против произвольного осциллятора.
+    1 бычья (цена ниже-низ, осц. выше-низ) / -1 медвежья (цена выше-верх, осц. ниже-верх) / 0."""
+    if osc is None or len(closes) < 40:
+        return 0
+    lows = _pivot_lows(closes, left, right)
+    highs = _pivot_lows([-c for c in closes], left, right)
+    if len(lows) >= 2:
+        a, b = lows[-2], lows[-1]
+        if b - a >= min_gap and closes[b] < closes[a] and osc[a] is not None and osc[b] is not None and osc[b] > osc[a]:
+            return 1
+    if len(highs) >= 2:
+        a, b = highs[-2], highs[-1]
+        if b - a >= min_gap and closes[b] > closes[a] and osc[a] is not None and osc[b] is not None and osc[b] < osc[a]:
+            return -1
     return 0
 
 
+def _wavetrend(kl, n1=10, n2=21):
+    """WaveTrend — ядро VuManChu Cipher B. Возвращает ряд wt1 (индексы совпадают с kl)."""
+    if len(kl) < n1 + n2 + 5:
+        return None
+    hlc3 = [(float(k[2]) + float(k[3]) + float(k[4])) / 3.0 for k in kl]
+    esa = _ema_series(hlc3, n1)
+    dev_in = [abs(hlc3[i] - esa[i]) if esa[i] is not None else None for i in range(len(hlc3))]
+    de = _ema_series(dev_in, n1)
+    ci = []
+    for i in range(len(hlc3)):
+        if esa[i] is None or de[i] is None or de[i] == 0:
+            ci.append(None)
+        else:
+            ci.append((hlc3[i] - esa[i]) / (0.015 * de[i]))
+    return _ema_series(ci, n2)   # wt1
+
+
+def _cipher_div(kl):
+    """VMC Cipher B — дивергенция WaveTrend против цены. 1 бычья / -1 медвежья / 0."""
+    wt = _wavetrend(kl)
+    if wt is None:
+        return 0
+    closes = [float(k[4]) for k in kl]
+    return _div_from_series(closes, wt)
+
+
+def _macd_hist(closes, fast=12, slow=26, sig=9):
+    """Гистограмма MACD (macd - signal), весь ряд."""
+    if len(closes) < slow + sig + 5:
+        return None
+    ef, es = _ema_series(closes, fast), _ema_series(closes, slow)
+    macd = [(ef[i] - es[i]) if (ef[i] is not None and es[i] is not None) else None for i in range(len(closes))]
+    signal = _ema_series(macd, sig)
+    return [(macd[i] - signal[i]) if (macd[i] is not None and signal[i] is not None) else None for i in range(len(closes))]
+
+
+def _hist_div(closes):
+    """Дивергенция гистограммы MACD против цены. 1 бычья / -1 медвежья / 0."""
+    return _div_from_series(closes, _macd_hist(closes))
+
+
 def _klines_inds(kl):
-    """Пакет доп. индикаторов из свечей: EMA-тренд / CE / дивергенция / ATR-дно."""
+    """Пакет доп. индикаторов из свечей: EMA-тренд / CE / RSI-дивергенция / ATR-дно / Cipher-B-див / MACD-hist-див."""
     try:
         closes = [float(k[4]) for k in kl]
         atrs = _atr_series(kl)
         rsis = _rsi_series(closes)
         return {"ema": _ema_trend(closes), "ce": _chandelier(kl),
-                "div": _divergence(closes, rsis), "atrb": _atr_bottom(kl, atrs)}
+                "div": _divergence(closes, rsis), "atrb": _atr_bottom(kl, atrs),
+                "cph": _cipher_div(kl), "hgd": _hist_div(closes)}
     except Exception:
-        return {"ema": None, "ce": None, "div": 0, "atrb": 0}
+        return {"ema": None, "ce": None, "div": 0, "atrb": 0, "cph": 0, "hgd": 0}
 
 
 def kl12h_for(bases) -> dict:
@@ -628,6 +708,8 @@ def fetch_top100() -> dict:
         c["ce12"] = info.get("ce")
         c["div12"] = info.get("div")
         c["atrb12"] = info.get("atrb")
+        c["cph12"] = info.get("cph")
+        c["hgd12"] = info.get("hgd")
         d1 = atr1.get(c["base"]) or {}
         d4 = atr4.get(c["base"]) or {}
         c["atr1"] = d1.get("atr")
@@ -636,6 +718,8 @@ def fetch_top100() -> dict:
         c["ce1"] = d1.get("ce");    c["ce4"] = d4.get("ce")
         c["div1"] = d1.get("div");  c["div4"] = d4.get("div")
         c["atrb1"] = d1.get("atrb"); c["atrb4"] = d4.get("atrb")
+        c["cph1"] = d1.get("cph");  c["cph4"] = d4.get("cph")
+        c["hgd1"] = d1.get("hgd");  c["hgd4"] = d4.get("hgd")
 
     return {
         "updated": time.strftime("%H:%M:%S"),
@@ -941,6 +1025,96 @@ def api_state_promote():
     return JSONResponse({"ok": ok, "keys": len(live)})
 
 
+# ---- досчёт открытых кейсов «*» при запуске сервера (ловит простой/сон/пуш — без браузера) ----
+def _star_close_rec(o, b, outcome, close_ts, close_price, slot=0):
+    snap = o.get("snap") or {}
+    win = snap.get("winMs")
+    if win is None and o.get("deadline") and o.get("ts"):
+        win = o["deadline"] - o["ts"]
+    return {"slot": slot, "ts": close_ts, "base": b, "date": o.get("date"), "time": o.get("time"),
+            "entryPrice": o.get("price"), "frames": o.get("frames"), "outcome": outcome,
+            "closePrice": close_price, "entryTs": o.get("ts"), "snap": snap or None,
+            "target": snap.get("target"), "thr": snap.get("thr"), "winMs": win}
+
+
+def _sweep_open_map(open_cases, log, state, now, slot):
+    """досчёт одной карты открытых кейсов base→кейс (один слот). Возвращает True, если были закрытия."""
+    changed = False
+    for b, o in list(open_cases.items()):
+        try:
+            ts, price = o.get("ts"), o.get("price")
+            snap = o.get("snap") or {}
+            growth = snap.get("target")
+            deadline = o.get("deadline") or ((ts + (snap.get("winMs") or 0)) if ts else 0)
+            if not ts or not price or growth is None or not deadline:
+                continue
+            target = price * (1.0 + growth / 100.0)
+            until = min(now, deadline)
+            span_h = max(0.01, (until - ts) / 3600000.0)
+            interval = "15m" if span_h <= 48 else "1h"
+            kl = _binance_klines(b + "USDT", interval, 1000, start=ts, end=until)
+            hit_ts = None
+            for k in kl:
+                if float(k[2]) >= target:          # HIGH достиг цели → green по факту
+                    hit_ts = int(k[6]); break
+            if hit_ts:
+                log.append(_star_close_rec(o, b, "green", hit_ts, target, slot))
+                open_cases.pop(b, None); state[b] = "green"; changed = True
+            elif now >= deadline:                   # окно прошло → по цене закрытия (плюс=green / минус=red)
+                final = float(kl[-1][4]) if kl else price
+                outcome = "green" if final >= price else "red"
+                log.append(_star_close_rec(o, b, outcome, now, final, slot))
+                open_cases.pop(b, None); state[b] = outcome; changed = True
+            # иначе — ещё в окне, цель не достигнута — оставляем открытым
+        except Exception:
+            continue
+    return changed
+
+
+def star_startup_sweep():
+    """При запуске сервера досчитываем открытые «*» по истории свечей (простой/сон сервера, кейсы из пуша).
+    Достиг цели +% в окне → green по факту (hitTs); окно прошло → green если close≥вход, иначе red;
+    ещё в окне и не достиг → оставляем открытым. Пишем обратно в state.json (мержим по звёздным ключам)."""
+    try:
+        st = load_state()   # живое, иначе дефолт (важно для свежего Рендера — со всеми ключами вида)
+    except Exception:
+        return
+    opens = st.get("rsi_star_open")
+    if not opens:
+        return
+    log = st.get("rsi_star_log") or []
+    now = int(time.time() * 1000)
+    changed = False
+    if isinstance(opens, list):                      # новый формат: массив из 4 слотов-режимов
+        states = st.get("rsi_star_state")
+        if not isinstance(states, list):
+            states = [{}, {}, {}, {}]
+        while len(states) < len(opens):
+            states.append({})
+        for si, oc in enumerate(opens):
+            if isinstance(oc, dict) and oc:
+                stmap = states[si] if isinstance(states[si], dict) else {}
+                states[si] = stmap
+                if _sweep_open_map(oc, log, stmap, now, si):
+                    changed = True
+        if changed:
+            st["rsi_star_open"] = opens; st["rsi_star_log"] = log; st["rsi_star_state"] = states
+            _save_json_file(STATE_FILE, st)          # на старте браузер ещё не подключён — гонки нет; сохраняем все ключи
+    else:                                            # старый плоский формат {base: кейс} — слот 0
+        state = st.get("rsi_star_state")
+        if not isinstance(state, dict):
+            state = {}
+        if _sweep_open_map(opens, log, state, now, 0):
+            st["rsi_star_open"] = opens; st["rsi_star_log"] = log; st["rsi_star_state"] = state
+            _save_json_file(STATE_FILE, st)
+
+
+@app.on_event("startup")
+def _on_startup():
+    import threading
+    threading.Thread(target=star_startup_sweep, daemon=True).start()   # в фоне, чтобы не тормозить старт
+
+
 @app.get("/api/klhigh")
 def api_klhigh(symbol: str = "", since: int = 0, until: int = 0, target: float = 0.0):
     """Максимум HIGH по свечам в интервале [since, until] мс — валидация выхода «*» по истории.
@@ -1004,8 +1178,12 @@ def api_klbase(symbol: str = "", since: int = 0, until: int = 0, targetpct: floa
     if entry <= 0:
         return JSONResponse({"valid": False, "error": "entry<=0"})
     target = entry * (1.0 + targetpct / 100.0)
-    hit = any(float(k[2]) >= target for k in kl)      # достигал ли HIGH цели за окно
-    return JSONResponse({"valid": True, "entry": entry, "target": target, "hit": hit})
+    hit = any(float(k[2]) >= target for k in kl)      # достигал ли HIGH цели за окно (досрочный «плюс»)
+    final_close = float(kl[-1][4])                    # close последней свечи окна
+    pos_end = final_close >= entry                    # «в плюсе» к концу окна
+    green = bool(hit or pos_end)                      # итог как у сигнала «*»: цель ИЛИ плюс к концу окна
+    return JSONResponse({"valid": True, "entry": entry, "target": target, "hit": hit,
+                         "posEnd": pos_end, "final": final_close, "green": green})
 
 
 if __name__ == "__main__":
